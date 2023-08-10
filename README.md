@@ -4,135 +4,133 @@
     <br>
     <h2>FaceChain</h2>
 <p>
+如果您熟悉中文，可以阅读[中文版本的README](./README_ZH.md)。
 
+# Introduction
 
+FaceChain is a deep learning model tool that can be used to create personal digital images. Users only need to provide at least one photo to obtain a personal digital avatar. FaceChain supports using model training and inference capabilities in the gradio interface, and also supports experienced developers to use python scripts for training and inference. At the same time, FaceChain welcomes developers to continue to develop and contribute to this Repo.
 
-# 介绍
+You can also directly experience this technology in the [ModelScope Studio](https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary) without installing any software or code.
 
-FaceChain是一个可以用来打造个人数字形象的深度学习模型工具。用户仅需要提供最低三张照片即可获得独属于自己的个人形象数字替身。FaceChain支持在gradio的界面中使用模型训练和推理能力，也支持资深开发者使用python脚本进行训练推理。同时，FaceChain欢迎开发者对本Repo进行继续开发和贡献。
+The FaceChain model is supported by the [ModelScope](https://github.com/modelscope/modelscope) open-source model community.
 
-您也可以在[ModelScope创空间](https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary)中直接体验这项技术而无需安装任何软件。
+# Installation
 
-FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开源模型社区提供支持。
-
-# 安装
-
-您也可以使用pip和conda搭建本地python环境，我们推荐使用[Anaconda](https://docs.anaconda.com/anaconda/install/)来管理您的依赖，安装完成后，执行如下命令：
+You can also use pip and conda to build a local python environment. We recommend using [Anaconda](https://docs.anaconda.com/anaconda/install/) to manage your dependencies. After installation, execute the following commands:
 
 ```shell
 conda create -n facechain python=3.8
 conda activate facechain
-```
+````
 
-或者，您可以使用ModelScope提供的官方镜像，这样您只需要安装gradio即可使用：
+Or, you can use the official image provided by ModelScope, so you only need to install gradio to use it:
 
 ```shell
 registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0
 ```
 
-将本仓库克隆到本地：
+Clone this repository to your local:
 
 ```shell
 git clone https://github.com/modelscope/facechain.git
 cd facechain
 ```
 
-安装依赖：
+Install dependencies:
 
 ```shell
-# 如果使用了官方镜像，只需要执行pip install gradio，不需要执行下面的pip安装命令
+# If you use the official image, you only need to execute pip install gradio, you do not need to execute the following pip installation command
 pip install -r requirements.txt
 ```
 
-运行gradio来生成个人数字形象：
+Run gradio to generate personal digital images:
 
 ```shell
 python app.py
 ```
 
-您可以看到log中的gradio启动日志，等待展示出http链接后，将http链接复制到浏览器中进行访问。之后在页面中点击“选择图片上传”，并选择最少一张包含人脸的图片。点击“开始训练”即可训练模型。训练完成后日志中会有对应展示，之后切换到“形象体验”标签页点击“开始推理”即可生成属于自己的数字形象。
+You can see the gradio startup log in the log. After the http link is displayed, copy the http link to the browser for access. Then click on "Select Image Upload" on the page, and select at least one picture containing a face. Click "Start Training" to train the model. After the training is completed, there will be a corresponding display in the log. Afterward, switch to the "Image Experience" tab and click "Start Inference" to generate your own digital image.
 
-# 脚本运行
+# Script Execution
 
-FaceChain支持在python环境中直接进行训练和推理。在克隆后的文件夹中直接运行如下命令来进行训练：
+FaceChain supports direct training and inference in the python environment. Run the following command in the cloned folder to start training:
 
 ```shell
 PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./output"
 ```
 
-参数含义：
+Parameter meaning:
 
 ```text
-ly261666/cv_portrait_model: ModelScope模型仓库的stable diffusion基模型，该模型会用于训练，可以不修改
-v2.0: 该基模型的版本号，可以不修改
-film/film: 该基模型包含了多个不同风格的子目录，其中使用了film/film目录中的风格模型，可以不修改
-./imgs: 本参数需要用实际值替换，本参数是一个本地文件目录，包含了用来训练和生成的原始照片
-./processed: 预处理之后的图片文件夹，这个参数需要在推理中被传入相同的值，可以不修改
-./output: 训练生成保存模型weights的文件夹，可以不修改
+ly261666/cv_portrait_model: The stable diffusion base model of the ModelScope model hub, which will be used for training, no need to be changed.
+v2.0: The version number of this base model, no need to be changed
+film/film: This base model may contains multiple subdirectories of different styles, currently we use film/film, no need to be changed
+./imgs: This parameter needs to be replaced with the actual value. It means a local file directory that contains the original photos used for training and generation
+./processed: The folder of the processed images after preprocessing, this parameter needs to be passed the same value in inference, no need to be changed
+./output: The folder where the model weights stored after training, no need to be changed
 ```
 
-等待5-20分钟即可训练完成。用户也可以调节其他训练超参数，训练支持的超参数可以查看`train_lora.sh`的配置，或者`face_chain/train_text_to_image_lora.py`中的完整超参数列表。
+Wait for 5-20 minutes to complete the training. Users can also adjust other training hyperparameters. The hyperparameters supported by training can be viewed in the file of `train_lora.sh`, or the complete hyperparameter list in `face_chain/train_text_to_image_lora.py`.
 
-进行推理时，请编辑run_inference.py中的代码:
+When inferring, please edit the code in run_inference.py:
 
 ```python
-# 填入上述的预处理之后的图片文件夹，需要和训练时相同
+# Fill in the folder of the images after preprocessing above, it should be the same as during training
 processed_dir = './processed'
-# 推理生成的图片数量
+# The number of images to generate in inference
 num_generate = 5
-# 训练时使用的stable diffusion基模型，可以不修改
+# The stable diffusion base model used in training, no need to be changed
 base_model = 'ly261666/cv_portrait_model'
-# 该基模型的版本号，可以不修改
+# The version number of this base model, no need to be changed
 revision = 'v2.0'
-# 该基模型包含了多个不同风格的子目录，其中使用了film/film目录中的风格模型，可以不修改
+# This base model may contains multiple subdirectories of different styles, currently we use film/film, no need to be changed
 base_model_sub_dir = 'film/film'
-# 训练生成保存模型weights的文件夹，需要保证和训练时相同
+# The folder where the model weights stored after training, it must be the same as during training
 train_output_dir = './output'
-# 指定一个保存生成的图片的文件夹，本参数可以根据需要修改
+# Specify a folder to save the generated images, this parameter can be modified as needed
 output_dir = './generated'
 ```
 
-之后执行：
+Then execute:
 
-```python
+```shell
 python run_inference.py
 ```
 
-即可在`output_dir`中找到生成的个人数字形象照片。
-                                             
-# 算法介绍
+You can find the generated personal digital image photos in the `output_dir`.
 
-## 基本原理：
+# Algorithm Introduction
 
-个人写真模型的能力来源于Stable Diffusion模型的文生图功能，输入一段文本或一系列提示词，输出对应的图像。我们考虑影响个人写真生成效果的主要因素：写真风格信息，以及用户人物信息。为此，我们分别使用线下训练的风格LoRA模型和线上训练的人脸LoRA模型以学习上述信息。LoRA是一种具有较少可训练参数的微调模型，在Stable Diffusion中，可以通过对少量输入图像进行文生图训练的方式将输入图像的信息注入到LoRA模型中。因此，个人写真模型的能力分为训练与推断两个阶段，训练阶段生成用于微调Stable Diffusion模型的图像与文本标签数据，得到人脸LoRA模型；推断阶段基于人脸LoRA模型和风格LoRA模型生成个人写真图像。  
-    
+## Principle:
+
+The ability of the personal portrait model comes from the text generation image function of the Stable Diffusion model. It inputs a piece of text or a series of prompt words and outputs corresponding images. We consider the main factors that affect the generation effect of personal portraits: portrait style information and user character information. For this, we use the style LoRA model trained offline and the face LoRA model trained online to learn the above information. LoRA is a fine-tuning model with fewer trainable parameters. In Stable Diffusion, the information of the input image can be injected into the LoRA model by the way of text generation image training with a small amount of input image. Therefore, the ability of the personal portrait model is divided into training and inference stages. The training stage generates image and text label data for fine-tuning the Stable Diffusion model, and obtains the face LoRA model. The inference stage generates personal portrait images based on the face LoRA model and style LoRA model.
+
 ![image](resources/framework.jpg)
 
-## 训练阶段：
+## Training:
 
-输入：用户上传的包含清晰人脸区域的图像
-                                             
-输出：人脸LoRA模型
-                                             
-描述：首先，我们分别使用基于朝向判断的图像旋转模型，以及基于人脸检测和关键点模型的人脸精细化旋转方法处理用户上传图像，得到包含正向人脸的图像；接下来，我们使用人体解析模型和人像美肤模型，以获得高质量的人脸训练图像；随后，我们使用人脸属性模型和文本标注模型，结合标签后处理方法，产生训练图像的精细化标签；最后，我们使用上述图像和标签数据微调Stable Diffusion模型得到人脸LoRA模型。
+Input: User-uploaded images that contain clear face areas
 
-## 推断阶段：
+Output: Face LoRA model
 
-输入：训练阶段用户上传图像，预设的用于生成个人写真的输入提示词
-                                             
-输出：个人写真图像
-                                             
-描述：首先，我们将人脸LoRA模型和风格LoRA模型的权重融合到Stable Diffusion模型中；接下来，我们使用Stable Diffusion模型的文生图功能，基于预设的输入提示词初步生成个人写真图像；随后，我们使用人脸融合模型进一步改善上述写真图像的人脸细节，其中用于融合的模板人脸通过人脸质量评估模型在训练图像中挑选；最后，我们使用人脸识别模型计算生成的写真图像与模板人脸的相似度，以此对写真图像进行排序，并输出排名靠前的个人写真图像作为最终输出结果。                                            
+Description: First, we process the user-uploaded images using an image rotation model based on orientation judgment and a face refinement rotation method based on face detection and keypoint models, and obtain images containing forward faces. Next, we use a human body parsing model and a human portrait beautification model to obtain high-quality face training images. Afterwards, we use a face attribute model and a text annotation model, combined with tag post-processing methods, to generate fine-grained labels for training images. Finally, we use the above images and label data to fine-tune the Stable Diffusion model to obtain the face LoRA model.
 
-# 更多信息
+## Inference:
+
+Input: User-uploaded images in the training phase, preset input prompt words for generating personal portraits
+
+Output: Personal portrait image
+
+Description: First, we fuse the weights of the face LoRA model and style LoRA model into the Stable Diffusion model. Next, we use the text generation image function of the Stable Diffusion model to preliminarily generate personal portrait images based on the preset input prompt words. Then we further improve the face details of the above portrait image using the face fusion model. The template face used for fusion is selected from the training images through the face quality evaluation model. Finally, we use the face recognition model to calculate the similarity between the generated portrait image and the template face, and use this to sort the portrait images, and output the personal portrait image that ranks first as the final output result.
+
+# More Information
 
 - [ModelScope library](https://github.com/modelscope/modelscope/)
 
-  ModelScope Library是一个托管于github上的模型集仓库，隶属于达摩院魔搭项目。
+  ModelScope Library is a model repository hosted on github, affiliated with the Damo Institute Magic Project.
 
-- [贡献模型到ModelScope](https://modelscope.cn/docs/ModelScope%E6%A8%A1%E5%9E%8B%E6%8E%A5%E5%85%A5%E6%B5%81%E7%A8%8B%E6%A6%82%E8%A7%88)
+- [Contribute models to ModelScope](https://modelscope.cn/docs/ModelScope%E6%A8%A1%E5%9E%8B%E6%8E%A5%E5%85%A5%E6%B5%81%E7%A8%8B%E6%A6%82%E8%A7%88)
 
 # License
 
 This project is licensed under the [Apache License (Version 2.0)](https://github.com/modelscope/modelscope/blob/master/LICENSE).
-
