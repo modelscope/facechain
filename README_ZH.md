@@ -40,9 +40,12 @@ cd facechain
 安装依赖：
 
 ```shell
-# 如果使用了官方镜像，只需要执行pip install gradio，不需要执行下面的pip安装命令
-pip install -r requirements.txt
+# 如果使用了官方镜像，只需要执行
+pip install gradio
+# 暂时请不要执行下面的命令，conda环境在调试中
+# pip install -r requirements.txt
 ```
+
 
 运行gradio来生成个人数字形象：
 
