@@ -325,8 +325,10 @@ class Blipv2():
 
                 result_list.append(result.split(', '))
                 cnt += 1
-            except:
+            except Exception as e:
                 print('cathed for image process of ' + imname)
+                print('Error: ' + e)
+                exit()
 
         print(result_list)
         if len(result_list) == 0:
