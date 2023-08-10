@@ -96,7 +96,7 @@ def softmax(x):
 
 
 def get_rot(image):
-    model_dir = snapshot_download('Cherrytest/rot_bgr')
+    model_dir = snapshot_download('Cherrytest/rot_bgr', revision='v1.0.0')
     model_path = os.path.join(model_dir, 'rot_bgr.onnx')
     ort_session = onnxruntime.InferenceSession(model_path)
 

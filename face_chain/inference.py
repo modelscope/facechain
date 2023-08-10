@@ -106,7 +106,7 @@ def stylization_fn(use_stylization, rank_results):
 
 def main_model_inference(use_main_model, input_img_dir=None, base_model_path=None, lora_model_path=None):
     if use_main_model:
-        model_dir = snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo')
+        model_dir = snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo', revision='v1.0.0')
         style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_fromleo.safetensors')
         image = main_diffusion_inference(input_img_dir, base_model_path, style_model_path, lora_model_path)
         return image
