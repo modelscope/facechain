@@ -4,9 +4,10 @@
     <br>
     <h2>FaceChain</h2>
 <p>
-如果您熟悉中文，可以阅读[中文版本的README](./README_ZH.md)。
 
 # Introduction
+
+如果您熟悉中文，可以阅读[中文版本的README](./README_ZH.md)。
 
 FaceChain is a deep learning model tool that can be used to create personal digital images. Users only need to provide at least one photo to obtain a personal digital avatar. FaceChain supports using model training and inference capabilities in the gradio interface, and also supports experienced developers to use python scripts for training and inference. At the same time, FaceChain welcomes developers to continue to develop and contribute to this Repo.
 
