@@ -24,8 +24,12 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 You may use pip and conda to build a local python environment. We recommend using [Anaconda](https://docs.anaconda.com/anaconda/install/) to manage your dependencies. After installation, execute the following commands:
 
 ```shell
-conda create -n facechain python=3.8
+conda create -n facechain python=3.8    # python version >= 3.8
 conda activate facechain
+
+pip3 install -r requirements.txt
+pip3 install -U openmim 
+mim install mmcv-full==1.7.0
 ````
 
 You may use the official docker-image provided by ModelScope:
