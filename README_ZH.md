@@ -53,9 +53,9 @@ cd facechain
 
 ```shell
 # 如果使用了官方镜像，只需要执行
-pip install gradio
-# 暂时请不要执行下面的命令，conda环境在调试中
-# pip install -r requirements.txt
+pip3 install gradio
+
+# 如果使用conda虚拟环境，则参考上述”安装“章节
 ```
 
 

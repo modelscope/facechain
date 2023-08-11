@@ -51,11 +51,10 @@ cd facechain
 Install dependencies:
 
 ```shell
-# If you use the official image, you only need to execute 
-pip install gradio
-# Now the conda environment is still in debugging, DO NOT EXECUTE THE COMMAND BELOW
-# We recommend use our docker image currently.
-# pip install -r requirements.txt
+# If you use the official docker image, you only need to execute 
+pip3 install gradio
+
+# If you use the conda env, please refer to section Installation.
 ```
 
 Launch Gradio to generate personal digital images:
