@@ -9,9 +9,9 @@
 
 如果您熟悉中文，可以阅读[中文版本的README](./README_ZH.md)。
 
-FaceChain is a deep-learning toolchain for generating your Digital-Twin. With a minimum of 1 portrait-photo, you can create a Digital-Twin of your own and to create your personal photos in different settings (work photos as starter!). You may train your Digital-Twin model and generate photos via FaceChain's Python scripts, or via the familiar Gradio interface. You may experience via FaceChain's [ModelScope Studio](https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary).
+FaceChain is a deep-learning toolchain for generating your Digital-Twin. With a minimum of 1 portrait-photo, you can create a Digital-Twin of your own and to create personal photos in different settings (work photos as starter!). You may train your Digital-Twin model and generate photos via FaceChain's Python scripts, or via the familiar Gradio interface. You can also experience FaceChain directly with our [ModelScope Studio](https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary).
 
-FaceChain are powered by [ModelScope](https://github.com/modelscope/modelscope).
+FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 ![image](resources/example1.jpg)
 
@@ -21,22 +21,23 @@ FaceChain are powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 # Installation
 
-You can also use pip and conda to build a local python environment. We recommend using [Anaconda](https://docs.anaconda.com/anaconda/install/) to manage your dependencies. After installation, execute the following commands:
+You may use pip and conda to build a local python environment. We recommend using [Anaconda](https://docs.anaconda.com/anaconda/install/) to manage your dependencies. After installation, execute the following commands:
 
 ```shell
 conda create -n facechain python=3.8
 conda activate facechain
 ````
 
-You may use the official image provided by ModelScope, so you only need to install gradio to use it:
+You may use the official docker-image provided by ModelScope:
 
 ```shell
 registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0
 ```
+With this docker image, the only thing you need to install is Gradio.
 
-We also recommend to use our [notebook](https://www.modelscope.cn/my/mynotebook/preset) to train and inference.
+For online training an inference, you may leverage the ModelScope [notebook](https://www.modelscope.cn/my/mynotebook/) to start the process immediately.
 
-Clone this repository to your local:
+Clone the repo:
 
 ```shell
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
@@ -59,7 +60,7 @@ Launch Gradio to generate personal digital images:
 python app.py
 ```
 
-You can see the gradio startup log in the log. After the http link is displayed, copy the http link to the browser for access. Then click on "Select Image Upload" on the page, and select at least one picture containing a face. Click "Start Training" to train the model. After the training is completed, there will be a corresponding display in the log. Afterward, switch to the "Image Experience" tab and click "Start Inference" to generate your own digital image.
+You can reference to the Gradio startup log in the log. Once the hyper-link is displayed, copy it to your browser for access. Then click on "Select Image Upload" on the page, and select at least one picture containing a face. Click "Start Training" to train the model. After the training is completed, there will be a corresponding display in the log. Afterward, switch to the "Image Experience" tab and click "Start Inference" to generate your own digital image.
 
 # Script Execution
 
