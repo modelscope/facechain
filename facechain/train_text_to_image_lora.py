@@ -464,7 +464,7 @@ def parse_args():
         args.local_rank = env_local_rank
 
     # Sanity checks
-    if args.dataset_name is None and args.train_data_dir is None:
+    if args.dataset_name is None and args.train_data_dir is None and args.output_dataset_name is None:
         raise ValueError("Need either a dataset name or a training folder.")
 
     return args
