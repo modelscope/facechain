@@ -5,7 +5,7 @@ export DATASET_NAME=$4
 export OUTPUT_DATASET_NAME=$5
 export WORK_DIR=$6
 
-accelerate launch face_chain/train_text_to_image_lora.py \
+accelerate launch facechain/train_text_to_image_lora.py \
     --pretrained_model_name_or_path=$MODEL_NAME \
     --revision=$VERSION \
     --sub_path=$SUB_PATH \

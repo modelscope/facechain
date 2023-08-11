@@ -12,8 +12,8 @@ from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
 from modelscope import snapshot_download
 
-from face_chain.merge_lora import merge_lora
-from face_chain.data_process.preprocessing import Blipv2
+from facechain.merge_lora import merge_lora
+from facechain.data_process.preprocessing import Blipv2
 
 
 def data_process_fn(input_img_dir, use_data_process):

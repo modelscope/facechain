@@ -2,7 +2,7 @@
     <br>
     <img src="https://modelscope.oss-cn-beijing.aliyuncs.com/modelscope.gif" width="400"/>
     <br>
-    <h2>FaceChain</h2>
+    <h1>FaceChain</h1>
 <p>
 
 
@@ -14,6 +14,12 @@ FaceChain是一个可以用来打造个人数字形象的深度学习模型工�
 您也可以在[ModelScope创空间](https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary)中直接体验这项技术而无需安装任何软件。
 
 FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开源模型社区提供支持。
+
+![image](resources/example1.jpg)
+
+![image](resources/example2.jpg)
+
+![image](resources/example3.jpg)
 
 # 安装
 
@@ -29,6 +35,8 @@ conda activate facechain
 ```shell
 registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0
 ```
+
+我们也推荐使用我们的[notebook](https://www.modelscope.cn/my/mynotebook/preset)来进行训练和推理。
 
 将本仓库克隆到本地：
 
@@ -74,7 +82,7 @@ film/film: 该基模型包含了多个不同风格的子目录，其中使用了
 ./output: 训练生成保存模型weights的文件夹，可以不修改
 ```
 
-等待5-20分钟即可训练完成。用户也可以调节其他训练超参数，训练支持的超参数可以查看`train_lora.sh`的配置，或者`face_chain/train_text_to_image_lora.py`中的完整超参数列表。
+等待5-20分钟即可训练完成。用户也可以调节其他训练超参数，训练支持的超参数可以查看`train_lora.sh`的配置，或者`facechain/train_text_to_image_lora.py`中的完整超参数列表。
 
 进行推理时，请编辑run_inference.py中的代码:
 
@@ -105,13 +113,13 @@ python run_inference.py
                                              
 # 算法介绍
 
-## 基本原理：
+## 基本原理
 
 个人写真模型的能力来源于Stable Diffusion模型的文生图功能，输入一段文本或一系列提示词，输出对应的图像。我们考虑影响个人写真生成效果的主要因素：写真风格信息，以及用户人物信息。为此，我们分别使用线下训练的风格LoRA模型和线上训练的人脸LoRA模型以学习上述信息。LoRA是一种具有较少可训练参数的微调模型，在Stable Diffusion中，可以通过对少量输入图像进行文生图训练的方式将输入图像的信息注入到LoRA模型中。因此，个人写真模型的能力分为训练与推断两个阶段，训练阶段生成用于微调Stable Diffusion模型的图像与文本标签数据，得到人脸LoRA模型；推断阶段基于人脸LoRA模型和风格LoRA模型生成个人写真图像。  
     
 ![image](resources/framework.jpg)
 
-## 训练阶段：
+## 训练阶段
 
 输入：用户上传的包含清晰人脸区域的图像
                                              
@@ -119,19 +127,41 @@ python run_inference.py
                                              
 描述：首先，我们分别使用基于朝向判断的图像旋转模型，以及基于人脸检测和关键点模型的人脸精细化旋转方法处理用户上传图像，得到包含正向人脸的图像；接下来，我们使用人体解析模型和人像美肤模型，以获得高质量的人脸训练图像；随后，我们使用人脸属性模型和文本标注模型，结合标签后处理方法，产生训练图像的精细化标签；最后，我们使用上述图像和标签数据微调Stable Diffusion模型得到人脸LoRA模型。
 
-## 推断阶段：
+## 推断阶段
 
 输入：训练阶段用户上传图像，预设的用于生成个人写真的输入提示词
                                              
 输出：个人写真图像
                                              
-描述：首先，我们将人脸LoRA模型和风格LoRA模型的权重融合到Stable Diffusion模型中；接下来，我们使用Stable Diffusion模型的文生图功能，基于预设的输入提示词初步生成个人写真图像；随后，我们使用人脸融合模型进一步改善上述写真图像的人脸细节，其中用于融合的模板人脸通过人脸质量评估模型在训练图像中挑选；最后，我们使用人脸识别模型计算生成的写真图像与模板人脸的相似度，以此对写真图像进行排序，并输出排名靠前的个人写真图像作为最终输出结果。                                            
+描述：首先，我们将人脸LoRA模型和风格LoRA模型的权重融合到Stable Diffusion模型中；接下来，我们使用Stable Diffusion模型的文生图功能，基于预设的输入提示词初步生成个人写真图像；随后，我们使用人脸融合模型进一步改善上述写真图像的人脸细节，其中用于融合的模板人脸通过人脸质量评估模型在训练图像中挑选；最后，我们使用人脸识别模型计算生成的写真图像与模板人脸的相似度，以此对写真图像进行排序，并输出排名靠前的个人写真图像作为最终输出结果。    
+
+## 模型列表
+
+附（流程图中模型链接）
+
+[1]  人脸检测+关键点模型DamoFD：https://modelscope.cn/models/damo/cv_ddsar_face-detection_iclr23-damof
+
+[2]  图像旋转模型：创空间内置模型
+
+[3]  人体解析模型M2FP：https://modelscope.cn/models/damo/cv_resnet101_image-multiple-human-parsing
+
+[4]  人像美肤模型ABPN：https://modelscope.cn/models/damo/cv_unet_skin-retouching
+
+[5]  人脸属性模型FairFace：https://modelscope.cn/models/damo/cv_resnet34_face-attribute-recognition_fairface
+
+[6]  文本标注模型Deepbooru：https://github.com/KichangKim/DeepDanbooru
+
+[7]  模板脸筛选模型FQA：https://modelscope.cn/models/damo/cv_manual_face-quality-assessment_fqa
+
+[8]  人脸融合模型：https://modelscope.cn/models/damo/cv_unet-image-face-fusion_damo
+
+[9]  人脸识别模型RTS：https://modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts                                  
 
 # 更多信息
 
 - [ModelScope library](https://github.com/modelscope/modelscope/)
 
-  ModelScope Library是一个托管于github上的模型集仓库，隶属于达摩院魔搭项目。
+  ModelScope Library是一个托管于github上的模型生态仓库，隶属于达摩院魔搭项目。
 
 - [贡献模型到ModelScope](https://modelscope.cn/docs/ModelScope%E6%A8%A1%E5%9E%8B%E6%8E%A5%E5%85%A5%E6%B5%81%E7%A8%8B%E6%A6%82%E8%A7%88)
 

@@ -11,9 +11,9 @@ import gradio as gr
 import numpy as np
 import torch
 
-from face_chain.inference import GenPortrait
+from facechain.inference import GenPortrait
 
-sys.path.append('face_chain')
+sys.path.append('facechain')
 
 
 training_threadpool = ThreadPoolExecutor(max_workers=1)
@@ -211,7 +211,7 @@ def train_input():
             gr.Markdown('''
             碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上按照如下命令自行体验
             1. git clone https://www.modelscope.cn/studios/CVstudio/cv_human_portrait.git
-            2. cd face_chain
+            2. cd cv_human_portrait
             3. pip install -r requirements.txt 
             4. pip install gradio==3.35.2
             5. python app.py
