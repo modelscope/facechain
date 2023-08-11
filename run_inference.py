@@ -1,7 +1,7 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import os
 
-from face_chain.inference import GenPortrait
+from facechain.inference import GenPortrait
 import cv2
 
 use_main_model = True

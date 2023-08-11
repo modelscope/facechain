@@ -53,7 +53,7 @@ from torchvision import transforms
 from tqdm.auto import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
 
-from face_chain.inference import data_process_fn
+from facechain.inference import data_process_fn
 
 # Will error if the minimal version of diffusers is not installed. Remove at your own risks.
 check_min_version("0.14.0.dev0")
