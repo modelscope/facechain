@@ -26,8 +26,12 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 您也可以使用pip和conda搭建本地python环境，我们推荐使用[Anaconda](https://docs.anaconda.com/anaconda/install/)来管理您的依赖，安装完成后，执行如下命令：
 
 ```shell
-conda create -n facechain python=3.8
+conda create -n facechain python=3.8    # python version >= 3.8
 conda activate facechain
+
+pip3 install -r requirements.txt
+pip3 install -U openmim 
+mim install mmcv-full==1.7.0
 ```
 
 或者，您可以使用ModelScope提供的官方镜像，这样您只需要安装gradio即可使用：
@@ -49,9 +53,9 @@ cd facechain
 
 ```shell
 # 如果使用了官方镜像，只需要执行
-pip install gradio
-# 暂时请不要执行下面的命令，conda环境在调试中
-# pip install -r requirements.txt
+pip3 install gradio
+
+# 如果使用conda虚拟环境，则参考上述”安装“章节
 ```
 
 
