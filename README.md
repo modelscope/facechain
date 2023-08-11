@@ -39,7 +39,7 @@ We also recommend to use our [notebook](https://www.modelscope.cn/my/mynotebook/
 Clone this repository to your local:
 
 ```shell
-git clone https://github.com/modelscope/facechain.git
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
 cd facechain
 ```
 
@@ -115,7 +115,7 @@ You can find the generated personal digital image photos in the `output_dir`.
 
 The ability of the personal portrait model comes from the text generation image function of the Stable Diffusion model. It inputs a piece of text or a series of prompt words and outputs corresponding images. We consider the main factors that affect the generation effect of personal portraits: portrait style information and user character information. For this, we use the style LoRA model trained offline and the face LoRA model trained online to learn the above information. LoRA is a fine-tuning model with fewer trainable parameters. In Stable Diffusion, the information of the input image can be injected into the LoRA model by the way of text generation image training with a small amount of input image. Therefore, the ability of the personal portrait model is divided into training and inference stages. The training stage generates image and text label data for fine-tuning the Stable Diffusion model, and obtains the face LoRA model. The inference stage generates personal portrait images based on the face LoRA model and style LoRA model.
 
-![image](resources/framework.jpg)
+![image](resources/framework_eng.jpg)
 
 ## Training
 
@@ -159,7 +159,7 @@ The models used in FaceChain:
 
 - [ModelScope library](https://github.com/modelscope/modelscope/)
 
-​		ModelScope Library provides the foundation for building the model-ecosystem of ModelScope, including the interface and implementation to integrate various models into ModelScope. 
+    	ModelScope Library provides the foundation for building the model-ecosystem of ModelScope, including the interface and implementation to integrate various models into ModelScope. 
 
 - [Contribute models to ModelScope](https://modelscope.cn/docs/ModelScope%E6%A8%A1%E5%9E%8B%E6%8E%A5%E5%85%A5%E6%B5%81%E7%A8%8B%E6%A6%82%E8%A7%88)
 

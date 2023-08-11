@@ -41,7 +41,7 @@ registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.
 将本仓库克隆到本地：
 
 ```shell
-git clone https://github.com/modelscope/facechain.git
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
 cd facechain
 ```
 
