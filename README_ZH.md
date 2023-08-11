@@ -22,8 +22,33 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 ![image](resources/example3.jpg)
 
 # 安装
+支持以下几种安装方式，任选其一：
+1. docker镜像
 
-您也可以使用pip和conda搭建本地python环境，我们推荐使用[Anaconda](https://docs.anaconda.com/anaconda/install/)来管理您的依赖，安装完成后，执行如下命令：
+如果您熟悉docker，可以使用我们提供的docker镜像，其包含了模型依赖的所有组件，无需复杂的环境安装：
+```shell
+# Step1: 机器资源
+您可以使用本地或云端带有GPU资源的运行环境。
+如需使用阿里云ECS，可访问： https://www.aliyun.com/product/ecs?spm=5176.28055625.J_3207526240.30.e939154asA6qDk&scm=20140722.M_5288647._.V_1
+
+# Step2: 将镜像下载到本地 （前提是已经安装了docker engine并启动服务，具体可参考： https://docs.docker.com/engine/install/）
+docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0
+
+# Step3: 获取image id，并运行
+docker images
+docker run -it --name facechain -p 7860:7860 your_image_id /bin/bash  # 注意your_image_id替换成你的镜像id
+
+# Step4: 在容器中安装gradio, 获取facechain源代码并运行
+pip3 install gradio
+cd facechain
+python3 app.py
+
+# Step5: 点击 "public URL", 形式为 https://xxx.gradio.live
+```
+
+2. conda虚拟环境
+
+使用conda虚拟环境，参考[Anaconda](https://docs.anaconda.com/anaconda/install/)来管理您的依赖，安装完成后，执行如下命令：
 
 ```shell
 conda create -n facechain python=3.8    # python version >= 3.8
@@ -32,44 +57,42 @@ conda activate facechain
 pip3 install -r requirements.txt
 pip3 install -U openmim 
 mim install mmcv-full==1.7.0
+
+# 进入facechain文件夹，执行：
+python3 app.py
+
+# 最后点击log中生成的URL即可访问页面。
 ```
 
-或者，您可以使用ModelScope提供的官方镜像，这样您只需要安装gradio即可使用：
+3. 使用ModelScope提供的notebook环境
+
+ModelScope(魔搭社区)提供给新用户初始的免费计算资源，参考[ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
+
+此种方式使用简单，您只需要按以下步骤操作（注意：目前notebook环境暂不提供永久存储，实例重启后数据会丢失）：
 
 ```shell
-registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0
-```
+# Step1: 我的notebook -> PAI-DSW -> GPU环境
 
-我们也推荐使用我们的[notebook](https://www.modelscope.cn/my/mynotebook/preset)来进行训练和推理。
-
-将本仓库克隆到本地：
-
-```shell
+# Step2: 打开Terminal，将github代码clone到本地
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
-cd facechain
+
+# Step3: 进入Notebook cell，执行：
+import os
+os.chdir('/mnt/workspace/facechain')    # 注意替换成上述clone后的代码文件夹主路径
+print(os.getcwd())
+
+!pip3 install gradio
+!python3 app.py
+
+# Step4: 点击生成的URL即可访问web页面，上传照片开始训练和预测
 ```
 
-安装依赖：
 
-```shell
-# 如果使用了官方镜像，只需要执行
-pip3 install gradio
-
-# 如果使用conda虚拟环境，则参考上述”安装“章节
-```
-
-
-运行gradio来生成个人数字形象：
-
-```shell
-python app.py
-```
-
-您可以看到log中的gradio启动日志，等待展示出http链接后，将http链接复制到浏览器中进行访问。之后在页面中点击“选择图片上传”，并选择最少一张包含人脸的图片。点击“开始训练”即可训练模型。训练完成后日志中会有对应展示，之后切换到“形象体验”标签页点击“开始推理”即可生成属于自己的数字形象。
+备注：app服务成功启动后，在log中访问页面URL，进入”形象定制“tab页，点击“选择图片上传”，并最少选1张包含人脸的图片；点击“开始训练”即可训练模型。训练完成后日志中会有对应展示，之后切换到“形象体验”标签页点击“开始推理”即可生成属于自己的数字形象。
 
 # 脚本运行
 
-FaceChain支持在python环境中直接进行训练和推理。在克隆后的文件夹中直接运行如下命令来进行训练：
+如果不想启动服务，而是直接在命令行进行开发调试等工作，FaceChain也支持在python环境中直接运行脚本进行训练和推理。在克隆后的文件夹中直接运行如下命令来进行训练：
 
 ```shell
 PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./output"
