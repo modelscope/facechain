@@ -51,7 +51,7 @@ python3 app.py
 使用conda虚拟环境，参考[Anaconda](https://docs.anaconda.com/anaconda/install/)来管理您的依赖，安装完成后，执行如下命令：
 
 ```shell
-conda create -n facechain python=3.8    # python version >= 3.8
+conda create -n facechain python=3.8    # 已验证环境：3.8 和 3.10
 conda activate facechain
 
 pip3 install -r requirements.txt
