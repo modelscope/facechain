@@ -31,6 +31,7 @@ FaceChain是一个组合模型，使用了包括pytorch和tensorflow在内的机
 - CUDA版本: 11.7
 - CUDNN版本: 8+
 - 操作系统版本: Ubuntu 20.04
+- GPU型号: Nvidia-A10 24G
 
 
 ## 资源占用
@@ -40,48 +41,34 @@ FaceChain是一个组合模型，使用了包括pytorch和tensorflow在内的机
 
 ## 安装指南
 支持以下几种安装方式，任选其一：
-1. docker镜像
+1. docker镜像【推荐】
 
 如果您熟悉docker，可以使用我们提供的docker镜像，其包含了模型依赖的所有组件，无需复杂的环境安装：
 ```shell
 # Step1: 机器资源
 您可以使用本地或云端带有GPU资源的运行环境。
-如需使用阿里云ECS，可访问： https://www.aliyun.com/product/ecs?spm=5176.28055625.J_3207526240.30.e939154asA6qDk&scm=20140722.M_5288647._.V_1
+如需使用阿里云ECS，可访问： https://www.aliyun.com/product/ecs，推荐使用”镜像市场“中的CentOS 7.9 64位(预装NVIDIA GPU驱动)
 
 # Step2: 将镜像下载到本地 （前提是已经安装了docker engine并启动服务，具体可参考： https://docs.docker.com/engine/install/）
 docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0
 
 # Step3: 获取image id，并运行
 docker images
-docker run -it --name facechain -p 7860:7860 your_image_id /bin/bash  # 注意your_image_id替换成你的镜像id
+docker run -it --name facechain -p 7860:7860 --gpus all your_xxx_image_id /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
+(注意： 如果提示无法使用宿主机GPU的错误，可能需要安装：[nvidia-container-runtime](https://github.com/NVIDIA/nvidia-container-runtime) )
 
-# Step4: 在容器中安装gradio, 获取facechain源代码并运行
+# Step4: 在容器中安装gradio
 pip3 install gradio
+
+# Step5: 获取facechain源代码
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
 cd facechain
 python3 app.py
 
-# Step5: 点击 "public URL", 形式为 https://xxx.gradio.live
+# Step6: 点击 "public URL", 形式为 https://xxx.gradio.live
 ```
 
-2. conda虚拟环境
-
-使用conda虚拟环境，参考[Anaconda](https://docs.anaconda.com/anaconda/install/)来管理您的依赖，安装完成后，执行如下命令：
-
-```shell
-conda create -n facechain python=3.8    # 已验证环境：3.8 和 3.10
-conda activate facechain
-
-pip3 install -r requirements.txt
-pip3 install -U openmim 
-mim install mmcv-full==1.7.0
-
-# 进入facechain文件夹，执行：
-python3 app.py
-
-# 最后点击log中生成的URL即可访问页面。
-```
-
-3. 使用ModelScope提供的notebook环境
+2. 使用ModelScope提供的notebook环境
 
 ModelScope(魔搭社区)提供给新用户初始的免费计算资源，参考[ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
 
@@ -102,6 +89,26 @@ print(os.getcwd())
 !python3 app.py
 
 # Step4: 点击生成的URL即可访问web页面，上传照片开始训练和预测
+```
+
+
+3. conda虚拟环境
+
+使用conda虚拟环境，参考[Anaconda](https://docs.anaconda.com/anaconda/install/)来管理您的依赖，安装完成后，执行如下命令：
+(提示： mmcv对环境要求较高，可能出现不适配的情况，推荐使用docker方式)
+
+```shell
+conda create -n facechain python=3.8    # 已验证环境：3.8 和 3.10
+conda activate facechain
+
+pip3 install -r requirements.txt
+pip3 install -U openmim 
+mim install mmcv-full==1.7.0
+
+# 进入facechain文件夹，执行：
+python3 app.py
+
+# 最后点击log中生成的URL即可访问页面。
 ```
 
 
