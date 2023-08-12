@@ -21,49 +21,77 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 # Installation
 
-You may use pip and conda to build a local python environment. We recommend using [Anaconda](https://docs.anaconda.com/anaconda/install/) to manage your dependencies. After installation, execute the following commands:
+## Compatibility Verification
+The following are the environment dependencies that have been verified:
+- python: py3.8, py3.10
+- pytorch: torch2.0.0, torch2.0.1
+- tensorflow: 2.7.0, tensorflow-cpu
+- CUDA: 11.7
+- CUDNN: 8+
+- OS: Ubuntu 20.04, CentOS 7.9
+- GPU: Nvidia-A10 24G
+
+## Resource Usage
+- GPU: About 19G
+- Disk: About 50GB
+
+## Installation Guide
+The following installation methods are supported:
+
+1. Docker【recommended】
+
+If you are familiar with using docker, we recommend to use this way:
 
 ```shell
-conda create -n facechain python=3.8    # python version >= 3.8
-conda activate facechain
+# Step1
+Prepare the env with GPU, e.g. Alibaba Cloud ECS, refer to: https://www.aliyun.com/product/ecs
 
-pip3 install -r requirements.txt
-pip3 install -U openmim 
-mim install mmcv-full==1.7.0
-````
+# Step2
+Download the docker image (for installing docker engine, refer to https://docs.docker.com/engine/install/）
+docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0
 
-You may use the official docker-image provided by ModelScope:
+# Step3
+docker images
+docker run -it --name facechain -p 7860:7860 --gpus all your_xxx_image_id /bin/bash
+(Note： you may need to install the nvidia-container-runtime, refer to https://github.com/NVIDIA/nvidia-container-runtime)
 
-```shell
-registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0
-```
-With this docker image, the only thing you need to install is Gradio.
-
-For online training an inference, you may leverage the ModelScope [notebook](https://www.modelscope.cn/my/mynotebook/) to start the process immediately.
-
-Clone the repo:
-
-```shell
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
-cd facechain
-```
-
-Install dependencies:
-
-```shell
-# If you use the official docker image, you only need to execute 
+# Step4
+Install the gradio in the docker container:
 pip3 install gradio
 
-# If you use the conda env, please refer to section Installation.
+# Step5
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
+cd facechain
+python3 app.py
+
+# Step6
+Run the app server: click "public URL" --> in the form of: https://xxx.gradio.live
 ```
 
-Launch Gradio to generate personal digital images:
+2. ModelScope notebook
+The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
 
 ```shell
-python app.py
+# Step1
+我的notebook -> PAI-DSW -> GPU环境
+
+# Step2
+Open the Terminal，clone FaceChain from github:
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
+
+# Step3
+Entry the Notebook cell:
+import os
+os.chdir('/mnt/workspace/facechain')
+print(os.getcwd())
+
+!pip3 install gradio
+!python3 app.py
+
+# Step4
+click "public URL" or "local URL"
 ```
 
-You can reference to the Gradio startup log in the log. Once the hyper-link is displayed, copy it to your browser for access. Then click on "Select Image Upload" on the page, and select at least one picture containing a face. Click "Start Training" to train the model. After the training is completed, there will be a corresponding display in the log. Afterward, switch to the "Image Experience" tab and click "Start Inference" to generate your own digital image.
 
 # Script Execution
 
