@@ -183,7 +183,7 @@ python run_inference.py
 
 附（流程图中模型链接）
 
-[1]  人脸检测+关键点模型DamoFD：https://modelscope.cn/models/damo/cv_ddsar_face-detection_iclr23-damof
+[1]  人脸检测+关键点模型DamoFD：https://modelscope.cn/models/damo/cv_ddsar_face-detection_iclr23-damofd
 
 [2]  图像旋转模型：创空间内置模型
 
