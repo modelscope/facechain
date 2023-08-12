@@ -21,7 +21,24 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 ![image](resources/example3.jpg)
 
-# 安装
+# 环境准备
+
+## 兼容性验证
+FaceChain是一个组合模型，使用了包括pytorch和tensorflow在内的机器学习框架，以下是已经验证过的主要环境依赖：
+- python环境: py3.8, py3.10
+- pytorch版本: torch2.0.0, torch2.0.1
+- tensorflow版本: 2.0.7, tensorflow-cpu
+- CUDA版本: 11.7
+- CUDNN版本: 8+
+- 操作系统版本: Ubuntu 20.04
+
+
+## 资源占用
+- GPU: 显存占用约14.5G
+- 磁盘: 推荐预留50GB以上的存储空间
+
+
+## 安装指南
 支持以下几种安装方式，任选其一：
 1. docker镜像
 
