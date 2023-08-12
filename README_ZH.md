@@ -55,7 +55,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu2
 # Step3: 获取image id，并运行
 docker images
 docker run -it --name facechain -p 7860:7860 --gpus all your_xxx_image_id /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
-(注意： 如果提示无法使用宿主机GPU的错误，可能需要安装：[nvidia-container-runtime](https://github.com/NVIDIA/nvidia-container-runtime) )
+(注意： 如果提示无法使用宿主机GPU的错误，可能需要安装nvidia-container-runtime, 参考：https://github.com/NVIDIA/nvidia-container-runtime)
 
 # Step4: 在容器中安装gradio
 pip3 install gradio
