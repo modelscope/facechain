@@ -141,7 +141,7 @@ Description: First, we fuse the weights of the face LoRA model and style LoRA mo
 
 The models used in FaceChain:
 
-[1]  Face detection model DamoFD：https://modelscope.cn/models/damo/cv_ddsar_face-detection_iclr23-damof
+[1]  Face detection model DamoFD：https://modelscope.cn/models/damo/cv_ddsar_face-detection_iclr23-damofd
 
 [2]  Image rotating model, offered in the ModelScope studio
 
