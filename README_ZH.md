@@ -30,12 +30,12 @@ FaceChain是一个组合模型，使用了包括pytorch和tensorflow在内的机
 - tensorflow版本: 2.7.0, tensorflow-cpu
 - CUDA版本: 11.7
 - CUDNN版本: 8+
-- 操作系统版本: Ubuntu 20.04
+- 操作系统版本: Ubuntu 20.04, CentOS 7.9
 - GPU型号: Nvidia-A10 24G
 
 
 ## 资源占用
-- GPU: 显存占用约14.5G
+- GPU: 显存占用约19G
 - 磁盘: 推荐预留50GB以上的存储空间
 
 
