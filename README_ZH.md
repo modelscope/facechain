@@ -41,7 +41,34 @@ FaceChain是一个组合模型，使用了包括pytorch和tensorflow在内的机
 
 ## 安装指南
 支持以下几种安装方式，任选其一：
-1. docker镜像【推荐】
+
+1. 使用ModelScope提供的notebook环境【推荐】
+
+    ModelScope(魔搭社区)提供给新用户初始的免费计算资源，参考[ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
+
+    如果初始免费计算资源无法满足要求，您还可以从上述页面开通付费流程，以便创建一个准备就绪的ModelScope(GPU) DSW镜像实例。
+
+    Notebook环境使用简单，您只需要按以下步骤操作（注意：目前暂不提供永久存储，实例重启后数据会丢失）：
+
+```shell
+# Step1: 我的notebook -> PAI-DSW -> GPU环境
+
+# Step2: 打开Terminal，将github代码clone到本地
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
+
+# Step3: 进入Notebook cell，执行：
+import os
+os.chdir('/mnt/workspace/facechain')    # 注意替换成上述clone后的代码文件夹主路径
+print(os.getcwd())
+
+!pip3 install gradio
+!python3 app.py
+
+# Step4: 点击生成的URL即可访问web页面，上传照片开始训练和预测
+```
+
+
+2. docker镜像
 
 如果您熟悉docker，可以使用我们提供的docker镜像，其包含了模型依赖的所有组件，无需复杂的环境安装：
 ```shell
@@ -66,29 +93,6 @@ cd facechain
 python3 app.py
 
 # Step6: 点击 "public URL", 形式为 https://xxx.gradio.live
-```
-
-2. 使用ModelScope提供的notebook环境
-
-ModelScope(魔搭社区)提供给新用户初始的免费计算资源，参考[ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
-
-此种方式使用简单，您只需要按以下步骤操作（注意：目前notebook环境暂不提供永久存储，实例重启后数据会丢失）：
-
-```shell
-# Step1: 我的notebook -> PAI-DSW -> GPU环境
-
-# Step2: 打开Terminal，将github代码clone到本地
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
-
-# Step3: 进入Notebook cell，执行：
-import os
-os.chdir('/mnt/workspace/facechain')    # 注意替换成上述clone后的代码文件夹主路径
-print(os.getcwd())
-
-!pip3 install gradio
-!python3 app.py
-
-# Step4: 点击生成的URL即可访问web页面，上传照片开始训练和预测
 ```
 
 
