@@ -51,7 +51,7 @@ cd facechain
 Install dependencies:
 
 ```shell
-# If you use the official docker image, you only need to execute 
+# If you use the official ModelScope docker image, you only need to install gradio 
 pip3 install gradio
 
 # If you use the conda env, please refer to section Installation.
@@ -63,7 +63,7 @@ Launch Gradio to generate personal digital images:
 python app.py
 ```
 
-You can reference to the Gradio startup log in the log. Once the hyper-link is displayed, copy it to your browser for access. Then click on "Select Image Upload" on the page, and select at least one picture containing a face. Click "Start Training" to train the model. After the training is completed, there will be a corresponding display in the log. Afterward, switch to the "Image Experience" tab and click "Start Inference" to generate your own digital image.
+You can refer to the Gradio startup log in the log. Once the hyper-link is displayed, copy it to your browser for access. Then click on "Select Image Upload" on the page, and select at least one picture containing a face. Click "Start Training" to train the model. After the training is completed, there will be a corresponding display in the log. Afterward, switch to the "Image Experience" tab and click "Start Inference" to generate your own digital image.
 
 # Script Execution
 
