@@ -38,13 +38,41 @@ The following are the environment dependencies that have been verified:
 ## Installation Guide
 The following installation methods are supported:
 
-1. Docker【recommended】
+
+1. ModelScope notebook【recommended】
+The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
+
+    In addition to ModelScope notebook and ECS, I would suggest that we add that user may also start DSW instance with the option of ModelScope (GPU) image, to create a ready-to-use envrionment.
+
+```shell
+# Step1
+我的notebook -> PAI-DSW -> GPU环境
+
+# Step2
+Open the Terminal，clone FaceChain from github:
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
+
+# Step3
+Entry the Notebook cell:
+import os
+os.chdir('/mnt/workspace/facechain')
+print(os.getcwd())
+
+!pip3 install gradio
+!python3 app.py
+
+# Step4
+click "public URL" or "local URL"
+```
+
+
+2. Docker
 
 If you are familiar with using docker, we recommend to use this way:
 
 ```shell
 # Step1
-Prepare the env with GPU, e.g. Alibaba Cloud ECS, refer to: https://www.aliyun.com/product/ecs
+Prepare the environment with GPU on local or cloud, we recommend to use Alibaba Cloud ECS, refer to: https://www.aliyun.com/product/ecs
 
 # Step2
 Download the docker image (for installing docker engine, refer to https://docs.docker.com/engine/install/）
@@ -66,30 +94,6 @@ python3 app.py
 
 # Step6
 Run the app server: click "public URL" --> in the form of: https://xxx.gradio.live
-```
-
-2. ModelScope notebook
-The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
-
-```shell
-# Step1
-我的notebook -> PAI-DSW -> GPU环境
-
-# Step2
-Open the Terminal，clone FaceChain from github:
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
-
-# Step3
-Entry the Notebook cell:
-import os
-os.chdir('/mnt/workspace/facechain')
-print(os.getcwd())
-
-!pip3 install gradio
-!python3 app.py
-
-# Step4
-click "public URL" or "local URL"
 ```
 
 
