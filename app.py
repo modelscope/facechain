@@ -142,6 +142,8 @@ class Trainer:
             os.makedirs(f"/tmp/{uuid}")
         work_dir = f"/tmp/{uuid}/{output_model_name}"
         print("----------work_dir: ", work_dir)
+        shutil.rmtree(work_dir, ignore_errors=True)
+        shutil.rmtree(instance_data_dir, ignore_errors=True)
 
         prepare_dataset([img['name'] for img in instance_images], output_dataset_dir=instance_data_dir)
         data_process_fn(instance_data_dir, True)
