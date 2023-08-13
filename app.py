@@ -12,6 +12,7 @@ import numpy as np
 import torch
 
 from facechain.inference import GenPortrait
+from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 
 sys.path.append('facechain')
 
@@ -44,10 +45,13 @@ def concatenate_images(images):
     return concatenated_image
 
 
-def train_lora_fn(foundation_model_path=None, revision=None, input_img_dir=None, output_img_dir=None, work_dir=None):
-    sh_file_path = os.path.join('/'.join(os.path.abspath(__file__).split('/')[:-1]),
-                                'train_lora.sh')
-    os.system(f'PYTHONPATH=. sh {sh_file_path} {foundation_model_path} {revision} "film/film" {input_img_dir} {output_img_dir} {work_dir}')
+def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
+    os.system(f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
+              f'--revision={revision} --sub_path="film/film" '
+              f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
+              f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
+              f'--learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
+              f'--lora_r=32 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32')
 
 
 def launch_pipeline(uuid,
@@ -138,16 +142,15 @@ class Trainer:
             os.makedirs(f"/tmp/{uuid}")
         work_dir = f"/tmp/{uuid}/{output_model_name}"
         print("----------work_dir: ", work_dir)
+        shutil.rmtree(work_dir, ignore_errors=True)
+        shutil.rmtree(instance_data_dir, ignore_errors=True)
 
-        source_img_dir = f"/tmp/{uuid}/sources"
-        shutil.rmtree(source_img_dir, ignore_errors=True)
-        os.makedirs(source_img_dir, exist_ok=True)
-        for img in instance_images:
-            shutil.copy(img['name'], os.path.join(source_img_dir, os.path.basename(img['name'])))
+        prepare_dataset([img['name'] for img in instance_images], output_dataset_dir=instance_data_dir)
+        data_process_fn(instance_data_dir, True)
 
         # train lora
         train_lora_fn(foundation_model_path='ly261666/cv_portrait_model',
-                      revision='v2.0', input_img_dir=source_img_dir,
+                      revision='v2.0',
                       output_img_dir=instance_data_dir,
                       work_dir=work_dir)
 

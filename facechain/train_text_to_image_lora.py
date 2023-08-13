@@ -464,7 +464,7 @@ def parse_args():
         args.local_rank = env_local_rank
 
     # Sanity checks
-    if args.dataset_name is None and args.train_data_dir is None:
+    if args.dataset_name is None and args.train_data_dir is None and args.output_dataset_name is None:
         raise ValueError("Need either a dataset name or a training folder.")
 
     return args
@@ -478,15 +478,19 @@ DATASET_NAME_MAPPING = {
 def main():
     args = parse_args()
     logging_dir = os.path.join(args.output_dir, args.logging_dir)
-    shutil.rmtree(args.output_dataset_name, ignore_errors=True)
     shutil.rmtree(args.output_dir, ignore_errors=True)
     os.makedirs(args.output_dir)
-    args.dataset_name = [os.path.join(args.dataset_name, x) for x in os.listdir(args.dataset_name)]
 
-    print('All input images:', args.dataset_name)
-    prepare_dataset(args.dataset_name, args.output_dataset_name)
-    ## Our data process fn
-    data_process_fn(input_img_dir=args.output_dataset_name, use_data_process=True)
+    if args.dataset_name is not None:
+        # if dataset_name is None, then it's called from the gradio
+        # the data processing will be executed in the app.py to save the gpu memory.
+        print('All input images:', args.dataset_name)
+        args.dataset_name = [os.path.join(args.dataset_name, x) for x in os.listdir(args.dataset_name)]
+        shutil.rmtree(args.output_dataset_name, ignore_errors=True)
+        prepare_dataset(args.dataset_name, args.output_dataset_name)
+        ## Our data process fn
+        data_process_fn(input_img_dir=args.output_dataset_name, use_data_process=True)
+
     args.dataset_name = args.output_dataset_name + '_labeled'
 
     accelerator_project_config = ProjectConfiguration(
@@ -701,6 +705,7 @@ def main():
             cache_dir=args.cache_dir,
         )
     else:
+        # This branch will not be called
         data_files = {}
         if args.train_data_dir is not None:
             data_files["train"] = os.path.join(args.train_data_dir, "**")
