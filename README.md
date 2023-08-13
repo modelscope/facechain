@@ -40,7 +40,7 @@ The following installation methods are supported:
 
 
 1. ModelScope notebook【recommended】
-The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
+   The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
 
     In addition to ModelScope notebook and ECS, I would suggest that we add that user may also start DSW instance with the option of ModelScope (GPU) image, to create a ready-to-use envrionment.
 
@@ -97,6 +97,23 @@ python3 app.py
 Run the app server: click "public URL" --> in the form of: https://xxx.gradio.live
 ```
 
+3. Conda environment
+
+We commend to use [Anaconda](https://docs.anaconda.com/anaconda/install/) to manage your dependencies，After the installation of Anaconda, please use the commands below to install FaceChain (the installation of mmcv-full is tough and may takes a long time)：
+
+```shell
+conda create -n facechain python=3.8 
+conda activate facechain
+
+pip3 install -r requirements.txt
+pip3 install -U openmim 
+mim install mmcv-full==1.7.0
+
+# cd facechain
+python3 app.py
+```
+
+Note: After the app.py is successfully launched, access the page URL in the log, enter the "Image Customization" tab, click "Upload Image" under the "Select Image" section, and select at least 1 image containing a person's face. Click "Start Training" to initiate model training. Upon completion of training, corresponding updates will appear in the log. Afterward, switch to the "Image Experience" tab, click "Start Inference," and you can generate your own digital image.
 
 # Script Execution
 
