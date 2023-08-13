@@ -40,7 +40,7 @@ The following installation methods are supported:
 
 
 1. ModelScope notebook【recommended】
-The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
+   The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
 
     In addition to ModelScope notebook and ECS, I would suggest that we add that user may also start DSW instance with the option of ModelScope (GPU) image, to create a ready-to-use envrionment.
 
@@ -50,7 +50,7 @@ The ModelScope notebook has a free tier that allows you to run the FaceChain app
 
 # Step2
 Open the Terminal，clone FaceChain from github:
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 
 # Step3
 Entry the Notebook cell:
@@ -89,7 +89,7 @@ Install the gradio in the docker container:
 pip3 install gradio
 
 # Step5
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 cd facechain
 python3 app.py
 
