@@ -25,7 +25,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 The following are the environment dependencies that have been verified:
 - python: py3.8, py3.10
 - pytorch: torch2.0.0, torch2.0.1
-- tensorflow: 2.7.0, tensorflow-cpu
+- tensorflow: 2.8.0, tensorflow-cpu
 - CUDA: 11.7
 - CUDNN: 8+
 - OS: Ubuntu 20.04, CentOS 7.9
