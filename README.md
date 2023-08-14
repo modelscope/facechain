@@ -25,7 +25,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 The following are the environment dependencies that have been verified:
 - python: py3.8, py3.10
 - pytorch: torch2.0.0, torch2.0.1
-- tensorflow: 2.7.0, tensorflow-cpu
+- tensorflow: 2.8.0, tensorflow-cpu
 - CUDA: 11.7
 - CUDNN: 8+
 - OS: Ubuntu 20.04, CentOS 7.9
@@ -89,6 +89,29 @@ print(os.getcwd())
 !python3 app.py
 
 # Step4: click "public URL" or "local URL"
+```
+
+
+3. conda environment
+
+    You can use conda virtual environment, refer to following link to install the [Anaconda](https://docs.anaconda.com/anaconda/install/)
+
+```shell
+conda create -n facechain python=3.8    # versions of 3.8, 3.9 and 3.10 are verified
+conda activate facechain
+
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+cd facechain
+
+pip3 install -r requirements.txt
+pip3 install -U openmim 
+mim install mmcv-full==1.7.0
+
+cd facechain
+python3 app.py
+
+# Note: click "public URL" or "local URL"
+
 ```
 
 
