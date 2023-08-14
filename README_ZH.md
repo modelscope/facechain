@@ -21,10 +21,13 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 ![image](resources/example3.jpg)
 
+# News
+- Colab notebook安装已支持，您可以直接打开链接体验FaceChain: [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)
+
 # 环境准备
 
 ## 兼容性验证
-FaceChain是一个组合模型，使用了包括pytorch和tensorflow在内的机器学习框架，以下是已经验证过的主要环境依赖：
+FaceChain是一个组合模型，使用了包括PyTorch和TensorFlow在内的机器学习框架，以下是已经验证过的主要环境依赖：
 - python环境: py3.8, py3.10
 - pytorch版本: torch2.0.0, torch2.0.1
 - tensorflow版本: 2.8.0, tensorflow-cpu
@@ -116,6 +119,10 @@ python3 app.py
 
 # 最后点击log中生成的URL即可访问页面。
 ```
+
+### 4. colab运行
+支持colab notebook安装，参考： [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)
+
 
 
 备注：app服务成功启动后，在log中访问页面URL，进入”形象定制“tab页，点击“选择图片上传”，并最少选1张包含人脸的图片；点击“开始训练”即可训练模型。训练完成后日志中会有对应展示，之后切换到“形象体验”标签页点击“开始推理”即可生成属于自己的数字形象。
