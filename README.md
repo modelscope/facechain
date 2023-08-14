@@ -40,10 +40,10 @@ The following installation methods are supported:
 
 
 1. ModelScope notebook【recommended】
-   
+
    The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
    
-    In addition to ModelScope notebook and ECS, I would suggest that we add that user may also start DSW instance with the option of ModelScope (GPU) image, to create a ready-to-use envrionment.
+    In addition to ModelScope notebook and ECS, I would suggest that we add that user may also start DSW instance with the option of ModelScope (GPU) image, to create a ready-to-use environment.
 
 ```shell
 # Step1
