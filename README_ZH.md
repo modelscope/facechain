@@ -27,7 +27,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 FaceChain是一个组合模型，使用了包括pytorch和tensorflow在内的机器学习框架，以下是已经验证过的主要环境依赖：
 - python环境: py3.8, py3.10
 - pytorch版本: torch2.0.0, torch2.0.1
-- tensorflow版本: 2.7.0, tensorflow-cpu
+- tensorflow版本: 2.8.0, tensorflow-cpu
 - CUDA版本: 11.7
 - CUDNN版本: 8+
 - 操作系统版本: Ubuntu 20.04, CentOS 7.9
