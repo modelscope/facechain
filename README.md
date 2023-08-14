@@ -40,8 +40,9 @@ The following installation methods are supported:
 
 
 1. ModelScope notebook【recommended】
-The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
 
+   The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
+   
     In addition to ModelScope notebook and ECS, I would suggest that we add that user may also start DSW instance with the option of ModelScope (GPU) image, to create a ready-to-use environment.
 
 ```shell
@@ -50,7 +51,7 @@ The ModelScope notebook has a free tier that allows you to run the FaceChain app
 
 # Step2
 Open the Terminal，clone FaceChain from github:
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 
 # Step3
 Entry the Notebook cell:
@@ -82,14 +83,14 @@ docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu2
 # Step3
 docker images
 docker run -it --name facechain -p 7860:7860 --gpus all your_xxx_image_id /bin/bash
-(Note： you may need to install the nvidia-container-runtime, refer to https://github.com/NVIDIA/nvidia-container-runtime)
+(Note: you may need to install the nvidia-container-runtime, refer to https://github.com/NVIDIA/nvidia-container-runtime)
 
 # Step4
 Install the gradio in the docker container:
 pip3 install gradio
 
 # Step5
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 cd facechain
 python3 app.py
 

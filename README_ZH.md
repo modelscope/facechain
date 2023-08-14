@@ -54,7 +54,7 @@ FaceChain是一个组合模型，使用了包括pytorch和tensorflow在内的机
 # Step1: 我的notebook -> PAI-DSW -> GPU环境
 
 # Step2: 打开Terminal，将github代码clone到本地
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 
 # Step3: 进入Notebook cell，执行：
 import os
@@ -88,7 +88,7 @@ docker run -it --name facechain -p 7860:7860 --gpus all your_xxx_image_id /bin/b
 pip3 install gradio
 
 # Step5: 获取facechain源代码
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 cd facechain
 python3 app.py
 
@@ -104,6 +104,9 @@ python3 app.py
 ```shell
 conda create -n facechain python=3.8    # 已验证环境：3.8 和 3.10
 conda activate facechain
+
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+cd facechain
 
 pip3 install -r requirements.txt
 pip3 install -U openmim 
