@@ -327,13 +327,13 @@ class Blipv2():
                 cnt += 1
             except Exception as e:
                 print('cathed for image process of ' + imname)
-                print('Error: ' + e)
+                print(f'Error: {e}')
 
         print(result_list)
         if len(result_list) == 0:
-            print('Error: ' + e)
+            print('Error: result is empty.')
             exit()
-            return os.path.join(savedir, "metadata.jsonl")
+            # return os.path.join(savedir, "metadata.jsonl")
 
         result_list = post_process_naive(result_list, score_gender, score_age)
         self.model.stop()
