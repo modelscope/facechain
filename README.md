@@ -19,6 +19,9 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 ![image](resources/example3.jpg)
 
+# News
+- Colab notebook is available now! You can experience FaceChain directly with our [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).
+
 # Installation
 
 ## Compatibility Verification
@@ -115,6 +118,9 @@ python3 app.py
 
 **Note**: After the app service is successfully launched, go to the URL in the log, enter the "Image Customization" tab, click "Select Image to Upload", and choose at least one image with a face. Then, click "Start Training" to begin model training. After the training is completed, there will be corresponding displays in the log. Afterwards, switch to the "Image Experience" tab and click "Start Inference" to generate your own digital image.
 
+
+### 4. colab notebook
+Please refer to [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing) for details.
 
 
 # Script Execution
