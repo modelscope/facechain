@@ -21,10 +21,24 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 ![image](resources/example3.jpg)
 
+# News
+- Colab notebook安装已支持，您可以直接打开链接体验FaceChain: [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)
+
+
+# 待办事项
+- 现成风格模型即插即用（以C站风格模型为例）   --开发中
+- 增加个性化prompt模块（试穿不同的衣服等）   --开发中
+- 基于ControlNet或Composer等方式，支持指定poses
+- 增加个性化美颜特效模块
+- 基模升级，SD 1.5升级为SDXL
+- 兼容Colab使用                         --已完成
+- 兼容WebUI使用
+
+
 # 环境准备
 
 ## 兼容性验证
-FaceChain是一个组合模型，使用了包括pytorch和tensorflow在内的机器学习框架，以下是已经验证过的主要环境依赖：
+FaceChain是一个组合模型，使用了包括PyTorch和TensorFlow在内的机器学习框架，以下是已经验证过的主要环境依赖：
 - python环境: py3.8, py3.10
 - pytorch版本: torch2.0.0, torch2.0.1
 - tensorflow版本: 2.8.0, tensorflow-cpu
@@ -42,7 +56,7 @@ FaceChain是一个组合模型，使用了包括pytorch和tensorflow在内的机
 ## 安装指南
 支持以下几种安装方式，任选其一：
 
-1. 使用ModelScope提供的notebook环境【推荐】
+### 1. 使用ModelScope提供的notebook环境【推荐】
 
     ModelScope(魔搭社区)提供给新用户初始的免费计算资源，参考[ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
 
@@ -68,7 +82,7 @@ print(os.getcwd())
 ```
 
 
-2. docker镜像
+### 2. docker镜像
 
 如果您熟悉docker，可以使用我们提供的docker镜像，其包含了模型依赖的所有组件，无需复杂的环境安装：
 ```shell
@@ -79,9 +93,8 @@ print(os.getcwd())
 # Step2: 将镜像下载到本地 （前提是已经安装了docker engine并启动服务，具体可参考： https://docs.docker.com/engine/install/）
 docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0
 
-# Step3: 获取image id，并运行
-docker images
-docker run -it --name facechain -p 7860:7860 --gpus all your_xxx_image_id /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
+# Step3: 拉起镜像运行
+docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0 /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
 (注意： 如果提示无法使用宿主机GPU的错误，可能需要安装nvidia-container-runtime, 参考：https://github.com/NVIDIA/nvidia-container-runtime)
 
 # Step4: 在容器中安装gradio
@@ -96,7 +109,7 @@ python3 app.py
 ```
 
 
-3. conda虚拟环境
+### 3. conda虚拟环境
 
 使用conda虚拟环境，参考[Anaconda](https://docs.anaconda.com/anaconda/install/)来管理您的依赖，安装完成后，执行如下命令：
 (提示： mmcv对环境要求较高，可能出现不适配的情况，推荐使用docker方式)
@@ -117,6 +130,10 @@ python3 app.py
 
 # 最后点击log中生成的URL即可访问页面。
 ```
+
+### 4. colab运行
+支持colab notebook安装，参考： [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)
+
 
 
 备注：app服务成功启动后，在log中访问页面URL，进入”形象定制“tab页，点击“选择图片上传”，并最少选1张包含人脸的图片；点击“开始训练”即可训练模型。训练完成后日志中会有对应展示，之后切换到“形象体验”标签页点击“开始推理”即可生成属于自己的数字形象。

@@ -19,6 +19,19 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 ![image](resources/example3.jpg)
 
+# News
+- Colab notebook is available now! You can experience FaceChain directly with our [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).
+
+# To-Do List
+- Support existing style models (such as those on Civitai) in a plug-an-play fashion.  --on-going
+- Support customizable prompts (try on different outfits etc.)  --on-going
+- Support customizable poses, with controlnet or composer
+- Support more beauty-retouch effects
+- Support latest foundation models such as SDXL
+- Provide Colab compatability   --done
+- Provide WebUI compatability
+
+
 # Installation
 
 ## Compatibility Verification
@@ -39,37 +52,7 @@ The following are the environment dependencies that have been verified:
 The following installation methods are supported:
 
 
-1. Docker【recommended】
-
-If you are familiar with using docker, we recommend to use this way:
-
-```shell
-# Step1
-# Prepare the environment with GPU on local or cloud, we recommend to use Alibaba Cloud ECS, refer to: https://www.aliyun.com/product/ecs
-
-# Step2
-# Download the docker image (for installing docker engine, refer to https://docs.docker.com/engine/install/）
-docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0
-
-# Step3
-docker images
-docker run -it --name facechain -p 7860:7860 --gpus all your_xxx_image_id /bin/bash
-# Note: you may need to install the nvidia-container-runtime, refer to https://github.com/NVIDIA/nvidia-container-runtime
-
-# Step4
-# Install the gradio in the docker container:
-pip3 install gradio
-
-# Step5
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
-cd facechain
-python3 app.py
-
-# Step6
-# Run the app server: click "public URL" --> in the form of: https://xxx.gradio.live
-```
-
-2. ModelScope notebook
+### 1. ModelScope notebook【recommended】
 
    The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
    
@@ -85,19 +68,49 @@ GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --de
 import os
 os.chdir('/mnt/workspace/facechain')
 print(os.getcwd())
+
 !pip3 install gradio
 !python3 app.py
 
-# Step4: click "public URL" or "local URL"
+
+# Step4: click "public URL" or "local URL", upload your images to 
+# train your own model and then generate your digital twin.
 ```
 
 
-3. conda environment
+### 2. Docker
 
-    You can use conda virtual environment, refer to following link to install the [Anaconda](https://docs.anaconda.com/anaconda/install/)
+If you are familiar with using docker, we recommend to use this way:
 
 ```shell
-conda create -n facechain python=3.8    # versions of 3.8, 3.9 and 3.10 are verified
+# Step1: Prepare the environment with GPU on local or cloud, we recommend to use Alibaba Cloud ECS, refer to: https://www.aliyun.com/product/ecs
+
+# Step2: Download the docker image (for installing docker engine, refer to https://docs.docker.com/engine/install/）
+docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0
+
+# Step3: run the docker container
+docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0 /bin/bash
+(Note: you may need to install the nvidia-container-runtime, refer to https://github.com/NVIDIA/nvidia-container-runtime)
+
+# Step4: Install the gradio in the docker container:
+pip3 install gradio
+
+# Step5 clone facechain from github
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+cd facechain
+python3 app.py
+
+# Step6
+Run the app server: click "public URL" --> in the form of: https://xxx.gradio.live
+```
+
+### 3. conda Virtual Environment
+
+Use the conda virtual environment, and refer to [Anaconda](https://docs.anaconda.com/anaconda/install/) to manage your dependencies. After installation, execute the following commands:
+(Note: mmcv has strict environment requirements and might not be compatible in some cases. It's recommended to use Docker.)
+
+```shell
+conda create -n facechain python=3.8    # Verified environments: 3.8 and 3.10
 conda activate facechain
 
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
@@ -107,12 +120,17 @@ pip3 install -r requirements.txt
 pip3 install -U openmim 
 mim install mmcv-full==1.7.0
 
-cd facechain
+# Navigate to the facechain directory and run:
 python3 app.py
 
-# Note: click "public URL" or "local URL"
-
+# Finally, click on the URL generated in the log to access the web page.
 ```
+
+**Note**: After the app service is successfully launched, go to the URL in the log, enter the "Image Customization" tab, click "Select Image to Upload", and choose at least one image with a face. Then, click "Start Training" to begin model training. After the training is completed, there will be corresponding displays in the log. Afterwards, switch to the "Image Experience" tab and click "Start Inference" to generate your own digital image.
+
+
+### 4. colab notebook
+Please refer to [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing) for details.
 
 
 # Script Execution
