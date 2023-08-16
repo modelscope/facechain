@@ -13,11 +13,8 @@ FaceChain is a deep-learning toolchain for generating your Digital-Twin. With a 
 
 FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
-![image](resources/example1.jpg)
+![image](resources/git_cover.jpg)
 
-![image](resources/example2.jpg)
-
-![image](resources/example3.jpg)
 
 # News
 - Colab notebook is available now! You can experience FaceChain directly with our [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).
