@@ -539,7 +539,8 @@ def main():
             ).repo_id
 
     ## Download foundation Model
-    model_dir = snapshot_download(args.pretrained_model_name_or_path, revision=args.revision)
+    user_agent = {'invoked_by': 'trainer', 'third_party':'facechain'}
+    model_dir = snapshot_download(args.pretrained_model_name_or_path, revision=args.revision, user_agent=user_agent)
 
     if args.sub_path is not None and len(args.sub_path) > 0:
         model_dir = os.path.join(model_dir, args.sub_path)
