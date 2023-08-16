@@ -24,6 +24,17 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 # News
 - Colab notebook安装已支持，您可以直接打开链接体验FaceChain: [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)
 
+
+# 待办事项
+- 现成风格模型即插即用（以C站风格模型为例）   --50%
+- 增加个性化prompt模块（试穿不同的衣服等）   --50%
+- controlnet指定pose
+- 增加个性化美颜特效模块
+- 基模升级，SD 1.5升级为SD XL
+- 兼容colab使用                         --100%
+- 兼容webui使用
+
+
 # 环境准备
 
 ## 兼容性验证
