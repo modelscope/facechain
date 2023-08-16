@@ -28,8 +28,8 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 - Support customizable poses, with controlnet or composer
 - Support more beauty-retouch effects
 - Support latest foundation models such as SDXL
-- Provide Colab compatability   --done
-- Provide WebUI compatability
+- Provide Colab compatibility   --done
+- Provide WebUI compatibility
 
 
 # Features
