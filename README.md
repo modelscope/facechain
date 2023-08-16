@@ -17,7 +17,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
-- Support existing style models in a plug-an-play fashion. Refer to: [Features](#Features)   (August 16th, 2023 UTC)
+- Support a series of new style models in a plug-and-play fashion. Refer to: [Features](#Features)   (August 16th, 2023 UTC)
 - Support customizable prompts. Refer to: [Features](#Features)    (August 16th, 2023 UTC)
 - Colab notebook is available now! You can experience FaceChain directly with our [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).   (August 15th, 2023 UTC)
 
@@ -33,33 +33,33 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # Features
-- Support existing style models in a plug-an-play fashion
+- Support a series of new style models in a plug-and-play fashion
   - Description
-    - Support users to select different style models during training, to generate digital twin in different styles.
+    - Allow users to select different style models for training distinct types of Digital-Twins.
   - Installation
     - Refer to [Installation Guide](#installation-guide)
-  - Run
+  - Execution
   ```shell
-    cd facechain/advance-style
+    cd facechain/advanced-style
     python3 app.py
   ```
-  - Generated Result
+  - Exampled outcomes
   ![image](resources/style_lora_xiapei.jpg)
   - Reference
     - [xiapei lora model](https://www.liblibai.com/modelinfo/f746450340a3a932c99be55c1a82d20c)
-    - More style lora models，refer to [Civitai](https://civitai.com/)
+    - For more LoRA styles, refer to [Civitai](https://civitai.com/)
 
 - Support customizable prompts
   - Description
-    - Support users to add customizable prompts, to achieve the effect of dressing up.
+    - Allow users to achieve various portrait styles with customized prompts.
   - Installation
     - Refer to [Installation Guide](#installation-guide)
-  - Run
+  - Execution
   ```shell
-    cd facechain/advance-prompt
+    cd facechain/advanced-prompt
     python3 app.py
   ```
-  - Generated Result (prompt: wearing an elegant evening gown)
+  - Exampled outcomes (prompt: wearing an elegant evening gown)
     ![image](resources/prompt_evening_gown.jpg)
 
 
