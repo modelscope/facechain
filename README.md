@@ -43,7 +43,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
     cd facechain/advance-style
     python3 app.py
   ```
-  - Output
+  - Generated Result
   ![image](resources/style_lora_xiapei.jpg)
   - Reference
     - [xiapei lora model](https://www.liblibai.com/modelinfo/f746450340a3a932c99be55c1a82d20c)
@@ -59,7 +59,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
     cd facechain/advance-prompt
     python3 app.py
   ```
-  - Output (prompt: wearing an elegant evening gown)
+  - Generated Result (prompt: wearing an elegant evening gown)
     ![image](resources/prompt_evening_gown.jpg)
 
 
