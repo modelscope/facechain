@@ -12,12 +12,7 @@
 FaceChain is a deep-learning toolchain for generating your Digital-Twin. With a minimum of 1 portrait-photo, you can create a Digital-Twin of your own and start generating personal photos in different settings (work photos as starter!). You may train your Digital-Twin model and generate photos via FaceChain's Python scripts, or via the familiar Gradio interface. You can also experience FaceChain directly with our [ModelScope Studio](https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary).
 
 FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
-
-![image](resources/example1.jpg)
-
-![image](resources/example2.jpg)
-
-![image](resources/example3.jpg)
+![image](resources/example.jpg)
 
 # News
 - Colab notebook is available now! You can experience FaceChain directly with our [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).
