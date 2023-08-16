@@ -26,13 +26,13 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # 待办事项
-- 现成风格模型即插即用（以C站风格模型为例）   --50%
-- 增加个性化prompt模块（试穿不同的衣服等）   --50%
-- controlnet指定pose
+- 现成风格模型即插即用（以C站风格模型为例）   --开发中
+- 增加个性化prompt模块（试穿不同的衣服等）   --开发中
+- 基于ControlNet或Composer等方式，支持指定poses
 - 增加个性化美颜特效模块
-- 基模升级，SD 1.5升级为SD XL
-- 兼容colab使用                         --100%
-- 兼容webui使用
+- 基模升级，SD 1.5升级为SDXL
+- 兼容CColab使用                         --已完成
+- 兼容WebUI使用
 
 
 # 环境准备

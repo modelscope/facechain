@@ -23,13 +23,13 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 - Colab notebook is available now! You can experience FaceChain directly with our [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).
 
 # To-Do List
-- Plug in off the shelf style models (e.g. style models on the Civitai) (e.g. style models on the Civitai)    --50%
-- Provide personalized prompt module (try on different clothes, etc.)            --50%
-- User-defined pose with controlnet
-- Add personalized beauty effect module
-- SDXL compatible
-- Colab compatible                         --100%
-- WebUI compatible
+- Support existing style models (such as those on Civitai) in a plug-an-play fashion.  --on-going
+- Support customizable prompts (try on different outfits etc.)  --on-going
+- Support customizable poses, with controlnet or composer
+- Support more beauty-retouch effects
+- Support latest foundatation models such as SDXL
+- Provide Colab compatability   --done
+- Provide WebUI compatability
 
 
 # Installation
