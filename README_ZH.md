@@ -31,7 +31,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 - 基于ControlNet或Composer等方式，支持指定poses
 - 增加个性化美颜特效模块
 - 基模升级，SD 1.5升级为SDXL
-- 兼容CColab使用                         --已完成
+- 兼容Colab使用                         --已完成
 - 兼容WebUI使用
 
 
