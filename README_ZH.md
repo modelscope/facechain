@@ -15,11 +15,8 @@ FaceChain是一个可以用来打造个人数字形象的深度学习模型工�
 
 FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开源模型社区提供支持。
 
-![image](resources/example1.jpg)
+![image](resources/git_cover_CH.jpg)
 
-![image](resources/example2.jpg)
-
-![image](resources/example3.jpg)
 
 # News
 - 支持风格lora模型即插即用！ 参考 [功能特性](#功能特性)    (2023-08-16)
