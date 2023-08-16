@@ -47,7 +47,6 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
     - [xiapei lora model](https://www.liblibai.com/modelinfo/f746450340a3a932c99be55c1a82d20c)
     - More style lora models，refer to [Civitai](https://civitai.com/)
 
-- 增加个性化prompt模块
 - Support customizable prompts
   - Description: Support users to add customizable prompts, to achieve the effect of dressing up.
   - Installation: Refer to [Installation Guide](#installation-guide)
