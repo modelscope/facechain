@@ -17,7 +17,10 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
-- Colab notebook is available now! You can experience FaceChain directly with our [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).
+- Support a series of new style models in a plug-and-play fashion. Refer to: [Features](#Features)   (August 16th, 2023 UTC)
+- Support customizable prompts. Refer to: [Features](#Features)    (August 16th, 2023 UTC)
+- Colab notebook is available now! You can experience FaceChain directly with our [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).   (August 15th, 2023 UTC)
+
 
 # To-Do List
 - Support existing style models (such as those on Civitai) in a plug-an-play fashion.  --on-going
@@ -27,6 +30,37 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 - Support latest foundation models such as SDXL
 - Provide Colab compatability   --done
 - Provide WebUI compatability
+
+
+# Features
+- Support a series of new style models in a plug-and-play fashion
+  - Description
+    - Allow users to select different style models for training distinct types of Digital-Twins.
+  - Installation
+    - Refer to [Installation Guide](#installation-guide)
+  - Execution
+  ```shell
+    cd facechain/advanced-style
+    python3 app.py
+  ```
+  - Exampled outcomes
+  ![image](resources/style_lora_xiapei.jpg)
+  - Reference
+    - [xiapei lora model](https://www.liblibai.com/modelinfo/f746450340a3a932c99be55c1a82d20c)
+    - For more LoRA styles, refer to [Civitai](https://civitai.com/)
+
+- Support customizable prompts
+  - Description
+    - Allow users to achieve various portrait styles with customized prompts.
+  - Installation
+    - Refer to [Installation Guide](#installation-guide)
+  - Execution
+  ```shell
+    cd facechain/advanced-prompt
+    python3 app.py
+  ```
+  - Exampled outcomes (prompt: wearing an elegant evening gown)
+    ![image](resources/prompt_evening_gown.jpg)
 
 
 # Installation
