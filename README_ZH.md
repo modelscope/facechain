@@ -15,11 +15,8 @@ FaceChain是一个可以用来打造个人数字形象的深度学习模型工�
 
 FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开源模型社区提供支持。
 
-![image](resources/example1.jpg)
+![image](resources/git_cover_CH.jpg)
 
-![image](resources/example2.jpg)
-
-![image](resources/example3.jpg)
 
 # News
 - Colab notebook安装已支持，您可以直接打开链接体验FaceChain: [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)
