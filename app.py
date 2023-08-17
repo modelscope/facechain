@@ -247,10 +247,8 @@ def train_input():
             碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上按照如下命令自行体验
             1. git clone https://github.com/modelscope/facechain.git
             2. cd facechain
-            3. pip install -r requirements.txt 
-            4. pip3 install -U openmim 
-            5. mim install mmcv-full==1.7.0
-            6. python app.py
+            3. pip install gradio
+            4. python app.py
             ''')
 
         run_button.click(fn=trainer.run,
