@@ -38,27 +38,22 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
     - Allow users to select different style models for training distinct types of Digital-Twins.
   - Installation
     - Refer to [Installation Guide](#installation-guide)
-  - Execution
-  ```shell
-    cd facechain/advanced-style
-    python3 app.py
-  ```
+  - Usage
+    - Select  "凤冠霞帔(Chinese traditional gorgeous suit)" on the inference tab.
+    - Using this style will ignore the alternative prompts.
   - Exampled outcomes
   ![image](resources/style_lora_xiapei.jpg)
   - Reference
     - [xiapei lora model](https://www.liblibai.com/modelinfo/f746450340a3a932c99be55c1a82d20c)
     - For more LoRA styles, refer to [Civitai](https://civitai.com/)
-
+  
 - Support customizable prompts
   - Description
     - Allow users to achieve various portrait styles with customized prompts.
   - Installation
     - Refer to [Installation Guide](#installation-guide)
-  - Execution
-  ```shell
-    cd facechain/advanced-prompt
-    python3 app.py
-  ```
+  - Usage
+    - Select the alternative prompts on the inference tab.
   - Exampled outcomes (prompt: wearing an elegant evening gown)
     ![image](resources/prompt_evening_gown.jpg)
 
@@ -86,8 +81,6 @@ The following installation methods are supported:
 ### 1. ModelScope notebook【recommended】
 
    The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
-   
-    In addition to ModelScope notebook and ECS, I would suggest that we add that user may also start DSW instance with the option of ModelScope (GPU) image, to create a ready-to-use environment.
 
 ```shell
 # Step1: 我的notebook -> PAI-DSW -> GPU环境
