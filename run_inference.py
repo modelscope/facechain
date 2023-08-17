@@ -5,13 +5,7 @@ from facechain.inference import GenPortrait
 import cv2
 from modelscope import snapshot_download
 
-cloth_prompt = [
-    'wearing high-class business/working suit'  # male and female
-    'wearing silver armor',  # male
-    'wearing T-shirt',  # male and female
-    'wearing beautiful traditional hanfu, upper_body',  # female
-    'wearing an elegant evening gown'  # female
-]
+
 
 example_styles = [
     {'name': '凤冠霞帔(Chinese traditional gorgeous suit)',

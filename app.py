@@ -13,6 +13,7 @@ from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
+from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt
 
 training_threadpool = ThreadPoolExecutor(max_workers=1)
 inference_threadpool = ThreadPoolExecutor(max_workers=5)
@@ -22,27 +23,6 @@ inference_done_count = 0
 
 HOT_MODELS = [
     "\N{fire}数字身份",
-]
-
-examples = {
-    'prompt_male': [
-        ['wearing silver armor'],
-        ['wearing T-shirt']
-    ],
-    'prompt_female': [
-        ['wearing beautiful traditional hanfu, upper_body'],
-        ['wearing an elegant evening gown']
-    ],
-}
-
-example_styles = [
-    {'name': '默认风格(default_style_model_path)'},
-    {'name': '凤冠霞帔(Chinese traditional gorgeous suit)',
-     'model_id': 'ly261666/civitai_xiapei_lora',
-     'revision': 'v1.0.0',
-     'bin_file': 'xiapei.safetensors',
-     'multiplier_style': 0.35,
-     'add_prompt_style': 'red, hanfu, tiara, crown, '},
 ]
 
 
@@ -73,29 +53,40 @@ def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None
         f'--lora_r=32 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32')
 
 
+def generate_pos_prompt(style_model, prompt_cloth):
+    if style_model == styles[0]['name']:
+        pos_prompt = pos_prompt_with_cloth.format(prompt_cloth)
+    else:
+        matched = list(filter(lambda style: style_model == style['name'], styles))
+        if len(matched) == 0:
+            raise ValueError(f'styles not found: {style_model}')
+        matched = matched[0]
+        pos_prompt = pos_prompt_with_style.format(matched['add_prompt_style'])
+    return pos_prompt
+
+
 def launch_pipeline(uuid,
                     prompt_cloth,
                     user_models,
                     num_images=1,
+                    multiplier_style=0.25,
                     style_model=None,
                     ):
     base_model = 'ly261666/cv_portrait_model'
     before_queue_size = inference_threadpool._work_queue.qsize()
     before_done_count = inference_done_count
-    multiplier_style = None
-    add_prompt_style = None
 
-    if style_model == example_styles[0]['name']:
+    if style_model == styles[0]['name']:
         style_model_path = None
     else:
-        style_model_path = style_model
-        for e in example_styles:
-            if style_model == e['name']:
-                model_dir = snapshot_download(e['model_id'], revision=e['revision'])
-                style_model_path = os.path.join(model_dir, e['bin_file'])
-                multiplier_style = e['multiplier_style']
-                add_prompt_style = e['add_prompt_style']
+        matched = list(filter(lambda style: style_model == style['name'], styles))
+        if len(matched) == 0:
+            raise ValueError(f'styles not found: {style_model}')
+        matched = matched[0]
+        model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
+        style_model_path = os.path.join(model_dir, matched['bin_file'])
 
+    pos_prompt = generate_pos_prompt(style_model, prompt_cloth)
     print("-------user_models: ", user_models)
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -113,7 +104,7 @@ def launch_pipeline(uuid,
 
     lora_model_path = f'/tmp/{uuid}/{output_model_name}'
 
-    gen_portrait = GenPortrait(prompt_cloth, style_model_path, multiplier_style, add_prompt_style, use_main_model,
+    gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                                use_face_swap, use_post_process,
                                use_stylization)
 
@@ -264,11 +255,11 @@ def inference_input():
         with gr.Row():
             with gr.Column():
                 user_models = gr.Radio(label="模型选择", choices=HOT_MODELS, type="value", value=HOT_MODELS[0])
-                prompt_cloth = gr.Textbox(label="服饰相关提示词", value='wearing high-class business/working suit')
-                gr.Examples(examples['prompt_male'], inputs=[prompt_cloth], label='男性提示词示例')
-                gr.Examples(examples['prompt_female'], inputs=[prompt_cloth], label='女性提示词示例')
-                style_model = gr.Textbox(label="风格模型选择(当不是默认风格时服饰相关提示词不生效)", value=example_styles[0]['name'])
-                gr.Examples([e['name'] for e in example_styles], inputs=[style_model], label='风格模型列表')
+                prompt_cloth = gr.Textbox(label="服饰相关提示词", value=cloth_prompt[0])
+                gr.Examples([[p] for p in cloth_prompt], inputs=[prompt_cloth], label='提示词示例')
+                style_model = gr.Textbox(label="风格模型选择(当不是默认风格时服饰相关提示词不生效)",
+                                         value=styles[0]['name'])
+                gr.Examples([e['name'] for e in styles], inputs=[style_model], label='风格模型列表')
 
                 with gr.Box():
                     num_images = gr.Number(
