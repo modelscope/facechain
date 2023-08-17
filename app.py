@@ -244,11 +244,8 @@ def train_input():
             output_message = gr.Markdown()
         with gr.Box():
             gr.Markdown('''
-            碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上按照如下命令自行体验
-            1. git clone https://github.com/modelscope/facechain.git
-            2. cd facechain
-            3. pip install gradio
-            4. python app.py
+            碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上进行体验，
+            安装方法请参考：https://github.com/modelscope/facechain
             ''')
 
         run_button.click(fn=trainer.run,
