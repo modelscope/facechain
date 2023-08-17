@@ -5,11 +5,11 @@ pos_prompt_with_style = '{} upper_body, raw photo, masterpiece, chinese, solo, m
 
 
 cloth_prompt = [
-    'wearing high-class business/working suit'  # male and female
-    'wearing silver armor',  # male
-    'wearing T-shirt',  # male and female
-    'wearing beautiful traditional hanfu, upper_body',  # female
-    'wearing an elegant evening gown'  # female
+    {'name': 'working suit', 'prompt': 'wearing high-class business/working suit'},  # male and female
+    {'name': 'armor', 'prompt': 'wearing silver armor'},  # male
+    {'name': 'T-shirt', 'prompt': 'wearing T-shirt'},  # male and female
+    {'name': 'hanfu', 'prompt': 'wearing beautiful traditional hanfu, upper_body'},  # female
+    {'name': 'gown', 'prompt': 'wearing an elegant evening gown'},  # female
 ]
 
 styles = [

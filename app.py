@@ -66,7 +66,7 @@ def generate_pos_prompt(style_model, prompt_cloth):
 
 
 def launch_pipeline(uuid,
-                    prompt_cloth,
+                    pos_prompt,
                     user_models,
                     num_images=1,
                     multiplier_style=0.25,
@@ -86,7 +86,6 @@ def launch_pipeline(uuid,
         model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
         style_model_path = os.path.join(model_dir, matched['bin_file'])
 
-    pos_prompt = generate_pos_prompt(style_model, prompt_cloth)
     print("-------user_models: ", user_models)
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -219,7 +218,8 @@ def train_input():
                 with gr.Box():
                     gr.Markdown('训练数据(Training data)')
                     instance_images = gr.Gallery()
-                    upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"], file_count="multiple")
+                    upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
+                                                    file_count="multiple")
                     upload_button.upload(upload_file, upload_button, instance_images)
 
         run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）'
@@ -254,14 +254,20 @@ def inference_input():
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         with gr.Row():
             with gr.Column():
-                user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value", value=HOT_MODELS[0])
+                user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value",
+                                       value=HOT_MODELS[0])
                 generate_pos_prompt(None, cloth_prompt[0])
-                prompt_cloth = gr.Textbox(label="Prompt",
-                                          value=generate_pos_prompt(None, cloth_prompt[0]))
-                gr.Examples([[generate_pos_prompt(None, p)] for p in cloth_prompt], inputs=[prompt_cloth], label='提示词示例')
+                pos_prompt = gr.Textbox(label="Prompt",
+                                        value=f'[{cloth_prompt[0]["name"]}]' + generate_pos_prompt(None,
+                                                                                                   cloth_prompt[0]))
+                gr.Examples([[f'[{p["name"]}]' + generate_pos_prompt(None, p['prompt'])] for p in cloth_prompt],
+                            inputs=[pos_prompt], label='提示词示例(Prompt examples)')
                 style_model = gr.Textbox(label="风格模型(Style model)",
                                          value=styles[0]['name'])
-                gr.Examples([e['name'] for e in styles], inputs=[style_model], label='风格模型列表(Style model list)')
+                gr.Examples([e['name'] for e in styles], inputs=[style_model],
+                            outputs=[pos_prompt],
+                            fn=lambda model: generate_pos_prompt(model, None),
+                            label='风格模型列表(Style model list)')
 
                 with gr.Box():
                     num_images = gr.Number(
@@ -279,7 +285,7 @@ def inference_input():
             output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
                                                                                object_fit="contain")
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, prompt_cloth, user_models, num_images, style_model],
+                             inputs=[uuid, pos_prompt, user_models, num_images, style_model],
                              outputs=[infer_progress, output_images])
 
     return demo
