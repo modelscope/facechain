@@ -3,6 +3,29 @@ import os
 
 from facechain.inference import GenPortrait
 import cv2
+from modelscope import snapshot_download
+
+
+examples = {
+    'prompt_male': [
+        ['wearing silver armor'],
+        ['wearing T-shirt']
+    ],
+    'prompt_female': [
+        ['wearing beautiful traditional hanfu, upper_body'],
+        ['wearing an elegant evening gown']
+    ],
+}
+
+example_styles = [
+    {'name': '默认风格(default_style_model_path)'},
+    {'name': '凤冠霞帔(Chinese traditional gorgeous suit)',
+     'model_id': 'ly261666/civitai_xiapei_lora',
+     'revision': 'v1.0.0',
+     'bin_file': 'xiapei.safetensors',
+     'multiplier_style': 0.35,
+     'add_prompt_style': 'red, hanfu, tiara, crown, '},
+]
 
 use_main_model = True
 use_face_swap = True
@@ -15,10 +38,19 @@ revision = 'v2.0'
 base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 output_dir = './generated'
-cloth_prompt = 'wearing high-class business/working suit'
-style_model_path = None
-multiplier_style = None
-add_prompt_style = None
+use_cloth_prompt = True  # Cloth prompt and style model cannot be used at the same time.
+
+if use_cloth_prompt:
+    cloth_prompt = 'wearing high-class business/working suit'  # examples['prompt_male'][0]
+    style_model_path = None
+    multiplier_style = None
+    add_prompt_style = None
+else:
+    model_dir = snapshot_download(example_styles[1]['model_id'], revision=example_styles[1]['revision'])
+    cloth_prompt = None
+    style_model_path = os.path.join(model_dir, example_styles[1]['bin_file'])
+    multiplier_style = example_styles[1]['multiplier_style']
+    add_prompt_style = example_styles[1]['add_prompt_style']
 
 gen_portrait = GenPortrait(cloth_prompt, style_model_path, multiplier_style, add_prompt_style,
                            use_main_model, use_face_swap, use_post_process,
