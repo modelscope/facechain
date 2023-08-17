@@ -36,11 +36,20 @@ def txt2img(pipe, pos_prompt, neg_prompt, num_images=10):
     return images_out
 
 
-def main_diffusion_inference(input_img_dir, base_model_path, style_model_path, lora_model_path, multiplier_style=0.25,
-                             multiplier_human=1.0):
+def main_diffusion_inference(prompt_cloth, input_img_dir, base_model_path, style_model_path, lora_model_path,
+                             multiplier_style=0.25,
+                             multiplier_human=1.0, add_prompt_style=''):
     pipe = StableDiffusionPipeline.from_pretrained(base_model_path, torch_dtype=torch.float32)
-    neg_prompt = 'nsfw, paintings, sketches, (worst quality:2), (low quality:2) lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character'
-    pos_prompt = 'raw photo, masterpiece, chinese, simple background, wearing high-class business/working suit, high-class pure color background, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
+    neg_prompt = 'nsfw, paintings, sketches, (worst quality:2), (low quality:2) ' \
+                 'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character'
+    if style_model_path is None:
+        model_dir = snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo', revision='v1.0.0')
+        style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_fromleo.safetensors')
+        pos_prompt = 'raw photo, masterpiece, chinese, simple background, ' + prompt_cloth + ', high-class pure color background, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
+    else:
+        print(f'[NOTE]: Style model is used, the cloth prompt will be ignored: {prompt_cloth}')
+        pos_prompt = add_prompt_style + ' upper_body, raw photo, masterpiece, chinese, solo, medium shot, high detail face, slim body, photorealistic, best quality'
+
     lora_style_path = style_model_path
     lora_human_path = lora_model_path
     pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
@@ -88,7 +97,7 @@ def main_diffusion_inference(input_img_dir, base_model_path, style_model_path, l
         add_prompt_style = ", ".join(add_prompt_style) + ', '
     else:
         add_prompt_style = ''
-    # trigger_style = trigger_style + 'with <input_id> face, ' 
+    # trigger_style = trigger_style + 'with <input_id> face, '
     # pos_prompt = 'Generate a standard ID photo of a chinese {}, solo, wearing high-class business/working suit, beautiful smooth face, with high-class/simple pure color background, looking straight into the camera with shoulders parallel to the frame, smile, high detail face, best quality, photorealistic'.format(gender)
     pipe = pipe.to("cuda")
     # print(trigger_style + add_prompt_style + pos_prompt)
@@ -104,12 +113,12 @@ def stylization_fn(use_stylization, rank_results):
         return rank_results
 
 
-def main_model_inference(use_main_model, input_img_dir=None, base_model_path=None, lora_model_path=None):
+def main_model_inference(style_model_path, multiplier_style, add_prompt_style, prompt_cloth, use_main_model,
+                         input_img_dir=None, base_model_path=None, lora_model_path=None):
     if use_main_model:
-        model_dir = snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo', revision='v1.0.0')
-        style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_fromleo.safetensors')
-        image = main_diffusion_inference(input_img_dir, base_model_path, style_model_path, lora_model_path)
-        return image
+        multiplier_style_kwargs = {'multiplier_style': multiplier_style} if multiplier_style is not None else {}
+        return main_diffusion_inference(prompt_cloth, input_img_dir, base_model_path, style_model_path, lora_model_path,
+                                        add_prompt_style=add_prompt_style, **multiplier_style_kwargs)
 
 
 def select_high_quality_face(input_img_dir):
@@ -188,12 +197,17 @@ def post_process_fn(use_post_process, swap_results_ori, selected_face, num_gen_i
 
 
 class GenPortrait:
-    def __init__(self,  use_main_model=True, use_face_swap=True,
+    def __init__(self, prompt_cloth, style_model_path, multiplier_style, add_prompt_style,
+                 use_main_model=True, use_face_swap=True,
                  use_post_process=True, use_stylization=True):
         self.use_main_model = use_main_model
         self.use_face_swap = use_face_swap
         self.use_post_process = use_post_process
         self.use_stylization = use_stylization
+        self.prompt_cloth = prompt_cloth
+        self.add_prompt_style = add_prompt_style
+        self.multiplier_style = multiplier_style
+        self.style_model_path = style_model_path
 
     def __call__(self, input_img_dir, num_gen_images=6, base_model_path=None,
                  lora_model_path=None, sub_path=None, revision=None):
@@ -202,7 +216,8 @@ class GenPortrait:
             base_model_path = os.path.join(base_model_path, sub_path)
 
         # main_model_inference PIL
-        gen_results = main_model_inference(self.use_main_model, input_img_dir=input_img_dir,
+        gen_results = main_model_inference(self.style_model_path, self.multiplier_style, self.add_prompt_style,
+                                           self.prompt_cloth, self.use_main_model, input_img_dir=input_img_dir,
                                            lora_model_path=lora_model_path, base_model_path=base_model_path)
         # select_high_quality_face PIL
         selected_face = select_high_quality_face(input_img_dir)
