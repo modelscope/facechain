@@ -267,7 +267,7 @@ def inference_input():
                 prompt_cloth = gr.Textbox(label="服饰相关提示词", value='wearing high-class business/working suit')
                 gr.Examples(examples['prompt_male'], inputs=[prompt_cloth], label='男性提示词示例')
                 gr.Examples(examples['prompt_female'], inputs=[prompt_cloth], label='女性提示词示例')
-                style_model = gr.Textbox(label="风格模型选择", value=example_styles[0]['name'])
+                style_model = gr.Textbox(label="风格模型选择(当不是默认风格时服饰相关提示词不生效)", value=example_styles[0]['name'])
                 gr.Examples([e['name'] for e in example_styles], inputs=[style_model], label='风格模型列表')
 
                 with gr.Box():
