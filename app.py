@@ -54,7 +54,7 @@ def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None
 
 
 def generate_pos_prompt(style_model, prompt_cloth):
-    if style_model == styles[0]['name']:
+    if style_model == styles[0]['name'] or style_model is None:
         pos_prompt = pos_prompt_with_cloth.format(prompt_cloth)
     else:
         matched = list(filter(lambda style: style_model == style['name'], styles))
@@ -90,7 +90,7 @@ def launch_pipeline(uuid,
     print("-------user_models: ", user_models)
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-            return "请登陆后使用! "
+            return "请登陆后使用! (Please login first)"
         else:
             uuid = 'qw'
 
@@ -119,7 +119,7 @@ def launch_pipeline(uuid,
             to_wait = before_queue_size - (cur_done_count - before_done_count)
             yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5), None]
         else:
-            yield ["生成中, 请耐心等待...", None]
+            yield ["生成中, 请耐心等待(Generating)...", None]
         time.sleep(1)
 
     outputs = future.result()
@@ -131,9 +131,9 @@ def launch_pipeline(uuid,
         result = concatenate_images(outputs)
         cv2.imwrite(image_path, result)
 
-        yield ["生成完毕！", outputs_RGB]
+        yield ["生成完毕(Generating done)！", outputs_RGB]
     else:
-        yield ["生成失败，请重试！", outputs_RGB]
+        yield ["生成失败，请重试(Generating failed, please retry)！", outputs_RGB]
 
 
 class Trainer:
@@ -149,12 +149,12 @@ class Trainer:
         if not torch.cuda.is_available():
             raise gr.Error('CUDA is not available.')
         if instance_images is None:
-            raise gr.Error('您需要上传训练图片！')
+            raise gr.Error('您需要上传训练图片(Please upload photos)！')
         if len(instance_images) > 10:
-            raise gr.Error('您需要上传小于10张训练图片！')
+            raise gr.Error('您需要上传小于10张训练图片(Please upload at most 10 photos)！')
         if not uuid:
             if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-                return "请登陆后使用! "
+                return "请登陆后使用(Please login first)! "
             else:
                 uuid = 'qw'
 
@@ -180,7 +180,7 @@ class Trainer:
                       output_img_dir=instance_data_dir,
                       work_dir=work_dir)
 
-        message = f'训练已经完成！请切换至 [形象体验] 标签体验模型效果'
+        message = f'训练已经完成！请切换至 [形象体验] 标签体验模型效果(Training done, please switch to the inference tab to generate photos.)'
         print(message)
         return message
 
@@ -217,12 +217,13 @@ def train_input():
         with gr.Row():
             with gr.Column():
                 with gr.Box():
-                    gr.Markdown('训练数据')
+                    gr.Markdown('训练数据(Training data)')
                     instance_images = gr.Gallery()
-                    upload_button = gr.UploadButton("选择图片上传", file_types=["image"], file_count="multiple")
+                    upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"], file_count="multiple")
                     upload_button.upload(upload_file, upload_button, instance_images)
 
-        run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）')
+        run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）'
+                               '(Start training: Please click after the photos are showed, or the training progress will be failed)')
 
         with gr.Box():
             gr.Markdown(
@@ -231,11 +232,10 @@ def train_input():
         with gr.Box():
             gr.Markdown('''
             碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上按照如下命令自行体验
+            (If any error occurs or the waiting queue is too long, please use our [NoteBook](https://modelscope.cn/my/mynotebook/preset) with the following commands)
             1. git clone https://github.com/modelscope/facechain.git
             2. cd facechain
-            3. pip install -r requirements.txt 
-            4. pip3 install -U openmim 
-            5. mim install mmcv-full==1.7.0
+            3. pip install gradio
             6. python app.py
             ''')
 
@@ -254,26 +254,28 @@ def inference_input():
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         with gr.Row():
             with gr.Column():
-                user_models = gr.Radio(label="模型选择", choices=HOT_MODELS, type="value", value=HOT_MODELS[0])
-                prompt_cloth = gr.Textbox(label="服饰相关提示词", value=cloth_prompt[0])
-                gr.Examples([[p] for p in cloth_prompt], inputs=[prompt_cloth], label='提示词示例')
-                style_model = gr.Textbox(label="风格模型选择(当不是默认风格时服饰相关提示词不生效)",
+                user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value", value=HOT_MODELS[0])
+                generate_pos_prompt(None, cloth_prompt[0])
+                prompt_cloth = gr.Textbox(label="Prompt",
+                                          value=generate_pos_prompt(None, cloth_prompt[0]))
+                gr.Examples([[generate_pos_prompt(None, p)] for p in cloth_prompt], inputs=[prompt_cloth], label='提示词示例')
+                style_model = gr.Textbox(label="风格模型(Style model)",
                                          value=styles[0]['name'])
-                gr.Examples([e['name'] for e in styles], inputs=[style_model], label='风格模型列表')
+                gr.Examples([e['name'] for e in styles], inputs=[style_model], label='风格模型列表(Style model list)')
 
                 with gr.Box():
                     num_images = gr.Number(
-                        label='生成图片数量', value=6, precision=1)
+                        label='生成图片数量(Number of photos)', value=6, precision=1)
                     gr.Markdown('''
-                    注意：最多支持生成6张图片!
+                    注意：最多支持生成6张图片!(Only support generating at most 6 photos one time!)
                         ''')
 
-        display_button = gr.Button('开始推理')
+        display_button = gr.Button('开始推理(Start!)')
 
         with gr.Box():
-            infer_progress = gr.Textbox(label="生成进度", value="当前无生成任务", interactive=False)
+            infer_progress = gr.Textbox(label="生成进度(Progress)", value="当前无生成任务(No task)", interactive=False)
         with gr.Box():
-            gr.Markdown('生成结果')
+            gr.Markdown('生成结果(Result)')
             output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
                                                                                object_fit="contain")
         display_button.click(fn=launch_pipeline,
@@ -285,9 +287,9 @@ def inference_input():
 
 with gr.Blocks(css='style.css') as demo:
     with gr.Tabs():
-        with gr.TabItem('\N{rocket}形象定制'):
+        with gr.TabItem('\N{rocket}形象定制(Train)'):
             train_input()
-        with gr.TabItem('\N{party popper}形象体验'):
+        with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input()
 
 demo.queue(status_update_rate=1).launch(share=True)
