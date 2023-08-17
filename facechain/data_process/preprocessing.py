@@ -15,6 +15,13 @@ from modelscope.pipelines import pipeline
 from modelscope.outputs import OutputKeys
 from modelscope.utils.constant import Tasks
 
+skin_retouching = pipeline(Tasks.skin_retouching, model='damo/cv_unet_skin-retouching')
+face_detection = pipeline(task=Tasks.face_detection, model='damo/cv_ddsar_face-detection_iclr23-damofd')
+# mog_face_detection_func = pipeline(Tasks.face_detection, 'damo/cv_resnet101_face-detection_cvpr22papermogface')
+segmentation_pipeline = pipeline(Tasks.image_segmentation,'damo/cv_resnet101_image-multiple-human-parsing')
+fair_face_attribute_func = pipeline(Tasks.face_attribute_recognition,'damo/cv_resnet34_face-attribute-recognition_fairface')
+facial_landmark_confidence_func = pipeline(Tasks.face_2d_keypoints,'damo/cv_manual_facial-landmark-confidence_flcm')
+
 
 def crop_and_resize(im, bbox, thres=0.35, thres1=0.45):
     h, w, _ = im.shape
@@ -200,15 +207,6 @@ def get_mask_head(result):
 class Blipv2():
     def __init__(self):
         self.model = DeepDanbooru()
-        self.skin_retouching = pipeline(Tasks.skin_retouching, model='damo/cv_unet_skin-retouching')
-        self.face_detection = pipeline(task=Tasks.face_detection, model='damo/cv_ddsar_face-detection_iclr23-damofd')
-        # self.mog_face_detection_func = pipeline(Tasks.face_detection, 'damo/cv_resnet101_face-detection_cvpr22papermogface')
-        self.segmentation_pipeline = pipeline(Tasks.image_segmentation,
-                                              'damo/cv_resnet101_image-multiple-human-parsing')
-        self.fair_face_attribute_func = pipeline(Tasks.face_attribute_recognition,
-                                                 'damo/cv_resnet34_face-attribute-recognition_fairface')
-        self.facial_landmark_confidence_func = pipeline(Tasks.face_2d_keypoints,
-                                                        'damo/cv_manual_facial-landmark-confidence_flcm')
 
     def __call__(self, imdir):
         self.model.start()
@@ -236,7 +234,7 @@ class Blipv2():
                 new_h = round(h * ratio)
                 imt = cv2.resize(im, (new_w, new_h))
                 cv2.imwrite(tmp_path, imt)
-                result_det = self.face_detection(tmp_path)
+                result_det = face_detection(tmp_path)
                 bboxes = result_det['boxes']
                 if len(bboxes) > 1:
                     areas = []
@@ -261,7 +259,7 @@ class Blipv2():
                 ns = im.shape[0]
                 imt = cv2.resize(im, (1024, 1024))
                 cv2.imwrite(tmp_path, imt)
-                result_det = self.face_detection(tmp_path)
+                result_det = face_detection(tmp_path)
                 bboxes = result_det['boxes']
 
                 if len(bboxes) > 1:
@@ -288,19 +286,19 @@ class Blipv2():
                 imr = crop_and_resize(im, bbox)
                 cv2.imwrite(tmp_path, imr)
 
-                result = self.skin_retouching(tmp_path)
+                result = skin_retouching(tmp_path)
                 if (result is None or (result[OutputKeys.OUTPUT_IMG] is None)):
                     print('Cannot do skin retouching, do not use this image.')
                     continue
                 cv2.imwrite(tmp_path, result[OutputKeys.OUTPUT_IMG])
 
-                result = self.segmentation_pipeline(tmp_path)
+                result = segmentation_pipeline(tmp_path)
                 mask_head = get_mask_head(result)
                 im = cv2.imread(tmp_path)
                 im = im * mask_head + 255 * (1 - mask_head)
                 # print(im.shape)
 
-                raw_result = self.facial_landmark_confidence_func(im)
+                raw_result = facial_landmark_confidence_func(im)
                 if raw_result is None:
                     print('landmark quality fail...')
                     continue
@@ -315,7 +313,7 @@ class Blipv2():
                 img = Image.open(os.path.join(savedir, '{}.png'.format(cnt)))
                 result = self.model.tag(img)
                 print(result)
-                attribute_result = self.fair_face_attribute_func(tmp_path)
+                attribute_result = fair_face_attribute_func(tmp_path)
                 if cnt == 0:
                     score_gender = np.array(attribute_result['scores'][0])
                     score_age = np.array(attribute_result['scores'][1])

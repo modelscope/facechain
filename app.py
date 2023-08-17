@@ -11,13 +11,11 @@ import gradio as gr
 import numpy as np
 import torch
 
-sys.path.append('../..')
 
-from inference import GenPortrait
+from facechain.inference import GenPortrait
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from modelscope import snapshot_download
 
-sys.path.append('../../facechain')
 
 training_threadpool = ThreadPoolExecutor(max_workers=1)
 inference_threadpool = ThreadPoolExecutor(max_workers=5)
@@ -41,7 +39,8 @@ examples = {
 }
 
 example_styles = [
-    {'name': '凤冠霞帔(Chinese traditional gorgeous cloth)',
+    {'name': '默认风格(default_style_model_path)'},
+    {'name': '凤冠霞帔(Chinese traditional gorgeous suit)',
      'model_id': 'ly261666/civitai_xiapei_lora',
      'revision': 'v1.0.0',
      'bin_file': 'xiapei.safetensors',
@@ -69,7 +68,7 @@ def concatenate_images(images):
 
 def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
     os.system(
-        f'PYTHONPATH=. accelerate launch train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
+        f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
         f'--revision={revision} --sub_path="film/film" '
         f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
         f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
@@ -89,7 +88,7 @@ def launch_pipeline(uuid,
     multiplier_style = None
     add_prompt_style = None
 
-    if style_model == 'default_style_model_path':
+    if style_model == example_styles[0]['name']:
         style_model_path = None
     else:
         style_model_path = style_model
@@ -141,11 +140,14 @@ def launch_pipeline(uuid,
     for out_tmp in outputs:
         outputs_RGB.append(cv2.cvtColor(out_tmp, cv2.COLOR_BGR2RGB))
     image_path = './lora_result.png'
-    result = concatenate_images(outputs)
-    cv2.imwrite(image_path, result)
-    # image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
+    if len(outputs) > 0:
+        result = concatenate_images(outputs)
+        cv2.imwrite(image_path, result)
+        # image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
 
-    yield ["生成完毕！", outputs_RGB]
+        yield ["生成完毕！", outputs_RGB]
+    else:
+        yield ["生成失败，请重试！", outputs_RGB]
 
 
 class Trainer:
@@ -279,7 +281,7 @@ def inference_input():
                 prompt_cloth = gr.Textbox(label="服饰相关提示词", value='wearing high-class business/working suit')
                 gr.Examples(examples['prompt_man'], inputs=[prompt_cloth], label='男性提示词示例')
                 gr.Examples(examples['prompt_woman'], inputs=[prompt_cloth], label='女性提示词示例')
-                style_model = gr.Textbox(label="风格模型选择", value='default_style_model_path')
+                style_model = gr.Textbox(label="风格模型选择", value=example_styles[0]['name'])
                 gr.Examples([e['name'] for e in example_styles], inputs=[style_model], label='风格模型列表')
                 # flash_button = gr.Button('刷新模型列表')
 
