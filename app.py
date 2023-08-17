@@ -2,7 +2,6 @@
 import enum
 import os
 import shutil
-import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -10,12 +9,10 @@ import cv2
 import gradio as gr
 import numpy as np
 import torch
-
+from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
-from modelscope import snapshot_download
-
 
 training_threadpool = ThreadPoolExecutor(max_workers=1)
 inference_threadpool = ThreadPoolExecutor(max_workers=5)
@@ -28,11 +25,11 @@ HOT_MODELS = [
 ]
 
 examples = {
-    'prompt_man': [
+    'prompt_male': [
         ['wearing silver armor'],
         ['wearing T-shirt']
     ],
-    'prompt_woman': [
+    'prompt_female': [
         ['wearing beautiful traditional hanfu, upper_body'],
         ['wearing an elegant evening gown']
     ],
@@ -129,7 +126,6 @@ def launch_pipeline(uuid,
         if not is_processing:
             cur_done_count = inference_done_count
             to_wait = before_queue_size - (cur_done_count - before_done_count)
-            # yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, round(to_wait*2.5, 5)), None]
             yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5), None]
         else:
             yield ["生成中, 请耐心等待...", None]
@@ -143,7 +139,6 @@ def launch_pipeline(uuid,
     if len(outputs) > 0:
         result = concatenate_images(outputs)
         cv2.imwrite(image_path, result)
-        # image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
 
         yield ["生成完毕！", outputs_RGB]
     else:
@@ -164,7 +159,6 @@ class Trainer:
             raise gr.Error('CUDA is not available.')
         if instance_images is None:
             raise gr.Error('您需要上传训练图片！')
-            # return "请传完图片后点击<开始训练>! "
         if len(instance_images) > 10:
             raise gr.Error('您需要上传小于10张训练图片！')
         if not uuid:
@@ -233,7 +227,6 @@ def train_input():
             with gr.Column():
                 with gr.Box():
                     gr.Markdown('训练数据')
-                    # instance_images = gr.Files(label='Instance images', visible=False)
                     instance_images = gr.Gallery()
                     upload_button = gr.UploadButton("选择图片上传", file_types=["image"], file_count="multiple")
                     upload_button.upload(upload_file, upload_button, instance_images)
@@ -270,14 +263,12 @@ def inference_input():
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         with gr.Row():
             with gr.Column():
-                # user_models = gr.Radio(label="风格选择", choices=['\N{fire}商务证件'], type="value", value='\N{fire}商务证件')
                 user_models = gr.Radio(label="模型选择", choices=HOT_MODELS, type="value", value=HOT_MODELS[0])
                 prompt_cloth = gr.Textbox(label="服饰相关提示词", value='wearing high-class business/working suit')
-                gr.Examples(examples['prompt_man'], inputs=[prompt_cloth], label='男性提示词示例')
-                gr.Examples(examples['prompt_woman'], inputs=[prompt_cloth], label='女性提示词示例')
+                gr.Examples(examples['prompt_male'], inputs=[prompt_cloth], label='男性提示词示例')
+                gr.Examples(examples['prompt_female'], inputs=[prompt_cloth], label='女性提示词示例')
                 style_model = gr.Textbox(label="风格模型选择", value=example_styles[0]['name'])
                 gr.Examples([e['name'] for e in example_styles], inputs=[style_model], label='风格模型列表')
-                # flash_button = gr.Button('刷新模型列表')
 
                 with gr.Box():
                     num_images = gr.Number(
@@ -292,7 +283,6 @@ def inference_input():
             infer_progress = gr.Textbox(label="生成进度", value="当前无生成任务", interactive=False)
         with gr.Box():
             gr.Markdown('生成结果')
-            # output_image = gr.Image()
             output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
                                                                                object_fit="contain")
         display_button.click(fn=launch_pipeline,
@@ -309,6 +299,4 @@ with gr.Blocks(css='style.css') as demo:
         with gr.TabItem('\N{party popper}形象体验'):
             inference_input()
 
-# demo.queue(max_size=100).launch(share=False)
-# demo.queue(concurrency_count=20).launch(share=False)
 demo.queue(status_update_rate=1).launch(share=True)
