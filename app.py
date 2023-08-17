@@ -237,13 +237,6 @@ def train_input():
                     instance_images = gr.Gallery()
                     upload_button = gr.UploadButton("选择图片上传", file_types=["image"], file_count="multiple")
                     upload_button.upload(upload_file, upload_button, instance_images)
-                    gr.Markdown('''
-                        - Step 0. 登陆ModelScope账号，未登录无法使用定制功能
-                        - Step 1. 上传你计划训练的图片，3~10张头肩照（注意：图片中多人脸、脸部遮挡等情况会导致效果异常，需要重新上传符合规范图片训练）
-                        - Step 2. 点击 [形象定制] ，启动模型训练，等待约15分钟，请您耐心等待
-                        - Step 3. 切换至 [形象体验] ，生成你的风格照片
-                        - 注意：生成结果严禁用于非法用途！
-                        ''')
 
         run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）')
 
@@ -254,11 +247,12 @@ def train_input():
         with gr.Box():
             gr.Markdown('''
             碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上按照如下命令自行体验
-            1. git clone https://www.modelscope.cn/studios/CVstudio/cv_human_portrait.git
-            2. cd cv_human_portrait
+            1. git clone https://github.com/modelscope/facechain.git
+            2. cd facechain
             3. pip install -r requirements.txt 
-            4. pip install gradio==3.35.2
-            5. python app.py
+            4. pip3 install -U openmim 
+            5. mim install mmcv-full==1.7.0
+            6. python app.py
             ''')
 
         run_button.click(fn=trainer.run,
