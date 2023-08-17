@@ -256,18 +256,18 @@ def inference_input():
             with gr.Column():
                 user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value",
                                        value=HOT_MODELS[0])
-                generate_pos_prompt(None, cloth_prompt[0])
                 pos_prompt = gr.Textbox(label="Prompt",
                                         value=f'[{cloth_prompt[0]["name"]}]' + generate_pos_prompt(None,
                                                                                                    cloth_prompt[0]))
-                gr.Examples([[f'[{p["name"]}]' + generate_pos_prompt(None, p['prompt'])] for p in cloth_prompt],
-                            inputs=[pos_prompt], label='提示词示例(Prompt examples)')
-                style_model = gr.Textbox(label="风格模型(Style model)",
-                                         value=styles[0]['name'])
-                gr.Examples([e['name'] for e in styles], inputs=[style_model],
-                            outputs=[pos_prompt],
-                            fn=lambda model: generate_pos_prompt(model, None),
-                            label='风格模型列表(Style model list)')
+                style_model = gr.Textbox(label="风格模型(Style model)", value=styles[0]['name'])
+
+                prompts = []
+                for prompt in cloth_prompt[0:1]:
+                    prompts.append([styles[0]['name'], generate_pos_prompt(styles[0]['name'], prompt['prompt'])])
+                for style in styles[1:]:
+                    prompts.append([style['name'], generate_pos_prompt(style['name'], style['add_prompt_style'])])
+                gr.Examples(prompts,
+                            inputs=[style_model, pos_prompt], label='提示词和风格示例(Prompt and styles examples)')
 
                 with gr.Box():
                     num_images = gr.Number(
