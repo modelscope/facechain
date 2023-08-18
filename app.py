@@ -271,7 +271,7 @@ def inference_input():
                                        value=HOT_MODELS[0])
                 pos_prompt = gr.Textbox(label="Prompt", lines=3,
                                         value=f'[{cloth_prompt[0]["name"]}]' + generate_pos_prompt(None,
-                                                                                                   cloth_prompt[0]))
+                                                                                                   cloth_prompt[0]['prompt']))
                 style_model = gr.Textbox(label="风格模型(Style model)", value=styles[0]['name'])
 
                 prompts = []
