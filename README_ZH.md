@@ -22,7 +22,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 - 新增高质量提示词模板，欢迎大家一起贡献！ 参考 [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)    (2023-08-18)
 - 支持即插即用的风格LoRA模型！ 参考 [功能特性](#功能特性)    (2023-08-16)
 - 新增个性化prompt模块！    参考 [功能特性](#功能特性)    (2023-08-16)
-- Colab notebook安装已支持，您可以直接打开链接体验FaceChain: [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)   (2023-08-15)
+- Colab notebook安装已支持，您可以直接打开链接体验FaceChain： [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)   (2023-08-15)
 
 
 # 待办事项
@@ -155,7 +155,10 @@ python3 app.py
 ```
 
 ### 4. colab运行
-支持colab notebook安装，参考： [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)
+
+| Colab | Info
+| --- | --- |
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing) | FaceChain Installation on Colab
 
 
 
