@@ -13,6 +13,7 @@ from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
+from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt
 
 training_threadpool = ThreadPoolExecutor(max_workers=1)
 inference_threadpool = ThreadPoolExecutor(max_workers=5)
@@ -21,28 +22,7 @@ training_done_count = 0
 inference_done_count = 0
 
 HOT_MODELS = [
-    "\N{fire}数字身份",
-]
-
-examples = {
-    'prompt_male': [
-        ['silver armor'],
-        ['T-shirt']
-    ],
-    'prompt_female': [
-        ['beautiful traditional hanfu, upper_body'],
-        ['an elegant evening gown']
-    ],
-}
-
-example_styles = [
-    {'name': '默认风格(default style)'},
-    {'name': '凤冠霞帔(Chinese traditional gorgeous suit)',
-     'model_id': 'ly261666/civitai_xiapei_lora',
-     'revision': 'v1.0.0',
-     'bin_file': 'xiapei.safetensors',
-     'multiplier_style': 0.35,
-     'add_prompt_style': 'red, hanfu, tiara, crown, '},
+    "\N{fire}数字身份(Digital Identity)",
 ]
 
 
@@ -73,33 +53,43 @@ def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None
         f'--lora_r=32 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32')
 
 
+def generate_pos_prompt(style_model, prompt_cloth):
+    if style_model == styles[0]['name'] or style_model is None:
+        pos_prompt = pos_prompt_with_cloth.format(prompt_cloth)
+    else:
+        matched = list(filter(lambda style: style_model == style['name'], styles))
+        if len(matched) == 0:
+            raise ValueError(f'styles not found: {style_model}')
+        matched = matched[0]
+        pos_prompt = pos_prompt_with_style.format(matched['add_prompt_style'])
+    return pos_prompt
+
+
 def launch_pipeline(uuid,
-                    prompt_cloth,
+                    pos_prompt,
                     user_models,
                     num_images=1,
                     style_model=None,
+                    multiplier_style=0.25
                     ):
     base_model = 'ly261666/cv_portrait_model'
     before_queue_size = inference_threadpool._work_queue.qsize()
     before_done_count = inference_done_count
-    multiplier_style = None
-    add_prompt_style = None
 
-    if style_model == example_styles[0]['name']:
+    if style_model == styles[0]['name']:
         style_model_path = None
     else:
-        style_model_path = style_model
-        for e in example_styles:
-            if style_model == e['name']:
-                model_dir = snapshot_download(e['model_id'], revision=e['revision'])
-                style_model_path = os.path.join(model_dir, e['bin_file'])
-                multiplier_style = e['multiplier_style']
-                add_prompt_style = e['add_prompt_style']
+        matched = list(filter(lambda style: style_model == style['name'], styles))
+        if len(matched) == 0:
+            raise ValueError(f'styles not found: {style_model}')
+        matched = matched[0]
+        model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
+        style_model_path = os.path.join(model_dir, matched['bin_file'])
 
     print("-------user_models: ", user_models)
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-            return "请登陆后使用! "
+            return "请登陆后使用! (Please login first)"
         else:
             uuid = 'qw'
 
@@ -113,7 +103,7 @@ def launch_pipeline(uuid,
 
     lora_model_path = f'/tmp/{uuid}/{output_model_name}'
 
-    gen_portrait = GenPortrait(prompt_cloth, style_model_path, multiplier_style, add_prompt_style, use_main_model,
+    gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                                use_face_swap, use_post_process,
                                use_stylization)
 
@@ -128,7 +118,7 @@ def launch_pipeline(uuid,
             to_wait = before_queue_size - (cur_done_count - before_done_count)
             yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5), None]
         else:
-            yield ["生成中, 请耐心等待...", None]
+            yield ["生成中, 请耐心等待(Generating)...", None]
         time.sleep(1)
 
     outputs = future.result()
@@ -140,9 +130,9 @@ def launch_pipeline(uuid,
         result = concatenate_images(outputs)
         cv2.imwrite(image_path, result)
 
-        yield ["生成完毕！", outputs_RGB]
+        yield ["生成完毕(Generating done)！", outputs_RGB]
     else:
-        yield ["生成失败，请重试！", outputs_RGB]
+        yield ["生成失败，请重试(Generating failed, please retry)！", outputs_RGB]
 
 
 class Trainer:
@@ -158,12 +148,12 @@ class Trainer:
         if not torch.cuda.is_available():
             raise gr.Error('CUDA is not available.')
         if instance_images is None:
-            raise gr.Error('您需要上传训练图片！')
+            raise gr.Error('您需要上传训练图片(Please upload photos)！')
         if len(instance_images) > 10:
-            raise gr.Error('您需要上传小于10张训练图片！')
+            raise gr.Error('您需要上传小于10张训练图片(Please upload at most 10 photos)！')
         if not uuid:
             if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-                return "请登陆后使用! "
+                return "请登陆后使用(Please login first)! "
             else:
                 uuid = 'qw'
 
@@ -189,7 +179,7 @@ class Trainer:
                       output_img_dir=instance_data_dir,
                       work_dir=work_dir)
 
-        message = f'训练已经完成！请切换至 [形象体验] 标签体验模型效果'
+        message = f'训练已经完成！请切换至 [形象体验] 标签体验模型效果(Training done, please switch to the inference tab to generate photos.)'
         print(message)
         return message
 
@@ -226,26 +216,40 @@ def train_input():
         with gr.Row():
             with gr.Column():
                 with gr.Box():
-                    gr.Markdown('训练数据')
+                    gr.Markdown('训练数据(Training data)')
                     instance_images = gr.Gallery()
-                    upload_button = gr.UploadButton("选择图片上传", file_types=["image"], file_count="multiple")
+                    upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
+                                                    file_count="multiple")
                     upload_button.upload(upload_file, upload_button, instance_images)
                     gr.Markdown('''
                         - Step 1. 上传你计划训练的图片，3~10张头肩照（注意：图片中多人脸、脸部遮挡等情况会导致效果异常，需要重新上传符合规范图片训练）
                         - Step 2. 点击 [形象定制] ，启动模型训练，等待约15分钟，请您耐心等待
                         - Step 3. 切换至 [形象体验] ，生成你的风格照片
                         ''')
+                    gr.Markdown('''
+                        - Step 1. Upload 3-10 headshot photos of you that you plan to train (Note: Issues like multiple faces, obscured faces, etc. can lead to abnormal results, requiring you to re-upload photos that meet the criteria for training).
+                        - Step 2. Click [Train] to start model training. Please wait patiently for around 15 minutes.
+                        - Step 3. Switch to [Inference] to generate stylized photos of you.
+                        ''')
 
-        run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）')
+        run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）'
+                               '(Start training: Please click after the photos are showed, or the training progress will be failed)')
 
         with gr.Box():
-            gr.Markdown(
-                '输出信号（出现error时训练可能已完成或还在进行。可直接切到形象体验tab页面，如果体验时报错则训练还没好，再等待一般10来分钟。）')
+            gr.Markdown('''
+            输出信号（出现error时训练可能已完成或还在进行。可直接切到形象体验tab页面，如果体验时报错则训练还没好，再等待一般10来分钟。）
+            
+            Output signal (When an error appears, the training may have completed or is still in progress. You can switch to the [Inference] tab page. If an error appears during the inference, the training is not ready yet. Please wait around 10 minutes.)''')
             output_message = gr.Markdown()
         with gr.Box():
             gr.Markdown('''
-            碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上进行体验，
+            碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上进行体验。
+            
             安装方法请参考：https://github.com/modelscope/facechain
+            
+            If you encounter frustrating errors or tight computing resources, it is recommended to directly try it on [NoteBook](https://modelscope.cn/my/mynotebook/preset).
+            
+            For installation instructions please refer to: https://github.com/modelscope/facechain
             ''')
 
         run_button.click(fn=trainer.run,
@@ -263,30 +267,38 @@ def inference_input():
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         with gr.Row():
             with gr.Column():
-                user_models = gr.Radio(label="模型选择", choices=HOT_MODELS, type="value", value=HOT_MODELS[0])
-                prompt_cloth = gr.Textbox(label="服饰选择", value='high-class business/working suit')
-                gr.Examples(examples['prompt_male'], inputs=[prompt_cloth], label='男性服饰选择')
-                gr.Examples(examples['prompt_female'], inputs=[prompt_cloth], label='女性服饰选择')
-                style_model = gr.Textbox(label="风格模型选择(当不是默认风格时服饰相关提示词不生效)", value=example_styles[0]['name'])
-                gr.Examples([e['name'] for e in example_styles], inputs=[style_model], label='风格模型列表')
+                user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value",
+                                       value=HOT_MODELS[0])
+                pos_prompt = gr.Textbox(label="Prompt", lines=3,
+                                        value=f'[{cloth_prompt[0]["name"]}]' + generate_pos_prompt(None,
+                                                                                                   cloth_prompt[0]))
+                style_model = gr.Textbox(label="风格模型(Style model)", value=styles[0]['name'])
 
+                prompts = []
+                for prompt in cloth_prompt[0:1]:
+                    prompts.append([styles[0]['name'], generate_pos_prompt(styles[0]['name'], prompt['prompt'])])
+                for style in styles[1:]:
+                    prompts.append([style['name'], generate_pos_prompt(style['name'], style['add_prompt_style'])])
+                gr.Examples(prompts,
+                            inputs=[style_model, pos_prompt], label='提示词和风格示例(Prompt and styles examples)')
+                multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25, step=0.05, label='multiplier_style')
                 with gr.Box():
                     num_images = gr.Number(
-                        label='生成图片数量', value=6, precision=1)
+                        label='生成图片数量(Number of photos)', value=6, precision=1)
                     gr.Markdown('''
-                    注意：最多支持生成6张图片!
+                    注意：最多支持生成6张图片!(Only support generating at most 6 photos one time!)
                         ''')
 
-        display_button = gr.Button('开始推理')
+        display_button = gr.Button('开始推理(Start!)')
 
         with gr.Box():
-            infer_progress = gr.Textbox(label="生成进度", value="当前无生成任务", interactive=False)
+            infer_progress = gr.Textbox(label="生成进度(Progress)", value="当前无生成任务(No task)", interactive=False)
         with gr.Box():
-            gr.Markdown('生成结果')
+            gr.Markdown('生成结果(Result)')
             output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
                                                                                object_fit="contain")
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, prompt_cloth, user_models, num_images, style_model],
+                             inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style],
                              outputs=[infer_progress, output_images])
 
     return demo
@@ -294,9 +306,10 @@ def inference_input():
 
 with gr.Blocks(css='style.css') as demo:
     with gr.Tabs():
-        with gr.TabItem('\N{rocket}形象定制'):
+        with gr.TabItem('\N{rocket}形象定制(Train)'):
             train_input()
-        with gr.TabItem('\N{party popper}形象体验'):
+        with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input()
 
-demo.queue(status_update_rate=1).launch(share=True)
+demo.queue(status_update_rate=1).launch()
+
