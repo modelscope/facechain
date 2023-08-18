@@ -40,21 +40,19 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
   - Installation
     - Refer to [Installation Guide](#installation-guide)
   - Usage
-    - Select  "凤冠霞帔(Chinese traditional gorgeous suit)" on the inference tab.
-    - Using this style will ignore the alternative prompts.
+    - Select  "凤冠霞帔(Chinese traditional gorgeous suit)" on the `inference` tab and change the prompt as you want.
   - Exampled outcomes
   ![image](resources/style_lora_xiapei.jpg)
   - Reference
     - [xiapei lora model](https://www.liblibai.com/modelinfo/f746450340a3a932c99be55c1a82d20c)
     - For more LoRA styles, refer to [Civitai](https://civitai.com/)
-  
 - Support customizable prompts
   - Description
     - Allow users to achieve various portrait styles with customized prompts.
   - Installation
     - Refer to [Installation Guide](#installation-guide)
   - Usage
-    - Select the alternative prompts on the inference tab.
+    - Edit the prompt on the `inference` tab as you want.
   - Exampled outcomes
     - (prompt: The lord of the rings, ELF, Arwen Undomiel, beautiful, upper_body, best quality, Professional)
       ![image](resources/prompt_elf_lord_of_rings.jpg)
@@ -202,6 +200,8 @@ base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 # Specify a folder to save the generated images, this parameter can be modified as needed
 output_dir = './generated'
+# Use Chinese style model, default False
+use_style = False
 ```
 
 Then execute:

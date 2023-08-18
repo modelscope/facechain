@@ -311,5 +311,5 @@ with gr.Blocks(css='style.css') as demo:
         with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input()
 
-demo.queue(status_update_rate=1).launch()
+demo.queue(status_update_rate=1).launch(share=True)
 

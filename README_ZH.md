@@ -39,7 +39,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 - 现成风格模型即插即用
   - 描述：支持用户在训练时选择不同的风格模型，以生成不同风格的个人数字形象
   - 安装：参考 [安装指南](#安装指南)
-  - 用法：在“形象体验”页面选择“凤冠霞帔”风格。
+  - 用法：在“形象体验”页面选择“凤冠霞帔”风格
   - 效果
   ![image](resources/style_lora_xiapei.jpg)
   - 相关资源
@@ -49,7 +49,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 - 增加个性化prompt模块
   - 描述：支持用户增加个性化的prompt，实现变装等效果
   - 安装：参考 [安装指南](#安装指南)
-  - 用法：在“形象体验”页面选择给出的提示词示例。
+  - 用法：在“形象体验”页面直接修改prompt
   - 效果
     - （服饰选择提示词：The lord of the rings, ELF, Arwen Undomiel, beautiful, upper_body, best quality, Professional）
       ![image](resources/prompt_elf_lord_of_rings.jpg)
@@ -202,6 +202,8 @@ base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 # 指定一个保存生成的图片的文件夹，本参数可以根据需要修改
 output_dir = './generated'
+# 使用凤冠霞帔风格模型，默认False
+use_style = False
 ```
 
 之后执行：
