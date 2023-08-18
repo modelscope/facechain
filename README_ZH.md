@@ -75,12 +75,12 @@ FaceChain是一个组合模型，使用了包括PyTorch和TensorFlow在内的机
 支持以下几种安装方式，任选其一：
 
 ### 1. 使用ModelScope提供的notebook环境【推荐】
+ModelScope(魔搭社区)提供给新用户初始的免费计算资源，参考[ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
+    
+如果初始免费计算资源无法满足要求，您还可以从上述页面开通付费流程，以便创建一个准备就绪的ModelScope(GPU) DSW镜像实例。
+    
+Notebook环境使用简单，您只需要按以下步骤操作（注意：目前暂不提供永久存储，实例重启后数据会丢失）：
 
-    ModelScope(魔搭社区)提供给新用户初始的免费计算资源，参考[ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
-    
-    如果初始免费计算资源无法满足要求，您还可以从上述页面开通付费流程，以便创建一个准备就绪的ModelScope(GPU) DSW镜像实例。
-    
-    Notebook环境使用简单，您只需要按以下步骤操作（注意：目前暂不提供永久存储，实例重启后数据会丢失）：
 
 ```shell
 # Step1: 我的notebook -> PAI-DSW -> GPU环境
