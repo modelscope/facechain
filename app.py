@@ -221,6 +221,11 @@ def train_input():
                     upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
                                                     file_count="multiple")
                     upload_button.upload(upload_file, upload_button, instance_images)
+                    gr.Markdown('''
+                        - Step 1. 上传你计划训练的图片，3~10张头肩照（注意：图片中多人脸、脸部遮挡等情况会导致效果异常，需要重新上传符合规范图片训练）
+                        - Step 2. 点击 [形象定制] ，启动模型训练，等待约15分钟，请您耐心等待
+                        - Step 3. 切换至 [形象体验] ，生成你的风格照片
+                        ''')
 
         run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）'
                                '(Start training: Please click after the photos are showed, or the training progress will be failed)')
@@ -231,12 +236,8 @@ def train_input():
             output_message = gr.Markdown()
         with gr.Box():
             gr.Markdown('''
-            碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上按照如下命令自行体验
-            (If any error occurs or the waiting queue is too long, please use our [NoteBook](https://modelscope.cn/my/mynotebook/preset) with the following commands)
-            1. git clone https://github.com/modelscope/facechain.git
-            2. cd facechain
-            3. pip install gradio
-            6. python app.py
+            碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上进行体验，
+            安装方法请参考：https://github.com/modelscope/facechain
             ''')
 
         run_button.click(fn=trainer.run,
