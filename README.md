@@ -61,7 +61,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 # Installation
 
 ## Compatibility Verification
-The following are the environment dependencies that have been verified:
+We have verified e2e execution on the following environment:
 - python: py3.8, py3.10
 - pytorch: torch2.0.0, torch2.0.1
 - tensorflow: 2.8.0, tensorflow-cpu
@@ -70,7 +70,7 @@ The following are the environment dependencies that have been verified:
 - OS: Ubuntu 20.04, CentOS 7.9
 - GPU: Nvidia-A10 24G
 
-## Resource Usage
+## Resource Requirement
 - GPU: About 19G
 - Disk: About 50GB
 
@@ -80,7 +80,7 @@ The following installation methods are supported:
 
 ### 1. ModelScope notebook【recommended】
 
-   The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
+   The ModelScope Notebook offers a free-tier that allows ModelScope user to run the FaceChain application with minimum setup, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
 
 ```shell
 # Step1: 我的notebook -> PAI-DSW -> GPU环境
@@ -100,6 +100,7 @@ print(os.getcwd())
 # Step4: click "public URL" or "local URL", upload your images to 
 # train your own model and then generate your digital twin.
 ```
+   Alternatively, you may also purchase a [PAI-DSW](https://www.aliyun.com/activity/bigdata/pai/dsw) instance (using A10 resource), with the option of ModelScope image to run FaceChain following similar steps.
 
 
 ### 2. Docker
@@ -128,7 +129,7 @@ python3 app.py
 Run the app server: click "public URL" --> in the form of: https://xxx.gradio.live
 ```
 
-### 3. conda Virtual Environment
+### 3. Conda Virtual Environment
 
 Use the conda virtual environment, and refer to [Anaconda](https://docs.anaconda.com/anaconda/install/) to manage your dependencies. After installation, execute the following commands:
 (Note: mmcv has strict environment requirements and might not be compatible in some cases. It's recommended to use Docker.)
@@ -153,7 +154,7 @@ python3 app.py
 **Note**: After the app service is successfully launched, go to the URL in the log, enter the "Image Customization" tab, click "Select Image to Upload", and choose at least one image with a face. Then, click "Start Training" to begin model training. After the training is completed, there will be corresponding displays in the log. Afterwards, switch to the "Image Experience" tab and click "Start Inference" to generate your own digital image.
 
 
-### 4. colab notebook
+### 4. Colab notebook
 Please refer to [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing) for details.
 
 
@@ -165,7 +166,7 @@ FaceChain supports direct training and inference in the python environment. Run 
 PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./output"
 ```
 
-Parameter meaning:
+Parameters description:
 
 ```text
 ly261666/cv_portrait_model: The stable diffusion base model of the ModelScope model hub, which will be used for training, no need to be changed.
