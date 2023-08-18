@@ -19,6 +19,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # News
+- 新增高质量提示词，支持变装等效果！ 参考 [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)    (2023-08-18)
 - 支持即插即用的风格LoRA模型！ 参考 [功能特性](#功能特性)    (2023-08-16)
 - 新增个性化prompt模块！    参考 [功能特性](#功能特性)    (2023-08-16)
 - Colab notebook安装已支持，您可以直接打开链接体验FaceChain: [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)   (2023-08-15)
@@ -49,8 +50,9 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
   - 描述：支持用户增加个性化的prompt，实现变装等效果
   - 安装：参考 [安装指南](#安装指南)
   - 用法：在“形象体验”页面选择给出的提示词示例。
-  - 效果（服饰选择： an elegant evening gown）
-    ![image](resources/prompt_evening_gown.jpg)
+  - 效果
+    - （服饰选择提示词：The lord of the rings, ELF, Arwen Undomiel, beautiful, upper_body, best quality, Professional）
+      ![image](resources/prompt_elf_lord_of_rings.jpg)
 
 
 # 环境准备
