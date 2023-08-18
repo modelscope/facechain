@@ -31,7 +31,7 @@ multiplier_style = 0.25
 base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 output_dir = './generated'
-use_cloth_prompt = False  # Cloth prompt and style model cannot be used at the same time.
+use_cloth_prompt = True  # Cloth prompt and style model cannot be used at the same time.
 
 if use_cloth_prompt:
     cloth_prompt = cloth_prompt[0]
