@@ -1,0 +1,14 @@
+# style model: default
+an elegant evening gown, upper_body, best quality, Professional
+
+# style model: default
+beautiful traditional hanfu, upper_body, best quality, Professional
+
+# style model: default
+The lord of the rings, ELF, Arwen Undomiel, beautiful, upper_body, best quality, Professional
+
+# style model: default
+Beautiful and cute girl, 16 years old, denim jacket, gradient background, soft colors, soft lighting, cinematic edge lighting, light and dark contrast, anime, art station Seraflur, blind box, super detail, 8k，--iw 1
+
+# style model: default
+beautiful woman, realistic, Dappled Light, analog style, cinematic light, sidelighting, ultra high res, best shadow, RAW, beautiful hair, designer jacket, fashionable pants, turtleneck shirt, fall forest, Looking over the shoulder pose, professional model photoshoot, hdr, sunset
