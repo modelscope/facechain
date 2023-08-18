@@ -66,7 +66,7 @@ FaceChain是一个组合模型，使用了包括PyTorch和TensorFlow在内的机
 - GPU型号: Nvidia-A10 24G
 
 
-## 资源占用
+## 资源要求
 - GPU: 显存占用约19G
 - 磁盘: 推荐预留50GB以上的存储空间
 
@@ -98,6 +98,9 @@ print(os.getcwd())
 
 # Step4: 点击生成的URL即可访问web页面，上传照片开始训练和预测
 ```
+
+除了ModelScope入口以外，您也可以前往[PAI-DSW](https://www.aliyun.com/activity/bigdata/pai/dsw) 直接购买带有ModelScope镜像的计算实例（推荐使用A10资源），这样同样可以使用如上的最简步骤运行起来。
+
 
 
 ### 2. docker镜像
