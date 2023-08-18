@@ -197,6 +197,8 @@ base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 # 指定一个保存生成的图片的文件夹，本参数可以根据需要修改
 output_dir = './generated'
+# 使用凤冠霞帔风格模型，默认False
+use_style = False
 ```
 
 之后执行：

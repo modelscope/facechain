@@ -194,6 +194,8 @@ base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 # Specify a folder to save the generated images, this parameter can be modified as needed
 output_dir = './generated'
+# Use Chinese style model, default False
+use_style = False
 ```
 
 Then execute:
