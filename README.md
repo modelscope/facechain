@@ -54,7 +54,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
     - Refer to [Installation Guide](#installation-guide)
   - Usage
     - Select the alternative prompts on the inference tab.
-  - Exampled outcomes (prompt: wearing an elegant evening gown)
+  - Exampled outcomes (prompt: an elegant evening gown)
     ![image](resources/prompt_evening_gown.jpg)
 
 
