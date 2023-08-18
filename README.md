@@ -17,9 +17,10 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+- Add awesome prompts! Refer to: [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)   (August 18th, 2023 UTC)
 - Support a series of new style models in a plug-and-play fashion. Refer to: [Features](#Features)   (August 16th, 2023 UTC)
 - Support customizable prompts. Refer to: [Features](#Features)    (August 16th, 2023 UTC)
-- Colab notebook is available now! You can experience FaceChain directly with our [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).   (August 15th, 2023 UTC)
+- Colab notebook is available now! You can experience FaceChain directly with  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).   (August 15th, 2023 UTC)
 
 
 # To-Do List
@@ -52,8 +53,9 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
     - Refer to [Installation Guide](#installation-guide)
   - Usage
     - Edit the prompt on the `inference` tab as you want.
-  - Exampled outcomes (cloth prompt: an elegant evening gown)
-    ![image](resources/prompt_evening_gown.jpg)
+  - Exampled outcomes
+    - (prompt: The lord of the rings, ELF, Arwen Undomiel, beautiful, upper_body, best quality, Professional)
+      ![image](resources/prompt_elf_lord_of_rings.jpg)
 
 
 # Installation
@@ -153,7 +155,11 @@ python3 app.py
 
 
 ### 4. Colab notebook
-Please refer to [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing) for details.
+
+| Colab | Info
+| --- | --- |
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing) | FaceChain Installation on Colab
+
 
 
 # Script Execution
