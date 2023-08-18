@@ -38,7 +38,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 - 现成风格模型即插即用
   - 描述：支持用户在训练时选择不同的风格模型，以生成不同风格的个人数字形象
   - 安装：参考 [安装指南](#安装指南)
-  - 用法：在“形象体验”页面选择“凤冠霞帔”风格。
+  - 用法：在“形象体验”页面选择“凤冠霞帔”风格
   - 效果
   ![image](resources/style_lora_xiapei.jpg)
   - 相关资源
@@ -48,8 +48,8 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 - 增加个性化prompt模块
   - 描述：支持用户增加个性化的prompt，实现变装等效果
   - 安装：参考 [安装指南](#安装指南)
-  - 用法：在“形象体验”页面选择给出的提示词示例。
-  - 效果（服饰选择： an elegant evening gown）
+  - 用法：在“形象体验”页面按照意愿修改prompt
+  - 效果（更改衣服prompt为： an elegant evening gown）
     ![image](resources/prompt_evening_gown.jpg)
 
 

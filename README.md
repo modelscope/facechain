@@ -39,22 +39,20 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
   - Installation
     - Refer to [Installation Guide](#installation-guide)
   - Usage
-    - Select  "凤冠霞帔(Chinese traditional gorgeous suit)" on the inference tab.
-    - Using this style will ignore the alternative prompts.
+    - Select  "凤冠霞帔(Chinese traditional gorgeous suit)" on the `inference` tab and change the prompt as you want.
   - Exampled outcomes
   ![image](resources/style_lora_xiapei.jpg)
   - Reference
     - [xiapei lora model](https://www.liblibai.com/modelinfo/f746450340a3a932c99be55c1a82d20c)
     - For more LoRA styles, refer to [Civitai](https://civitai.com/)
-  
 - Support customizable prompts
   - Description
     - Allow users to achieve various portrait styles with customized prompts.
   - Installation
     - Refer to [Installation Guide](#installation-guide)
   - Usage
-    - Select the alternative prompts on the inference tab.
-  - Exampled outcomes (prompt: an elegant evening gown)
+    - Edit the prompt on the `inference` tab as you want.
+  - Exampled outcomes (cloth prompt: an elegant evening gown)
     ![image](resources/prompt_evening_gown.jpg)
 
 

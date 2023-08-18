@@ -31,18 +31,15 @@ multiplier_style = 0.25
 base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 output_dir = './generated'
-use_cloth_prompt = True  # Cloth prompt and style model cannot be used at the same time.
+use_style = False
 
-if use_cloth_prompt:
-    cloth_prompt = cloth_prompt[0]
+if not use_style:
     style_model_path = None
-    multiplier_style = None
-    pos_prompt = generate_pos_prompt(styles[0]['name'], cloth_prompt['prompt'])
+    pos_prompt = generate_pos_prompt(styles[0]['name'], cloth_prompt[0]['prompt'])
 else:
     model_dir = snapshot_download(styles[1]['model_id'], revision=styles[1]['revision'])
-    cloth_prompt = None
     style_model_path = os.path.join(model_dir, styles[1]['bin_file'])
-    pos_prompt = generate_pos_prompt(styles[1]['name'], styles[1]['add_prompt_style'])
+    pos_prompt = generate_pos_prompt(styles[1]['name'], styles[1]['add_prompt_style'])  # style has its own prompt
 
 gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                            use_face_swap, use_post_process,
