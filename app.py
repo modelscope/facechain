@@ -26,17 +26,17 @@ HOT_MODELS = [
 
 examples = {
     'prompt_male': [
-        ['wearing silver armor'],
-        ['wearing T-shirt']
+        ['silver armor'],
+        ['T-shirt']
     ],
     'prompt_female': [
-        ['wearing beautiful traditional hanfu, upper_body'],
-        ['wearing an elegant evening gown']
+        ['beautiful traditional hanfu, upper_body'],
+        ['an elegant evening gown']
     ],
 }
 
 example_styles = [
-    {'name': '默认风格(default_style_model_path)'},
+    {'name': '默认风格(default style)'},
     {'name': '凤冠霞帔(Chinese traditional gorgeous suit)',
      'model_id': 'ly261666/civitai_xiapei_lora',
      'revision': 'v1.0.0',
@@ -264,9 +264,9 @@ def inference_input():
         with gr.Row():
             with gr.Column():
                 user_models = gr.Radio(label="模型选择", choices=HOT_MODELS, type="value", value=HOT_MODELS[0])
-                prompt_cloth = gr.Textbox(label="服饰相关提示词", value='wearing high-class business/working suit')
-                gr.Examples(examples['prompt_male'], inputs=[prompt_cloth], label='男性提示词示例')
-                gr.Examples(examples['prompt_female'], inputs=[prompt_cloth], label='女性提示词示例')
+                prompt_cloth = gr.Textbox(label="服饰选择", value='high-class business/working suit')
+                gr.Examples(examples['prompt_male'], inputs=[prompt_cloth], label='男性服饰选择')
+                gr.Examples(examples['prompt_female'], inputs=[prompt_cloth], label='女性服饰选择')
                 style_model = gr.Textbox(label="风格模型选择(当不是默认风格时服饰相关提示词不生效)", value=example_styles[0]['name'])
                 gr.Examples([e['name'] for e in example_styles], inputs=[style_model], label='风格模型列表')
 

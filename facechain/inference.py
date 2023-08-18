@@ -45,7 +45,7 @@ def main_diffusion_inference(prompt_cloth, input_img_dir, base_model_path, style
     if style_model_path is None:
         model_dir = snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo', revision='v1.0.0')
         style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_fromleo.safetensors')
-        pos_prompt = 'raw photo, masterpiece, chinese, simple background, ' + prompt_cloth + ', high-class pure color background, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
+        pos_prompt = 'raw photo, masterpiece, chinese, simple background, wearing ' + prompt_cloth + ', high-class pure color background, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
     else:
         print(f'[NOTE]: Style model is used, the cloth prompt will be ignored: {prompt_cloth}')
         pos_prompt = add_prompt_style + ' upper_body, raw photo, masterpiece, chinese, solo, medium shot, high detail face, slim body, photorealistic, best quality'
@@ -97,10 +97,7 @@ def main_diffusion_inference(prompt_cloth, input_img_dir, base_model_path, style
         add_prompt_style = ", ".join(add_prompt_style) + ', '
     else:
         add_prompt_style = ''
-    # trigger_style = trigger_style + 'with <input_id> face, '
-    # pos_prompt = 'Generate a standard ID photo of a chinese {}, solo, wearing high-class business/working suit, beautiful smooth face, with high-class/simple pure color background, looking straight into the camera with shoulders parallel to the frame, smile, high detail face, best quality, photorealistic'.format(gender)
     pipe = pipe.to("cuda")
-    # print(trigger_style + add_prompt_style + pos_prompt)
     images_style = txt2img(pipe, trigger_style + add_prompt_style + pos_prompt, neg_prompt, num_images=10)
     return images_style
 

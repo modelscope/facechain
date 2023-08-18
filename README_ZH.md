@@ -49,7 +49,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
   - 描述：支持用户增加个性化的prompt，实现变装等效果
   - 安装：参考 [安装指南](#安装指南)
   - 用法：在“形象体验”页面选择给出的提示词示例。
-  - 效果（提示词：wearing an elegant evening gown）
+  - 效果（服饰选择： an elegant evening gown）
     ![image](resources/prompt_evening_gown.jpg)
 
 
