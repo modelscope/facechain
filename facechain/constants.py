@@ -13,7 +13,7 @@ cloth_prompt = [
 ]
 
 styles = [
-    {'name': '默认风格(default_style_model_path)'},
+    {'name': '默认风格(default style)'},
     {'name': '凤冠霞帔(Chinese traditional gorgeous suit)',
      'model_id': 'ly261666/civitai_xiapei_lora',
      'revision': 'v1.0.0',

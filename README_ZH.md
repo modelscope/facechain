@@ -87,10 +87,10 @@ Notebook环境使用简单，您只需要按以下步骤操作（注意：目前
 ```shell
 # Step1: 我的notebook -> PAI-DSW -> GPU环境
 
-# Step2: 打开Terminal，将github代码clone到本地
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+# Step2: 进入Notebook cell，执行下述命令从github clone代码：
+!GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 
-# Step3: 进入Notebook cell，执行：
+# Step3: 切换当前工作路径
 import os
 os.chdir('/mnt/workspace/facechain')    # 注意替换成上述clone后的代码文件夹主路径
 print(os.getcwd())
@@ -162,7 +162,7 @@ python3 app.py
 
 
 
-备注：app服务成功启动后，在log中访问页面URL，进入”形象定制“tab页，点击“选择图片上传”，并最少选1张包含人脸的图片；点击“开始训练”即可训练模型。训练完成后日志中会有对应展示，之后切换到“形象体验”标签页点击“开始推理”即可生成属于自己的数字形象。
+备注：app服务成功启动后，在log中访问页面URL，进入”形象定制“tab页，点击“选择图片上传”，并最少选1张包含人脸的图片；点击“开始训练”即可训练模型。训练完成后日志中会有对应展示，之后切换到“形象体验”标签页点击“开始生成”即可生成属于自己的数字形象。
 
 # 脚本运行
 

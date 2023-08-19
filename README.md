@@ -85,12 +85,12 @@ The following installation methods are supported:
 ```shell
 # Step1: 我的notebook -> PAI-DSW -> GPU环境
 
-# Step2: Open the Terminal，clone FaceChain from github:
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+# Step2: Entry the Notebook cell，clone FaceChain from github:
+!GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 
-# Step3: Entry the Notebook cell:
+# Step3: Change the working directory to facechain:
 import os
-os.chdir('/mnt/workspace/facechain')
+os.chdir('/mnt/workspace/facechain')    # You may change to your own path
 print(os.getcwd())
 
 !pip3 install gradio

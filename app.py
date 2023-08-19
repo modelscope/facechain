@@ -203,8 +203,8 @@ def flash_model_list(uuid):
     return gr.Radio.update(choices=HOT_MODELS + folder_list)
 
 
-def upload_file(files):
-    file_paths = [file.name for file in files]
+def upload_file(files, current_files):
+    file_paths = [file_d['name'] for file_d in current_files] + [file.name for file in files]
     return file_paths
 
 
@@ -216,40 +216,45 @@ def train_input():
         with gr.Row():
             with gr.Column():
                 with gr.Box():
-                    gr.Markdown('训练数据(Training data)')
+                    gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
                     upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
                                                     file_count="multiple")
-                    upload_button.upload(upload_file, upload_button, instance_images)
+
+                    clear_button = gr.Button("清空图片(Clear photos)")
+                    clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
+
+                    upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images, queue=False)
                     gr.Markdown('''
-                        - Step 1. 上传你计划训练的图片，3~10张头肩照（注意：图片中多人脸、脸部遮挡等情况会导致效果异常，需要重新上传符合规范图片训练）
-                        - Step 2. 点击 [形象定制] ，启动模型训练，等待约15分钟，请您耐心等待
+                        - Step 1. 上传计划训练的图片，3~10张头肩照（注意：请避免图片中出现多人脸、脸部遮挡等情况，否则可能导致效果异常）
+                        - Step 2. 点击 [开始训练] ，启动形象定制化训练，约需15分钟，请耐心等待～
                         - Step 3. 切换至 [形象体验] ，生成你的风格照片
                         ''')
                     gr.Markdown('''
-                        - Step 1. Upload 3-10 headshot photos of you that you plan to train (Note: Issues like multiple faces, obscured faces, etc. can lead to abnormal results, requiring you to re-upload photos that meet the criteria for training).
-                        - Step 2. Click [Train] to start model training. Please wait patiently for around 15 minutes.
-                        - Step 3. Switch to [Inference] to generate stylized photos of you.
+                        - Step 1. Upload 3-10 headshot photos of yours (Note: avoid photos with multiple faces or face obstruction, which may lead to non-ideal result).
+                        - Step 2. Click [Train] to start training for customizing your Digital-Twin, this may take up-to 15 mins.
+                        - Step 3. Switch to [Inference] Tab to generate stylized photos.
                         ''')
 
         run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）'
-                               '(Start training: Please click after the photos are showed, or the training progress will be failed)')
+                               'Start training (please wait until photo(s) fully uploaded, otherwise it may result in training failure)')
 
         with gr.Box():
             gr.Markdown('''
-            输出信号（出现error时训练可能已完成或还在进行。可直接切到形象体验tab页面，如果体验时报错则训练还没好，再等待一般10来分钟。）
+            请等待训练完成
             
-            Output signal (When an error appears, the training may have completed or is still in progress. You can switch to the [Inference] tab page. If an error appears during the inference, the training is not ready yet. Please wait around 10 minutes.)''')
+            Please wait for the training to complete.
+            ''')
             output_message = gr.Markdown()
         with gr.Box():
             gr.Markdown('''
             碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上进行体验。
             
-            安装方法请参考：https://github.com/modelscope/facechain
+            安装方法请参考：https://github.com/modelscope/facechain .
             
-            If you encounter frustrating errors or tight computing resources, it is recommended to directly try it on [NoteBook](https://modelscope.cn/my/mynotebook/preset).
-            
-            For installation instructions please refer to: https://github.com/modelscope/facechain
+            If you are experiencing prolonged waiting time, you may try on [ModelScope NoteBook](https://modelscope.cn/my/mynotebook/preset) to prepare your dedicated environment.
+                        
+            You may refer to: https://github.com/modelscope/facechain for installation instruction.
             ''')
 
         run_button.click(fn=trainer.run,
@@ -285,10 +290,10 @@ def inference_input():
                     num_images = gr.Number(
                         label='生成图片数量(Number of photos)', value=6, precision=1)
                     gr.Markdown('''
-                    注意：最多支持生成6张图片!(Only support generating at most 6 photos one time!)
+                    注意：最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
                         ''')
 
-        display_button = gr.Button('开始推理(Start!)')
+        display_button = gr.Button('开始生成(Start!)')
 
         with gr.Box():
             infer_progress = gr.Textbox(label="生成进度(Progress)", value="当前无生成任务(No task)", interactive=False)
