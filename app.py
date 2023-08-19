@@ -204,7 +204,7 @@ def flash_model_list(uuid):
 
 
 def upload_file(files, current_files):
-    file_paths = [file.name for file in current_files + [file.name for file in files]]
+    file_paths = [file_d['name'] for file_d in current_files] + [file.name for file in files]
     return file_paths
 
 

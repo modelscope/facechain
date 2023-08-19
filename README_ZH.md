@@ -87,10 +87,10 @@ Notebook环境使用简单，您只需要按以下步骤操作（注意：目前
 ```shell
 # Step1: 我的notebook -> PAI-DSW -> GPU环境
 
-# Step2: 打开Terminal，将github代码clone到本地
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+# Step2: 进入Notebook cell，执行下述命令从github clone代码：
+!GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 
-# Step3: 进入Notebook cell，执行：
+# Step3: 切换当前工作路径
 import os
 os.chdir('/mnt/workspace/facechain')    # 注意替换成上述clone后的代码文件夹主路径
 print(os.getcwd())
