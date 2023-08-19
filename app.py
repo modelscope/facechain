@@ -203,8 +203,8 @@ def flash_model_list(uuid):
     return gr.Radio.update(choices=HOT_MODELS + folder_list)
 
 
-def upload_file(files):
-    file_paths = [file.name for file in files]
+def upload_file(files, current_files):
+    file_paths = [file.name for file in current_files + [file.name for file in files]]
     return file_paths
 
 
@@ -220,7 +220,7 @@ def train_input():
                     instance_images = gr.Gallery()
                     upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
                                                     file_count="multiple")
-                    upload_button.upload(upload_file, upload_button, instance_images)
+                    upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images, queue=False)
                     gr.Markdown('''
                         - Step 1. 上传计划训练的图片，3~10张头肩照（注意：请避免图片中出现多人脸、脸部遮挡等情况，否则可能导致效果异常）
                         - Step 2. 点击 [开始训练] ，启动形象定制化训练，约需15分钟，请耐心等待～
