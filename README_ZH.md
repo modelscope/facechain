@@ -127,6 +127,8 @@ pip3 install gradio
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 cd facechain
 python3 app.py
+# Note: FaceChain目前支持单卡GPU，如果您的环境有多卡，请使用如下命令
+# CUDA_VISIBLE_DEVICES=0 python3 app.py
 
 # Step6: 点击 "public URL", 形式为 https://xxx.gradio.live
 ```
@@ -150,6 +152,8 @@ mim install mmcv-full==1.7.0
 
 # 进入facechain文件夹，执行：
 python3 app.py
+# Note: FaceChain目前支持单卡GPU，如果您的环境有多卡，请使用如下命令
+# CUDA_VISIBLE_DEVICES=0 python3 app.py
 
 # 最后点击log中生成的URL即可访问页面。
 ```
