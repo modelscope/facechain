@@ -337,7 +337,7 @@ class Blipv2():
 
         result_list = post_process_naive(result_list, score_gender, score_age)
         self.model.stop()
-        os.system('rm ' + tmp_path)
+        shutil.rmtree(tmp_path, ignore_errors=True)
 
         out_json_name = os.path.join(savedir, "metadata.jsonl")
         fo = open(out_json_name, 'w')
