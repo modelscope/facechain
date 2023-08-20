@@ -1029,7 +1029,7 @@ def main():
                 json.dump(lora_config, f)
         else:
             unet = unet.to(torch.float32)
-            unet.save_attn_procs(args.output_dir)
+            unet.save_attn_procs(args.output_dir, safe_serialization=False)
 
         if args.push_to_hub:
             save_model_card(
