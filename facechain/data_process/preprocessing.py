@@ -337,7 +337,10 @@ class Blipv2():
 
         result_list = post_process_naive(result_list, score_gender, score_age)
         self.model.stop()
-        os.system('rm ' + tmp_path)
+        try:
+            os.remove(tmp_path)
+        except OSError as e:
+            print(f"Failed to remove path {tmp_path}: {e}")
 
         out_json_name = os.path.join(savedir, "metadata.jsonl")
         fo = open(out_json_name, 'w')
