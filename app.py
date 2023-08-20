@@ -25,6 +25,8 @@ HOT_MODELS = [
     "\N{fire}数字身份(Digital Identity)",
 ]
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
 
 class UploadTarget(enum.Enum):
     PERSONAL_PROFILE = 'Personal Profile'
