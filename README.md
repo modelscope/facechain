@@ -124,6 +124,8 @@ pip3 install gradio
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 cd facechain
 python3 app.py
+# Note: FaceChain currently assume single-GPU, if your environment has multiple GPU, please use the following instead:
+# CUDA_VISIBLE_DEVICES=0 python3 app.py
 
 # Step6
 Run the app server: click "public URL" --> in the form of: https://xxx.gradio.live
@@ -147,6 +149,8 @@ mim install mmcv-full==1.7.0
 
 # Navigate to the facechain directory and run:
 python3 app.py
+# Note: FaceChain currently assume single-GPU, if your environment has multiple GPU, please use the following instead:
+# CUDA_VISIBLE_DEVICES=0 python3 app.py
 
 # Finally, click on the URL generated in the log to access the web page.
 ```
