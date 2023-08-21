@@ -30,6 +30,28 @@ class UploadTarget(enum.Enum):
     PERSONAL_PROFILE = 'Personal Profile'
     LORA_LIaBRARY = 'LoRA Library'
 
+def update_cloth(style_index):
+    prompts = []
+    if style_index == 0:
+        example_prompt = generate_pos_prompt(styles[style_index]['name'],
+                                             cloth_prompt[0]['prompt'])
+        for prompt in cloth_prompt:
+            prompts.append(prompt['name'])
+    else:
+        example_prompt = generate_pos_prompt(styles[style_index]['name'],
+                                             styles[style_index]['add_prompt_style'])
+        prompts.append(styles[style_index]['cloth_name'])
+    return gr.Radio.update(choices=prompts, value=prompts[0]), gr.Textbox.update(value=example_prompt)
+
+
+def update_prompt(style_index, cloth_index):
+    if style_index == 0:
+        pos_prompt = generate_pos_prompt(styles[style_index]['name'],
+                                         cloth_prompt[cloth_index]['prompt'])
+    else:
+        pos_prompt = generate_pos_prompt(styles[style_index]['name'],
+                                         styles[style_index]['add_prompt_style'])
+    return gr.Textbox.update(value=pos_prompt)
 
 def concatenate_images(images):
     heights = [img.shape[0] for img in images]
@@ -75,6 +97,7 @@ def launch_pipeline(uuid,
     base_model = 'ly261666/cv_portrait_model'
     before_queue_size = inference_threadpool._work_queue.qsize()
     before_done_count = inference_done_count
+    style_model = styles[style_model]['name']
 
     if style_model == styles[0]['name']:
         style_model_path = None
@@ -274,21 +297,26 @@ def inference_input():
             with gr.Column():
                 user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value",
                                        value=HOT_MODELS[0])
-                pos_prompt = gr.Textbox(label="Prompt", lines=3,
-                                        value=generate_pos_prompt(None, cloth_prompt[0]['prompt']))
-                style_model = gr.Textbox(label="风格模型(Style model)", value=styles[0]['name'])
+                style_model_list = []
+                for style in styles:
+                    style_model_list.append(style['name'])
+                style_model = gr.Dropdown(choices=style_model_list, value=styles[0]['name'], 
+                                          type="index", label="风格模型(Style model)")
+                
+                prompts=[]
+                for prompt in cloth_prompt:
+                    prompts.append(prompt['name'])
+                cloth_style = gr.Radio(choices=prompts, value=cloth_prompt[0]['name'],
+                                       type="index", label="服装风格(Cloth style)")
 
-                prompts = []
-                for prompt in cloth_prompt[0:1]:
-                    prompts.append([styles[0]['name'], generate_pos_prompt(styles[0]['name'], prompt['prompt'])])
-                for style in styles[1:]:
-                    prompts.append([style['name'], generate_pos_prompt(style['name'], style['add_prompt_style'])])
-                gr.Examples(prompts,
-                            inputs=[style_model, pos_prompt], label='提示词和风格示例(Prompt and styles examples)')
-                multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25, step=0.05, label='multiplier_style')
+                with gr.Accordion("高级选项(Expert)", open=False):
+                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
+                                        value=generate_pos_prompt(None, cloth_prompt[0]['prompt']), interactive=True)
+                    multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
+                                                 step=0.05, label='风格权重(Multiplier style)')
                 with gr.Box():
                     num_images = gr.Number(
-                        label='生成图片数量(Number of photos)', value=6, precision=1)
+                        label='生成图片数量(Number of photos)', value=6, precision=1, minimum=1, maximum=6)
                     gr.Markdown('''
                     注意：最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
                         ''')
@@ -301,6 +329,9 @@ def inference_input():
             gr.Markdown('生成结果(Result)')
             output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
                                                                                object_fit="contain")
+                                                                               
+        style_model.change(update_cloth, style_model, [cloth_style, pos_prompt])
+        cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt])
         display_button.click(fn=launch_pipeline,
                              inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style],
                              outputs=[infer_progress, output_images])
