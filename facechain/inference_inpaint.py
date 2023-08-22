@@ -6,24 +6,13 @@ import copy
 import cv2
 import gc
 import numpy as np
-# import tensorflow as tf
-config=tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction=0.7
-config.gpu_options.allow_growth=True
 import torch
-import torch.utils.checkpoint
-# import train_kohya.utils.lora_utils as network_module
-# import codeformer_helper
-# from multiprocessing import Process, Queue
-
 
 from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
 from modelscope.preprocessors import LoadImage
 from modelscope.utils.constant import Tasks
 from PIL import Image
-from transformers import CLIPTextModel, CLIPTokenizer
-from train_kohya.utils.face_process_utils import *
 
 
 
@@ -123,7 +112,6 @@ def call_face_crop(retinaface_detection, image, crop_ratio, prefix="tmp"):
 
 
 
-
 # build_pipeline_with_lora is build a Inpaint pipeline with kohya Lora & controlnet
 def build_pipeline_with_lora(baseline_model_path : str, lora_model_path : str, cache_model_dir : str,  lora_dim : int=128, lora_alpha : int 64)
     from diffusers import (AutoencoderKL, ControlNetModel,
@@ -183,11 +171,6 @@ def build_pipeline_with_lora(baseline_model_path : str, lora_model_path : str, c
     # Set manual seed
     generator           = torch.Generator("cuda").manual_seed(42) 
     return pipeline, generator
-
-
-
-
-
 
 
 
@@ -308,5 +291,5 @@ if __name__=="__main__":
         guidance_scale=9, num_inference_steps=30, generator=generator, height=np.shape(input_image)[0], width=np.shape(input_image)[1], \
         controlnet_conditioning_scale=[0.75, 0.75]
     ).images[0]
-    
+
     generate_image.save('result.jpg')
