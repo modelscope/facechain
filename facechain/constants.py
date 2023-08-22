@@ -5,11 +5,11 @@ pos_prompt_with_style = '{} upper_body, raw photo, masterpiece, chinese, solo, m
 
 
 cloth_prompt = [
-    {'name': 'working suit', 'prompt': 'high-class business/working suit'},  # male and female
-    {'name': 'armor', 'prompt': 'silver armor'},  # male
-    {'name': 'T-shirt', 'prompt': 'T-shirt'},  # male and female
-    {'name': 'hanfu', 'prompt': 'beautiful traditional hanfu, upper_body'},  # female
-    {'name': 'gown', 'prompt': 'an elegant evening gown'},  # female
+    {'name': '工作服(working suit)', 'prompt': 'high-class business/working suit'},  # male and female
+    {'name': '盔甲风(armor)', 'prompt': 'silver armor'},  # male
+    {'name': 'T恤衫(T-shirt)', 'prompt': 'T-shirt'},  # male and female
+    {'name': '汉服风(hanfu)', 'prompt': 'beautiful traditional hanfu, upper_body'},  # female
+    {'name': '女士晚礼服(gown)', 'prompt': 'an elegant evening gown'},  # female
 ]
 
 styles = [
@@ -19,6 +19,7 @@ styles = [
      'revision': 'v1.0.0',
      'bin_file': 'xiapei.safetensors',
      'multiplier_style': 0.35,
+     'cloth_name': '汉服风(hanfu)',
      'add_prompt_style': 'red, hanfu, tiara, crown, '},
 ]
 
