@@ -112,68 +112,40 @@ def call_face_crop(retinaface_detection, image, crop_ratio, prefix="tmp"):
 
 
 
-from transformers import CLIPTextModel, CLIPTokenizer
-from diffusers import (AutoencoderKL, ControlNetModel,
+from diffusers import (ControlNetModel,
                     DPMSolverMultistepScheduler,
                     StableDiffusionControlNetInpaintPipeline,
-                    UNet2DConditionModel)
-import facechain.kohya_lora as network_module
+                    )
 from controlnet_aux import OpenposeDetector
-# build_pipeline_with_lora is build a Inpaint pipeline with kohya Lora & controlnet
-def build_pipeline_with_lora(baseline_model_path, lora_model_path, cache_model_dir,  lora_dim=128, lora_alpha=64):
-    # Lora SD componets, to support Kohya Lora in diffusers=0.18.2 
-    tokenizer       = CLIPTokenizer.from_pretrained(os.path.join(baseline_model_path), subfolder="tokenizer", revision=None)
-    text_encoder    = CLIPTextModel.from_pretrained(os.path.join(baseline_model_path), subfolder="text_encoder", revision=None)
-    vae             = AutoencoderKL.from_pretrained(os.path.join(baseline_model_path), subfolder="vae", revision=None)
-    unet            = UNet2DConditionModel.from_pretrained(os.path.join(baseline_model_path), subfolder="unet", revision=None)
-    # codeformer
-    # codeFormer_net, bg_upsampler, face_helper = codeformer_helper.get_nets()
-    
-    # Build Kohya Lora and Load Lora
-    network = network_module.create_network(
-        1.0, lora_dim, lora_alpha, 
-        vae, text_encoder, unet, neuron_dropout=None,
-    )
-    network.apply_to(text_encoder, unet, True, True)
-    network.load_weights(lora_model_path)
-    network.to("cuda")
+def build_pipeline_facechain(baseline_model_path, lora_model_path, cache_model_dir, from_safetensor=False):
+    from facechain.merge_lora import merge_lora
     
     # Apply to FP16
-    weight_dtype = torch.float16
-    unet.to(dtype=weight_dtype)
-    vae.to(dtype=weight_dtype)
-    text_encoder.to(dtype=weight_dtype)
-    network.to(dtype=weight_dtype).half()
+    weight_dtype = torch.float32
 
     # Build ControlNet
     controlnet = [
         ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-openpose", torch_dtype=weight_dtype, cache_dir=os.path.join(cache_model_dir, "controlnet")),
         ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-canny", torch_dtype=weight_dtype, cache_dir=os.path.join(cache_model_dir, "controlnet")),
     ]
-    openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet", cache_dir=os.path.join(cache_model_dir, "controlnet_detector"))
+    # openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet", cache_dir=os.path.join(cache_model_dir, "controlnet_detector"))
     
     # Build SDInpaint Pipeline
     pipeline = StableDiffusionControlNetInpaintPipeline.from_pretrained(
         baseline_model_path,
         controlnet = controlnet, 
-        unet=unet.to(weight_dtype),
-        text_encoder=text_encoder.to(weight_dtype),
-        vae=vae.to(weight_dtype),
-        revision=None,
         torch_dtype=weight_dtype,
     ).to("cuda")
+    pipe = merge_lora(pipeline, lora_model_path, 1.0, from_safetensor=from_safetensor)
+
     pipeline.enable_xformers_memory_efficient_attention()
     pipeline.enable_sequential_cpu_offload()
     
     # Set Pipeline Scheduler
     pipeline.scheduler  = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config)
-
     # Set manual seed
     generator           = torch.Generator("cuda").manual_seed(42) 
     return pipeline, generator
-
-
-
 
 
 # class GenPortraitInpaint:
@@ -223,14 +195,25 @@ if __name__=="__main__":
     input_template = sys.argv[1]
     input_roop_image = sys.argv[2]
 
-    base_model_path = '/root/photog_dsw/model_data/ChilloutMix-ni-fp16/'
-    lora_model_path = './pai_ya_tmp/mi.safetensors'
     cache_model_dir = '/root/photog_dsw/model_data/'
-    input_prompt = f"mi_face, mi, 1girl," + DEFAULT_POSITIVE
+
+    # paiya
+    # base_model_path = '/root/photog_dsw/model_data/ChilloutMix-ni-fp16/'
+    # lora_model_path = './pai_ya_tmp/zhoumo.safetensors'
+    # input_prompt = f"zhoumo_face, zhoumo, 1girl," + DEFAULT_POSITIVE
+
+
+    # facechain 
+    base_model_path = '/mnt/workspace/.cache/modelscope/ly261666/cv_portrait_model/film/film'
+    lora_model_path = './pai_ya_tmp/'
+    input_prompt = f"<sks>, 1girl," + DEFAULT_POSITIVE
+
+
+
     final_fusion_ratio  = 0.5
-    
-    # build pipeline sd/openpose/face_detection/image_face_fusion
-    sd_inpaint_pipeline, generator = build_pipeline_with_lora(base_model_path, lora_model_path, cache_model_dir)    
+
+    # build pipeline openpose/face_detection/image_face_fusion
+    sd_inpaint_pipeline, generator = build_pipeline_facechain(base_model_path, lora_model_path, cache_model_dir, from_safetensor=lora_model_path.endswith('safetensors'))    
     openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet", cache_dir=os.path.join(cache_model_dir, "controlnet_detector"))
     retinaface_detection = pipeline(Tasks.face_detection, 'damo/cv_resnet50_face-detection_retinaface')
     image_face_fusion = pipeline(Tasks.image_face_fusion, model='damo/cv_unet-image-face-fusion_damo')
@@ -242,23 +225,24 @@ if __name__=="__main__":
     
 
     # crop template to fit sd 
-    crop_template = True
+    crop_template = False
     if crop_template:
         # 获取人像坐标并且截取
         crop_safe_box, _, _ = call_face_crop(retinaface_detection, template_image, 3, "crop")
         input_image = copy.deepcopy(template_image).crop(crop_safe_box)
-
-        # 对模板图像进行resize短边到512上
+    else:
+        input_image = template_image
+    
+    if 1:
+        # fit template to shortside 768
         short_side  = min(input_image.width, input_image.height)
         resize      = float(short_side / 768)
         new_size    = (int(input_image.width//resize), int(input_image.height//resize))
         input_image = input_image.resize(new_size)
 
-        # 保证是32的倍数
         new_width   = int(np.shape(input_image)[1] // 32 * 32)
         new_height  = int(np.shape(input_image)[0] // 32 * 32)
         input_image = input_image.resize([new_width, new_height])
-
 
 
     roop_face_retinaface_box, roop_face_retinaface_keypoints, roop_face_retinaface_mask = call_face_crop(retinaface_detection, face_id_image, 1.5, "roop")
@@ -325,3 +309,8 @@ if __name__=="__main__":
         origin_image = Image.fromarray(np.uint8(origin_image))
         # origin_image = Image.fromarray(codeformer_helper.infer(codeFormer_net, face_helper, bg_upsampler, np.array(origin_image)))
         origin_image.save('result_2.jpg')
+
+    
+    result = image_face_fusion(dict(template=generate_image, user=roop_image))[OutputKeys.OUTPUT_IMG]
+    
+    cv2.imwrite('result3.jpg', result)
