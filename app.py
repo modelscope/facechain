@@ -4,7 +4,7 @@ import os
 import shutil
 import time
 from concurrent.futures import ThreadPoolExecutor
-
+import uuid as UUID
 import cv2
 import gradio as gr
 import numpy as np
@@ -235,7 +235,7 @@ def train_input():
     trainer = Trainer()
 
     with gr.Blocks() as demo:
-        uuid = gr.Text(label="modelscope_uuid", visible=False)
+        uuid = gr.Text(label="modelscope_uuid", visible=False, value=UUID.uuid4().hex)
         with gr.Row():
             with gr.Column():
                 with gr.Box():
@@ -292,7 +292,7 @@ def train_input():
 
 def inference_input():
     with gr.Blocks() as demo:
-        uuid = gr.Text(label="modelscope_uuid", visible=False)
+        uuid = gr.Text(label="modelscope_uuid", visible=False, value=UUID.uuid4().hex)
         with gr.Row():
             with gr.Column():
                 user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value",
