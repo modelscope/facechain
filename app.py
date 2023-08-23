@@ -12,6 +12,7 @@ import torch
 from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
+from facechain.inference_inpaint import GenPortraitInpaint 
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt
 
@@ -154,9 +155,24 @@ def launch_pipeline(uuid,
                                use_face_swap, use_post_process,
                                use_stylization)
 
-    num_images = min(6, num_images)
-    future = inference_threadpool.submit(gen_portrait, instance_data_dir,
-                                         num_images, base_model, lora_model_path, 'film/film', 'v2.0')
+
+    num_images = min(4, num_images)
+    if 0:
+        future = inference_threadpool.submit(gen_portrait, instance_data_dir,
+                                            num_images, base_model, lora_model_path, 'film/film', 'v2.0')
+
+
+    # paiya debug
+    if 1:
+        gen_portrait_inpaint = GenPortraitInpaint(crop_template=True, short_side_resize=512)
+        cache_model_dir = '/mnt/zhoulou.wzh/AIGC/model_data/'
+        input_prompt = f"zhoumo_face, zhoumo, 1girl,"
+        base_model_path = '/mnt/workspace/.cache/modelscope/ly261666/cv_portrait_model/realistic'
+        lora_model_path = './pai_ya_tmp/zhoumo.safetensors'
+        input_roop_image_list = ['pai_ya_tmp/yangmi1.jpeg', 'pai_ya_tmp/yangmi2.jpeg']
+        # input_template_list = ['pai_ya_tmp/White_1.jpg','pai_ya_tmp/White_2.jpg','pai_ya_tmp/Blue_1.jpg','pai_ya_tmp/Blue_2.jpg','pai_ya_tmp/Blue_3.jpg','pai_ya_tmp/Red_1.jpg']
+        input_template_list = ['pai_ya_tmp/White_1.jpg','pai_ya_tmp/Blue_1.jpg','pai_ya_tmp/Red_1.jpg']
+        future = inference_threadpool.submit(gen_portrait_inpaint, base_model_path, lora_model_path, input_template_list, input_roop_image_list, input_prompt, cache_model_dir)
 
     while not future.done():
         is_processing = future.running()
