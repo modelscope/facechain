@@ -22,6 +22,11 @@ from PIL import Image
 from PIL import Image
 from skimage import transform
 import numpy as np
+
+DEFAULT_POSITIVE = 'beautiful, cool, finely detail, light smile, extremely detailed CG unity 8k wallpaper, huge filesize, best quality, realistic, photo-realistic, ultra high res, raw phot, put on makeup'
+DEFAULT_NEGATIVE = 'hair, teeth, sketch, duplicate, ugly, huge eyes, text, logo, worst face, strange mouth, nsfw, NSFW, low quality, worst quality, worst quality, low quality, normal quality, lowres, watermark, lowres, monochrome, naked, nude, nsfw, bad anatomy, bad hands, normal quality, grayscale, mural,'
+
+
 def safe_get_box_mask_keypoints(image, retinaface_result, crop_ratio, face_seg, mask_type):
     '''
     Inputs:
@@ -111,7 +116,6 @@ def call_face_crop(retinaface_detection, image, crop_ratio, prefix="tmp"):
     return retinaface_box, retinaface_keypoints, retinaface_mask_pil
 
 
-
 from diffusers import (ControlNetModel,
                     DPMSolverMultistepScheduler,
                     StableDiffusionControlNetInpaintPipeline,
@@ -148,47 +152,133 @@ def build_pipeline_facechain(baseline_model_path, lora_model_path, cache_model_d
     return pipeline, generator
 
 
-# class GenPortraitInpaint:
-#     def __init__(self, pos_prompt, neg_prompt, style_model_path, multiplier_style,
-#                  use_main_model=True, use_face_swap=True,
-#                  use_post_process=True, use_stylization=True):
-#         self.use_main_model = use_main_model
-#         self.use_face_swap = use_face_swap
-#         self.use_post_process = use_post_process
-#         self.use_stylization = use_stylization
-#         self.multiplier_style = multiplier_style
-#         self.style_model_path = style_model_path
-#         self.pos_prompt = pos_prompt
-#         self.neg_prompt = neg_prompt
+class GenPortraitInpaint:
+    def __init__(self, 
+                 cache_model_dir=None,
+                 use_main_model=True, 
+                 crop_template = True, 
+                 short_side_resize = 768):
+        self.crop_template = crop_template 
+        self.short_side_resize = short_side_resize
 
-#     def __call__(self, input_img_dir, num_gen_images=6, base_model_path=None,
-#                  lora_model_path=None, sub_path=None, revision=None):
-#         base_model_path = snapshot_download(base_model_path, revision=revision)
-#         if sub_path is not None and len(sub_path) > 0:
-#             base_model_path = os.path.join(base_model_path, sub_path)
 
-#         # main_model_inference PIL
-#         gen_results = main_model_inference(self.pos_prompt, self.neg_prompt,
-#                                            self.style_model_path, self.multiplier_style,
-#                                            self.use_main_model, input_img_dir=input_img_dir,
-#                                            lora_model_path=lora_model_path, base_model_path=base_model_path)
-#         # select_high_quality_face PIL
-#         selected_face = select_high_quality_face(input_img_dir)
-#         # face_swap cv2
-#         swap_results = face_swap_fn(self.use_face_swap, gen_results, selected_face)
-#         # pose_process
-#         rank_results = post_process_fn(self.use_post_process, swap_results, selected_face,
-#                                        num_gen_images=num_gen_images)
-#         # stylization
-#         final_gen_results = stylization_fn(self.use_stylization, rank_results)
+    def __call__(self, base_model_path, 
+        lora_model_path, 
+        input_template, 
+        input_roop_image, 
+        input_prompt, 
+        cache_model_dir,
+        first_controlnet_strength = 0.45,
+        second_controlnet_strength = 0.1,
+        first_controlnet_conditioning_scale = [0.5,0.3], 
+        second_controlnet_conditioning_scale = [0.75,0.75], 
+        final_fusion_ratio=0.5,
+        use_fusion_before=True, use_fusion_after=True):
 
-#         return final_gen_results
+        sd_inpaint_pipeline, generator = build_pipeline_facechain(base_model_path, lora_model_path, cache_model_dir, from_safetensor=lora_model_path.endswith('safetensors'))    
+        retinaface_detection = pipeline(Tasks.face_detection, 'damo/cv_resnet50_face-detection_retinaface')
+        image_face_fusion = pipeline(Tasks.image_face_fusion, model='damo/cv_unet-image-face-fusion_damo')
+        self.openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet", cache_dir=os.path.join(cache_model_dir, "controlnet_detector"))
+        
+        #
+        template_image =  Image.open(input_template)
+        roop_image = Image.open(input_roop_image) 
+        face_id_image =  Image.open(input_roop_image) 
+        
+        
+
+        # crop template to fit sd 
+        if self.crop_template:
+            # 获取人像坐标并且截取
+            crop_safe_box, _, _ = call_face_crop(retinaface_detection, template_image, 3, "crop")
+            input_image = copy.deepcopy(template_image).crop(crop_safe_box)
+        else:
+            input_image = template_image
+        
+        if 1:
+            # fit template to shortside 768
+            short_side  = min(input_image.width, input_image.height)
+            resize      = float(short_side / int(self.short_side_resize))
+            new_size    = (int(input_image.width//resize), int(input_image.height//resize))
+            input_image = input_image.resize(new_size)
+
+            new_width   = int(np.shape(input_image)[1] // 32 * 32)
+            new_height  = int(np.shape(input_image)[0] // 32 * 32)
+            input_image = input_image.resize([new_width, new_height])
+
+
+        roop_face_retinaface_box, roop_face_retinaface_keypoints, roop_face_retinaface_mask = call_face_crop(retinaface_detection, face_id_image, 1.5, "roop")
+        retinaface_box, retinaface_keypoints, input_mask = call_face_crop(retinaface_detection, input_image, 1.1, "template")
+        
+        # crop and paste original input as OpenPose input
+        use_replace_before = True
+        if use_replace_before:
+            replaced_input_image = crop_and_paste(face_id_image, roop_face_retinaface_mask, input_image, roop_face_retinaface_keypoints, retinaface_keypoints, roop_face_retinaface_box)
+        else:
+            replaced_input_image = input_image
+        
+        # face fusion input as Canny Input
+        use_fusion_before = True
+        if use_fusion_before:
+            result          = image_face_fusion(dict(template=input_image, user=roop_image))[OutputKeys.OUTPUT_IMG]
+            result          = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
+        else:
+            result = input_image
+        
+        # Prepare for ControlNet
+        openpose_image  = self.openpose(np.array(replaced_input_image, np.uint8))
+        canny_image     = cv2.Canny(np.array(result, np.uint8), 100, 200)[:, :, None]
+        canny_image     = Image.fromarray(np.concatenate([canny_image, canny_image, canny_image], axis=2))
+        read_control    = [openpose_image, canny_image]
+        
+        #  Fusion as Input, and mask inpaint with ControlNet
+        generate_image_old = sd_inpaint_pipeline(
+            input_prompt, image=result, mask_image=input_mask, control_image=read_control, strength=first_controlnet_strength, negative_prompt=DEFAULT_NEGATIVE, 
+            guidance_scale=9, num_inference_steps=30, generator=generator, height=np.shape(input_image)[0], width=np.shape(input_image)[1], \
+            controlnet_conditioning_scale=first_controlnet_conditioning_scale
+        ).images[0]
+        
+        # Image fusion with roop
+        use_fusion_after = True
+        if use_fusion_after:
+            generate_image = image_face_fusion(dict(template=generate_image_old, user=roop_image))[OutputKeys.OUTPUT_IMG]
+            generate_image = cv2.cvtColor(generate_image, cv2.COLOR_BGR2RGB)
+        else:
+            generate_image = generate_image_old
+        
+        # Prepare for ControlNet Input
+        openpose_image  = self.openpose(generate_image)
+        canny_image     = cv2.Canny(np.array(generate_image, np.uint8), 100, 200)[:, :, None]
+        canny_image     = Image.fromarray(np.concatenate([canny_image, canny_image, canny_image], axis=2))
+        read_control    = [openpose_image, canny_image]
+
+        # Fusion ensemble before final SD
+        input_image_2   = Image.fromarray(np.uint8((np.array(generate_image_old, np.float32) * (1-final_fusion_ratio) + np.array(generate_image, np.float32) * final_fusion_ratio)))
+        
+        # HERE IS THE FINAL OUTPUT
+        generate_image = sd_inpaint_pipeline(
+            input_prompt, image=input_image_2, mask_image=input_mask, control_image=read_control, strength=second_controlnet_strength, negative_prompt=DEFAULT_NEGATIVE, 
+            guidance_scale=9, num_inference_steps=30, generator=generator, height=np.shape(input_image)[0], width=np.shape(input_image)[1], \
+            controlnet_conditioning_scale=second_controlnet_conditioning_scale
+        ).images[0]
+
+        generate_image.save('debug_result_1.jpg')
+
+        if self.crop_template:
+            origin_image    = np.array(copy.deepcopy(template_image))
+            x1,y1,x2,y2     = crop_safe_box
+            generate_image  = generate_image.resize([x2-x1, y2-y1])
+            origin_image[y1:y2,x1:x2] = np.array(generate_image)
+            origin_image = Image.fromarray(np.uint8(origin_image))
+            # origin_image = Image.fromarray(codeformer_helper.infer(codeFormer_net, face_helper, bg_upsampler, np.array(origin_image)))
+            origin_image.save('debug_result_1.jpg')
+            generate_image = origin_image
+
+        return generate_image
 
 
 if __name__=="__main__":
 
-    DEFAULT_POSITIVE = 'beautiful, cool, finely detail, light smile, extremely detailed CG unity 8k wallpaper, huge filesize, best quality, realistic, photo-realistic, ultra high res, raw phot, put on makeup'
-    DEFAULT_NEGATIVE = 'hair, teeth, sketch, duplicate, ugly, huge eyes, text, logo, worst face, strange mouth, nsfw, NSFW, low quality, worst quality, worst quality, low quality, normal quality, lowres, watermark, lowres, monochrome, naked, nude, nsfw, bad anatomy, bad hands, normal quality, grayscale, mural,'
 
     import  sys
 
@@ -199,118 +289,121 @@ if __name__=="__main__":
 
     # paiya
     # base_model_path = '/root/photog_dsw/model_data/ChilloutMix-ni-fp16/'
-    # lora_model_path = './pai_ya_tmp/zhoumo.safetensors'
-    # input_prompt = f"zhoumo_face, zhoumo, 1girl," + DEFAULT_POSITIVE
+    lora_model_path = './pai_ya_tmp/zhoumo.safetensors'
+    input_prompt = f"zhoumo_face, zhoumo, 1girl," + DEFAULT_POSITIVE
 
 
     # facechain 
-    base_model_path = '/mnt/workspace/.cache/modelscope/ly261666/cv_portrait_model/film/film'
-    lora_model_path = './pai_ya_tmp/'
-    input_prompt = f"<sks>, 1girl," + DEFAULT_POSITIVE
+    # base_model_path = '/mnt/workspace/.cache/modelscope/ly261666/cv_portrait_model/film/film'
+    base_model_path = '/mnt/workspace/.cache/modelscope/ly261666/cv_portrait_model/realistic'
+    # lora_model_path = './pai_ya_tmp/'
+    # input_prompt = f"<sks>, 1girl," + DEFAULT_POSITIVE
 
 
+    inpaiter = GenPortraitInpaint()
+    res = inpaiter(base_model_path=base_model_path, lora_model_path=lora_model_path,  input_template=input_template,
+         input_roop_image=input_roop_image, input_prompt=input_prompt, cache_model_dir=cache_model_dir)
 
-    final_fusion_ratio  = 0.5
+    if 0:
 
-    # build pipeline openpose/face_detection/image_face_fusion
-    sd_inpaint_pipeline, generator = build_pipeline_facechain(base_model_path, lora_model_path, cache_model_dir, from_safetensor=lora_model_path.endswith('safetensors'))    
-    openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet", cache_dir=os.path.join(cache_model_dir, "controlnet_detector"))
-    retinaface_detection = pipeline(Tasks.face_detection, 'damo/cv_resnet50_face-detection_retinaface')
-    image_face_fusion = pipeline(Tasks.image_face_fusion, model='damo/cv_unet-image-face-fusion_damo')
-    
-    #
-    template_image =  Image.open(input_template)
-    roop_image = Image.open(input_roop_image) 
-    face_id_image =  Image.open(input_roop_image) 
-    
+        final_fusion_ratio  = 0.5
 
-    # crop template to fit sd 
-    crop_template = False
-    if crop_template:
-        # 获取人像坐标并且截取
-        crop_safe_box, _, _ = call_face_crop(retinaface_detection, template_image, 3, "crop")
-        input_image = copy.deepcopy(template_image).crop(crop_safe_box)
-    else:
-        input_image = template_image
-    
-    if 1:
-        # fit template to shortside 768
-        short_side  = min(input_image.width, input_image.height)
-        resize      = float(short_side / 768)
-        new_size    = (int(input_image.width//resize), int(input_image.height//resize))
-        input_image = input_image.resize(new_size)
+        # build pipeline openpose/face_detection/image_face_fusion
+        sd_inpaint_pipeline, generator = build_pipeline_facechain(base_model_path, lora_model_path, cache_model_dir, from_safetensor=lora_model_path.endswith('safetensors'))    
+        openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet", cache_dir=os.path.join(cache_model_dir, "controlnet_detector"))
+        retinaface_detection = pipeline(Tasks.face_detection, 'damo/cv_resnet50_face-detection_retinaface')
+        image_face_fusion = pipeline(Tasks.image_face_fusion, model='damo/cv_unet-image-face-fusion_damo')
+        
+        #
+        template_image =  Image.open(input_template)
+        roop_image = Image.open(input_roop_image) 
+        face_id_image =  Image.open(input_roop_image) 
+        
 
-        new_width   = int(np.shape(input_image)[1] // 32 * 32)
-        new_height  = int(np.shape(input_image)[0] // 32 * 32)
-        input_image = input_image.resize([new_width, new_height])
+        # crop template to fit sd 
+        crop_template = False
+        if crop_template:
+            # 获取人像坐标并且截取
+            crop_safe_box, _, _ = call_face_crop(retinaface_detection, template_image, 3, "crop")
+            input_image = copy.deepcopy(template_image).crop(crop_safe_box)
+        else:
+            input_image = template_image
+        
+        if 1:
+            # fit template to shortside 768
+            short_side  = min(input_image.width, input_image.height)
+            resize      = float(short_side / 768)
+            new_size    = (int(input_image.width//resize), int(input_image.height//resize))
+            input_image = input_image.resize(new_size)
+
+            new_width   = int(np.shape(input_image)[1] // 32 * 32)
+            new_height  = int(np.shape(input_image)[0] // 32 * 32)
+            input_image = input_image.resize([new_width, new_height])
 
 
-    roop_face_retinaface_box, roop_face_retinaface_keypoints, roop_face_retinaface_mask = call_face_crop(retinaface_detection, face_id_image, 1.5, "roop")
-    retinaface_box, retinaface_keypoints, input_mask = call_face_crop(retinaface_detection, input_image, 1.1, "template")
-    
-    # crop and paste original input as OpenPose input
-    use_replace_before = True
-    if use_replace_before:
-        replaced_input_image = crop_and_paste(face_id_image, roop_face_retinaface_mask, input_image, roop_face_retinaface_keypoints, retinaface_keypoints, roop_face_retinaface_box)
-    else:
-        replaced_input_image = input_image
-    
-    # face fusion input as Canny Input
-    use_fusion_before = True
-    if use_fusion_before:
-        result          = image_face_fusion(dict(template=input_image, user=roop_image))[OutputKeys.OUTPUT_IMG]
-        result          = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
-    else:
-        result = input_image
-    
-    # Prepare for ControlNet
-    openpose_image  = openpose(np.array(replaced_input_image, np.uint8))
-    canny_image     = cv2.Canny(np.array(result, np.uint8), 100, 200)[:, :, None]
-    canny_image     = Image.fromarray(np.concatenate([canny_image, canny_image, canny_image], axis=2))
-    read_control    = [openpose_image, canny_image]
-    
-    #  Fusion as Input, and mask inpaint with ControlNet
-    generate_image_old = sd_inpaint_pipeline(
-        input_prompt, image=result, mask_image=input_mask, control_image=read_control, strength=0.45, negative_prompt=DEFAULT_NEGATIVE, 
-        guidance_scale=9, num_inference_steps=30, generator=generator, height=np.shape(input_image)[0], width=np.shape(input_image)[1], \
-        controlnet_conditioning_scale=[0.50, 0.30]
-    ).images[0]
-    
-    use_fusion_after = True
-    if use_fusion_after:
-        generate_image = image_face_fusion(dict(template=generate_image_old, user=roop_image))[OutputKeys.OUTPUT_IMG]
-        generate_image = cv2.cvtColor(generate_image, cv2.COLOR_BGR2RGB)
-    else:
-        generate_image = generate_image_old
-    
-    # Prepare for ControlNet
-    openpose_image  = openpose(generate_image)
-    canny_image     = cv2.Canny(np.array(generate_image, np.uint8), 100, 200)[:, :, None]
-    canny_image     = Image.fromarray(np.concatenate([canny_image, canny_image, canny_image], axis=2))
-    read_control    = [openpose_image, canny_image]
+        roop_face_retinaface_box, roop_face_retinaface_keypoints, roop_face_retinaface_mask = call_face_crop(retinaface_detection, face_id_image, 1.5, "roop")
+        retinaface_box, retinaface_keypoints, input_mask = call_face_crop(retinaface_detection, input_image, 1.1, "template")
+        
+        # crop and paste original input as OpenPose input
+        use_replace_before = True
+        if use_replace_before:
+            replaced_input_image = crop_and_paste(face_id_image, roop_face_retinaface_mask, input_image, roop_face_retinaface_keypoints, retinaface_keypoints, roop_face_retinaface_box)
+        else:
+            replaced_input_image = input_image
+        
+        # face fusion input as Canny Input
+        use_fusion_before = True
+        if use_fusion_before:
+            result          = image_face_fusion(dict(template=input_image, user=roop_image))[OutputKeys.OUTPUT_IMG]
+            result          = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
+        else:
+            result = input_image
+        
+        # Prepare for ControlNet
+        openpose_image  = openpose(np.array(replaced_input_image, np.uint8))
+        canny_image     = cv2.Canny(np.array(result, np.uint8), 100, 200)[:, :, None]
+        canny_image     = Image.fromarray(np.concatenate([canny_image, canny_image, canny_image], axis=2))
+        read_control    = [openpose_image, canny_image]
+        
+        #  Fusion as Input, and mask inpaint with ControlNet
+        generate_image_old = sd_inpaint_pipeline(
+            input_prompt, image=result, mask_image=input_mask, control_image=read_control, strength=0.45, negative_prompt=DEFAULT_NEGATIVE, 
+            guidance_scale=9, num_inference_steps=30, generator=generator, height=np.shape(input_image)[0], width=np.shape(input_image)[1], \
+            controlnet_conditioning_scale=[0.50, 0.30]
+        ).images[0]
+        
+        use_fusion_after = True
+        if use_fusion_after:
+            generate_image = image_face_fusion(dict(template=generate_image_old, user=roop_image))[OutputKeys.OUTPUT_IMG]
+            generate_image = cv2.cvtColor(generate_image, cv2.COLOR_BGR2RGB)
+        else:
+            generate_image = generate_image_old
+        
+        # Prepare for ControlNet
+        openpose_image  = openpose(generate_image)
+        canny_image     = cv2.Canny(np.array(generate_image, np.uint8), 100, 200)[:, :, None]
+        canny_image     = Image.fromarray(np.concatenate([canny_image, canny_image, canny_image], axis=2))
+        read_control    = [openpose_image, canny_image]
 
-    # kind of fusion ensemble
-    input_image_2   = Image.fromarray(np.uint8((np.array(generate_image_old, np.float32) * (1-final_fusion_ratio) + np.array(generate_image, np.float32) * final_fusion_ratio)))
-    
-    # HERE IS THE FINAL OUTPUT
-    generate_image = sd_inpaint_pipeline(
-        input_prompt, image=input_image_2, mask_image=input_mask, control_image=read_control, strength=0.10, negative_prompt=DEFAULT_NEGATIVE, 
-        guidance_scale=9, num_inference_steps=30, generator=generator, height=np.shape(input_image)[0], width=np.shape(input_image)[1], \
-        controlnet_conditioning_scale=[0.75, 0.75]
-    ).images[0]
+        # kind of fusion ensemble
+        input_image_2   = Image.fromarray(np.uint8((np.array(generate_image_old, np.float32) * (1-final_fusion_ratio) + np.array(generate_image, np.float32) * final_fusion_ratio)))
+        
+        # HERE IS THE FINAL OUTPUT
+        generate_image = sd_inpaint_pipeline(
+            input_prompt, image=input_image_2, mask_image=input_mask, control_image=read_control, strength=0.10, negative_prompt=DEFAULT_NEGATIVE, 
+            guidance_scale=9, num_inference_steps=30, generator=generator, height=np.shape(input_image)[0], width=np.shape(input_image)[1], \
+            controlnet_conditioning_scale=[0.75, 0.75]
+        ).images[0]
 
-    generate_image.save('result_1.jpg')
+        generate_image.save('result_1.jpg')
 
-    if crop_template:
-        origin_image    = np.array(copy.deepcopy(template_image))
-        x1,y1,x2,y2     = crop_safe_box
-        generate_image  = generate_image.resize([x2-x1, y2-y1])
-        origin_image[y1:y2,x1:x2] = np.array(generate_image)
-        origin_image = Image.fromarray(np.uint8(origin_image))
-        # origin_image = Image.fromarray(codeformer_helper.infer(codeFormer_net, face_helper, bg_upsampler, np.array(origin_image)))
-        origin_image.save('result_2.jpg')
+        if crop_template:
+            origin_image    = np.array(copy.deepcopy(template_image))
+            x1,y1,x2,y2     = crop_safe_box
+            generate_image  = generate_image.resize([x2-x1, y2-y1])
+            origin_image[y1:y2,x1:x2] = np.array(generate_image)
+            origin_image = Image.fromarray(np.uint8(origin_image))
+            # origin_image = Image.fromarray(codeformer_helper.infer(codeFormer_net, face_helper, bg_upsampler, np.array(origin_image)))
+            origin_image.save('result_2.jpg')
 
     
-    result = image_face_fusion(dict(template=generate_image, user=roop_image))[OutputKeys.OUTPUT_IMG]
-    
-    cv2.imwrite('result3.jpg', result)
