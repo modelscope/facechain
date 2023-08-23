@@ -65,15 +65,39 @@ def concatenate_images(images):
     return concatenated_image
 
 
-def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
-    os.system(
-        f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
-        f'--revision={revision} --sub_path="film/film" '
-        f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
-        f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
-        f'--learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
-        f'--lora_r=32 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32')
+# def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
+#     os.system(
+#         f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
+#         f'--revision={revision} --sub_path="film/film" '
+#         f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
+#         f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
+#         f'--learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
+#         f'--lora_r=32 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32')
 
+def train_lora_fn_paiya(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
+    os.system(
+    f'''
+    accelerate launch --mixed_precision="fp16" train_kohya/train_lora.py \
+        --pretrained_model_name_or_path="{pretrained_model_name_or_path}" \
+        --model_cache_dir={MODEL_CACHE_DIR} \
+        --train_data_dir="{train_data_dir}" --caption_column="text" \
+        --resolution=512 --random_flip --train_batch_size=1 --gradient_accumulation_steps=4 --dataloader_num_workers=24 \
+        --max_train_steps=800 --checkpointing_steps=100 \
+        --learning_rate=1e-04 --lr_scheduler="constant" --lr_warmup_steps=0 \
+        --train_text_encoder \
+        --seed=42 \
+        --rank=128 --network_alpha=64 \
+        --validation_prompt="{validation_prompt}" \
+        --validation_steps=100 \
+        --output_dir="{train_output_path}" \
+        --logging_dir="{train_output_path}" \
+        --enable_xformers_memory_efficient_attention \
+        --mixed_precision='fp16' \
+        --template_dir="{template_dir}" \
+        --template_mask \
+        --merge_best_lora_based_face_id
+    '''
+    )
 
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model == styles[0]['name'] or style_model is None:
