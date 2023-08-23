@@ -1,6 +1,8 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import enum
 import os
+import platform
+import subprocess
 import shutil
 import time
 from concurrent.futures import ThreadPoolExecutor
