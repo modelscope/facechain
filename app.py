@@ -300,7 +300,7 @@ class Trainer:
             prepare_dataset([img['name'] for img in instance_images], output_dataset_dir=instance_data_dir)
             data_process_fn(instance_data_dir, True)
         if 1:
-            prepare_dataset_paiya([img['name'] for img in instance_images], output_dataset_dir=instance_data_dir)
+            prepare_dataset_paiya([img['name'] for img in instance_images], output_dataset_dir=instance_data_dir, work_dir=work_dir)
 
         # train lora
         if 0:
@@ -309,7 +309,7 @@ class Trainer:
                         output_img_dir=instance_data_dir,
                         work_dir=work_dir)
         if 1:
-            train_lora_fn_paiya(foundation_model_path='ly261666/cv_portrait_model',
+            train_lora_fn_paiya(foundation_model_path='/mnt/workspace/.cache/modelscope/ly261666/cv_portrait_model/realistic',
                         revision='v2.0',
                         output_img_dir=instance_data_dir,
                         work_dir=work_dir)
