@@ -101,9 +101,15 @@ def launch_pipeline(uuid,
     use_stylization = False
 
     output_model_name = 'personalizaition_lora'
-    instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
-
-    lora_model_path = f'/tmp/{uuid}/{output_model_name}'
+    #  code to be compatible with the Windows environment.
+    if platform.system() == 'Windows':
+        instance_data_dir = os.path.join('C:\\tmp', uuid, 'training_data', output_model_name)
+        lora_model_path = f'C:\\tmp{uuid}\{output_model_name}'
+        if not os.path.exists(f"C:\\tmp\\{uuid}"):
+            os.makedirs(f"C:\\tmp\\{uuid}")
+    else:
+        instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
+        lora_model_path = f'/tmp/{uuid}/{output_model_name}'
 
     gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                                use_face_swap, use_post_process,
@@ -162,12 +168,18 @@ class Trainer:
         output_model_name = 'personalizaition_lora'
 
         # mv user upload data to target dir
-        instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
+        if platform.system() == 'Windows':
+            instance_data_dir = os.path.join('C:\\tmp', uuid, 'training_data', output_model_name)
+            work_dir = f'C:\\tmp{uuid}\{output_model_name}'
+            if not os.path.exists(f"C:\\tmp\\{uuid}"):
+                os.makedirs(f"C:\\tmp\\{uuid}")
+        else:
+            instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
+            work_dir = f"/tmp/{uuid}/{output_model_name}"
+            if not os.path.exists(f"/tmp/{uuid}"):
+                os.makedirs(f"/tmp/{uuid}")
+        
         print("--------uuid: ", uuid)
-
-        if not os.path.exists(f"/tmp/{uuid}"):
-            os.makedirs(f"/tmp/{uuid}")
-        work_dir = f"/tmp/{uuid}/{output_model_name}"
         print("----------work_dir: ", work_dir)
         shutil.rmtree(work_dir, ignore_errors=True)
         shutil.rmtree(instance_data_dir, ignore_errors=True)
