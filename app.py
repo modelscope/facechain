@@ -5,6 +5,8 @@ import shutil
 import time
 from concurrent.futures import ThreadPoolExecutor
 import uuid as UUID
+from typing import Tuple
+
 import cv2
 import gradio as gr
 import numpy as np
@@ -111,10 +113,7 @@ def launch_pipeline(uuid,
 
     print("-------user_models: ", user_models)
     if not uuid:
-        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-            return "请登陆后使用! (Please login first)"
-        else:
-            uuid = 'qw'
+        uuid = UUID.uuid4().hex
 
     use_main_model = True
     use_face_swap = True
@@ -153,9 +152,9 @@ def launch_pipeline(uuid,
         result = concatenate_images(outputs)
         cv2.imwrite(image_path, result)
 
-        yield ["生成完毕(Generating done)！", outputs_RGB]
+        yield [uuid, "生成完毕(Generating done)！", outputs_RGB]
     else:
-        yield ["生成失败，请重试(Generating failed, please retry)！", outputs_RGB]
+        yield [uuid, "生成失败，请重试(Generating failed, please retry)！", outputs_RGB]
 
 
 class Trainer:
@@ -166,7 +165,7 @@ class Trainer:
             self,
             uuid: str,
             instance_images: list,
-    ) -> str:
+    ) -> Tuple[str, str]:
 
         if not torch.cuda.is_available():
             raise gr.Error('CUDA is not available.')
@@ -175,10 +174,7 @@ class Trainer:
         if len(instance_images) > 10:
             raise gr.Error('您需要上传小于10张训练图片(Please upload at most 10 photos)！')
         if not uuid:
-            if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-                return "请登陆后使用(Please login first)! "
-            else:
-                uuid = 'qw'
+            uuid = UUID.uuid4().hex
 
         output_model_name = 'personalizaition_lora'
 
@@ -204,7 +200,7 @@ class Trainer:
 
         message = f'训练已经完成！请切换至 [形象体验] 标签体验模型效果(Training done, please switch to the inference tab to generate photos.)'
         print(message)
-        return message
+        return uuid, message
 
 
 def flash_model_list(uuid):
@@ -231,11 +227,10 @@ def upload_file(files, current_files):
     return file_paths
 
 
-def train_input():
+def train_input(uuid):
     trainer = Trainer()
 
     with gr.Blocks() as demo:
-        uuid = gr.Text(label="modelscope_uuid", visible=False, value=UUID.uuid4().hex)
         with gr.Row():
             with gr.Column():
                 with gr.Box():
@@ -285,14 +280,13 @@ def train_input():
                              uuid,
                              instance_images,
                          ],
-                         outputs=[output_message])
+                         outputs=[uuid, output_message])
 
     return demo
 
 
-def inference_input():
+def inference_input(uuid):
     with gr.Blocks() as demo:
-        uuid = gr.Text(label="modelscope_uuid", visible=False, value=UUID.uuid4().hex)
         with gr.Row():
             with gr.Column():
                 user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value",
@@ -334,17 +328,18 @@ def inference_input():
         cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt])
         display_button.click(fn=launch_pipeline,
                              inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style],
-                             outputs=[infer_progress, output_images])
+                             outputs=[uuid, infer_progress, output_images])
 
     return demo
 
 
 with gr.Blocks(css='style.css') as demo:
+    uuid = gr.State(UUID.uuid4().hex)
     with gr.Tabs():
         with gr.TabItem('\N{rocket}形象定制(Train)'):
-            train_input()
+            train_input(uuid)
         with gr.TabItem('\N{party popper}形象体验(Inference)'):
-            inference_input()
+            inference_input(uuid)
 
-demo.queue(status_update_rate=1).launch(share=False)
+demo.queue(status_update_rate=1).launch(share=True)
 
