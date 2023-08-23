@@ -205,6 +205,71 @@ def launch_pipeline(uuid,
         yield ["生成失败，请重试(Generating failed, please retry)！", outputs_RGB]
 
 
+def launch_pipeline_paiya(uuid, 
+        selected_template_images, 
+        selected_roop_images
+    ):
+    base_model = 'ly261666/cv_portrait_model'
+    before_queue_size = inference_threadpool._work_queue.qsize()
+    before_done_count = inference_done_count
+
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            return "请登陆后使用! (Please login first)"
+        else:
+            uuid = 'qw'
+
+    use_main_model = True
+    use_face_swap = True
+    use_post_process = True
+    use_stylization = False
+
+    output_model_name = 'personalizaition_lora'
+    instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
+
+    lora_model_path = f'/tmp/{uuid}/{output_model_name}'
+
+    # paiya debug
+    if 1:
+        gen_portrait_inpaint = GenPortraitInpaint(crop_template=True, short_side_resize=512)
+        cache_model_dir = '/mnt/zhoulou.wzh/AIGC/model_data/'
+        input_prompt = f"zhoumo_face, zhoumo, 1girl,"
+        base_model_path = '/mnt/workspace/.cache/modelscope/ly261666/cv_portrait_model/realistic'
+        lora_model_path = './pai_ya_tmp/zhoumo.safetensors'
+        
+        # input_roop_image_list = ['pai_ya_tmp/yangmi1.jpeg', 'pai_ya_tmp/yangmi2.jpeg']
+        # input_template_list = ['pai_ya_tmp/White_1.jpg','pai_ya_tmp/White_2.jpg','pai_ya_tmp/Blue_1.jpg','pai_ya_tmp/Blue_2.jpg','pai_ya_tmp/Blue_3.jpg','pai_ya_tmp/Red_1.jpg']
+        # input_template_list = ['pai_ya_tmp/White_1.jpg','pai_ya_tmp/Blue_1.jpg','pai_ya_tmp/Red_1.jpg']
+        
+        print('select_roop_images :', selected_roop_images)
+        print('selected_template_images :', selected_template_images)
+        future = inference_threadpool.submit(gen_portrait_inpaint, base_model_path, lora_model_path, selected_template_images, selected_roop_images, input_prompt, cache_model_dir)
+
+    while not future.done():
+        is_processing = future.running()
+        if not is_processing:
+            cur_done_count = inference_done_count
+            to_wait = before_queue_size - (cur_done_count - before_done_count)
+            yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5), None]
+        else:
+            yield ["生成中, 请耐心等待(Generating)...", None]
+        time.sleep(1)
+
+    outputs = future.result()
+    outputs_RGB = []
+    for out_tmp in outputs:
+        outputs_RGB.append(cv2.cvtColor(out_tmp, cv2.COLOR_BGR2RGB))
+    image_path = './lora_result.png'
+    if len(outputs) > 0:
+        result = concatenate_images(outputs)
+        cv2.imwrite(image_path, result)
+
+        yield ["生成完毕(Generating done)！", outputs_RGB]
+    else:
+        yield ["生成失败，请重试(Generating failed, please retry)！", outputs_RGB]
+
+
+
 class Trainer:
     def __init__(self):
         pass
@@ -394,12 +459,62 @@ def inference_input():
     return demo
 
 
+def image_selector(selected_images):
+    # 在这里你可以调用其他函数并传递所选的图片
+    # 这里只是简单地返回所选图片的路径列表
+    return selected_images
+
+preset_template = ['pai_ya_tmp/White_1.jpg','pai_ya_tmp/Blue_1.jpg','pai_ya_tmp/Blue_2.jpg','pai_ya_tmp/Red_1.jpg']
+roop_images = ['pai_ya_tmp/yangmi1.jpeg','pai_ya_tmp/yangmi2.jpeg']
+def inference_inpaint():
+    with gr.Blocks() as demo:
+        uuid = gr.Text(label="modelscope_uuid", visible=False)
+        with gr.Row():
+            with gr.Column():
+                user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value",
+                                       value=HOT_MODELS[0])
+
+
+
+                template_gallery_list= [(i,i) for i in preset_template]
+                gr.Gallery(template_gallery_list).style(grid=4)
+                selected_template_images = gr.CheckboxGroup(choices=preset_template, label="请选择预设模板")
+                
+                
+                template_roop_images= [(i,i) for i in roop_images]
+                gr.Gallery(template_roop_images).style(grid=4)
+                selected_roop_images = gr.CheckboxGroup(choices=roop_images, label="请选择参考图片")
+
+
+                with gr.Accordion("高级选项(Expert)", open=False):
+                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
+                                        value=generate_pos_prompt(None, cloth_prompt[0]['prompt']), interactive=True)
+                    multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
+                                                 step=0.05, label='风格权重(Multiplier style)')
+
+
+        display_button = gr.Button('开始生成(Start!)')
+        with gr.Box():
+            infer_progress = gr.Textbox(label="生成进度(Progress)", value="当前无生成任务(No task)", interactive=False)
+        with gr.Box():
+            gr.Markdown('生成结果(Result)')
+            output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
+                                                                               object_fit="contain")
+                                                                               
+        display_button.click(fn=launch_pipeline_paiya,
+                             inputs=[uuid, selected_template_images, selected_roop_images],
+                             outputs=[infer_progress, output_images])
+
+    return demo
+
 with gr.Blocks(css='style.css') as demo:
     with gr.Tabs():
         with gr.TabItem('\N{rocket}形象定制(Train)'):
             train_input()
         with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input()
+        with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
+            inference_inpaint()
 
 demo.queue(status_update_rate=1).launch(share=True)
 
