@@ -200,15 +200,15 @@ def get_mask_head(result):
 class Blipv2():
     def __init__(self):
         self.model = DeepDanbooru()
-        self.skin_retouching = pipeline(Tasks.skin_retouching, model='damo/cv_unet_skin-retouching')
-        self.face_detection = pipeline(task=Tasks.face_detection, model='damo/cv_ddsar_face-detection_iclr23-damofd')
+        self.skin_retouching = pipeline(Tasks.skin_retouching, model='damo/cv_unet_skin-retouching', model_revision='v1.0.0')
+        self.face_detection = pipeline(task=Tasks.face_detection, model='damo/cv_ddsar_face-detection_iclr23-damofd', model_revision='v1.1')
         # self.mog_face_detection_func = pipeline(Tasks.face_detection, 'damo/cv_resnet101_face-detection_cvpr22papermogface')
         self.segmentation_pipeline = pipeline(Tasks.image_segmentation,
-                                              'damo/cv_resnet101_image-multiple-human-parsing')
+                                              'damo/cv_resnet101_image-multiple-human-parsing', model_revision='v1.0.1')
         self.fair_face_attribute_func = pipeline(Tasks.face_attribute_recognition,
-                                                 'damo/cv_resnet34_face-attribute-recognition_fairface')
+                                                 'damo/cv_resnet34_face-attribute-recognition_fairface', model_revision='v2.0.2')
         self.facial_landmark_confidence_func = pipeline(Tasks.face_2d_keypoints,
-                                                        'damo/cv_manual_facial-landmark-confidence_flcm')
+                                                        'damo/cv_manual_facial-landmark-confidence_flcm', model_revision='v2.5')
 
     def __call__(self, imdir):
         self.model.start()
