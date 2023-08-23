@@ -34,17 +34,13 @@ import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint
 import transformers
-import facechain
-import facechain.utils
-from .utils import lora_utils as network_module
 from accelerate import Accelerator
 from accelerate.logging import get_logger
 from accelerate.utils import ProjectConfiguration, set_seed
 from datasets import load_dataset
 from diffusers import (AutoencoderKL, ControlNetModel, DDPMScheduler,
                        DiffusionPipeline, DPMSolverMultistepScheduler,
-                       StableDiffusionControlNetImg2ImgPipeline,
-                       StableDiffusionControlNetInpaintPipeline,
+                       StableDiffusionInpaintPipeline,
                        UNet2DConditionModel)
 from diffusers.optimization import get_scheduler
 from diffusers.utils import check_min_version, is_wandb_available
@@ -59,21 +55,14 @@ from torchvision import transforms
 from tqdm import tqdm
 from tqdm.auto import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
-from .utils.face_id_utils import (eval_jpg_with_faceid,
-                                 eval_jpg_with_faceidremote)
-from .utils.face_process_utils import *
-
-try:
-    from controlnet_aux import OpenposeDetector
-except:
-    print("controlnet_aux is not installed. If local template is used, please install controlnet_aux")
-    pass
 
 if is_wandb_available():
     import wandb
 
 # Will error if the minimal version of diffusers is not installed. Remove at your own risks.
 check_min_version("0.18.0")
+
+logger = get_logger(__name__, log_level="INFO")
 
 def compare_jpg_with_face_id(embedding_list):
     embedding_array = np.vstack(embedding_list)
@@ -85,11 +74,14 @@ def compare_jpg_with_face_id(embedding_list):
     scores = [np.dot(emb, pivot_feature)[0][0] for emb in embedding_list]
     return scores
 
-def prepare_dataset_paiya(instance_images: list, output_dataset_dir):
+def prepare_dataset_paiya(instance_images: list, output_dataset_dir, work_dir):
+    from .utils.face_process_utils import call_face_crop
     # 创建输出文件夹
     images_save_path    = os.path.join(output_dataset_dir, "train")
     json_save_path      = os.path.join(output_dataset_dir, "metadata.jsonl")
+    best_roop_image_path = os.path.join(work_dir, "best_outputs")
     os.makedirs(images_save_path, exist_ok=True)
+    os.makedirs(best_roop_image_path, exist_ok=True)
 
     # 人脸评分
     face_quality_func       = pipeline(Tasks.face_quality_assessment, 'damo/cv_manual_face-quality-assessment_fqa')
@@ -99,8 +91,6 @@ def prepare_dataset_paiya(instance_images: list, output_dataset_dir):
     retinaface_detection    = pipeline(Tasks.face_detection, 'damo/cv_resnet50_face-detection_retinaface')
     # 显著性检测
     salient_detect          = pipeline(Tasks.semantic_segmentation, model='damo/cv_u2net_salient-detection')
-    # 人脸平滑
-    skin_retouching         = pipeline(Tasks.skin_retouching,model='damo/cv_unet_skin-retouching')
     
     # 获得jpg列表
     jpgs            = instance_images
@@ -131,7 +121,6 @@ def prepare_dataset_paiya(instance_images: list, output_dataset_dir):
                 continue
 
             sub_image = image.crop(retinaface_box)
-            sub_image = Image.fromarray(cv2.cvtColor(skin_retouching(sub_image)[OutputKeys.OUTPUT_IMG], cv2.COLOR_BGR2RGB))
 
             embedding   = np.array(face_recognition(sub_image)[OutputKeys.IMG_EMBEDDING])
             score       = face_quality_func(sub_image)[OutputKeys.SCORES]
@@ -155,7 +144,10 @@ def prepare_dataset_paiya(instance_images: list, output_dataset_dir):
     # 根据得分进行训练人脸的筛选，考虑相似分
     total_scores    = np.array(face_id_scores)
     indexes         = np.argsort(total_scores)[::-1][:15]
-    
+    for i, index in enumerate(indexes[:4]):
+        save_path = os.path.join(best_roop_image_path, f"best_roop_image_{str(index)}.jpg")
+        os.system(f"cp -rf {selected_paths[index]} {save_path}")
+
     _selected_paths = []
     selected_scores = []
     for index in indexes:
@@ -170,7 +162,6 @@ def prepare_dataset_paiya(instance_images: list, output_dataset_dir):
         image                   = Image.open(jpg)
         retinaface_box, _, _    = call_face_crop(retinaface_detection, image, 3, prefix="tmp")
         sub_image               = image.crop(retinaface_box)
-        sub_image               = Image.fromarray(cv2.cvtColor(skin_retouching(sub_image)[OutputKeys.OUTPUT_IMG], cv2.COLOR_BGR2RGB))
         
         # 对人脸的mask区域进行修正
         sub_box, _, sub_mask = call_face_crop(retinaface_detection, sub_image, 1, prefix="tmp")
@@ -218,6 +209,12 @@ def prepare_dataset_paiya(instance_images: list, output_dataset_dir):
                         f.write(json.dumps(eval(str(a))))
                         f.write("\n")
 
+    del face_quality_func 
+    del face_recognition     
+    del retinaface_detection  
+    del salient_detect      
+    torch.cuda.empty_cache()
+    
 # --------------------------------功能说明-------------------------------- #
 #   log_validation训练时的验证函数：
 #   当存在template_dir，结合controlnet生成证件照模板；
@@ -225,37 +222,17 @@ def prepare_dataset_paiya(instance_images: list, output_dataset_dir):
 #   图片文件保存在validation文件夹下，结果会写入tensorboard或者wandb中。
 # --------------------------------功能说明-------------------------------- #
 def log_validation(vae, text_encoder, tokenizer, unet, args, accelerator, weight_dtype, epoch, global_step, **kwargs):
-    if args.template_dir is not None:
-        # 当存在template_dir，结合controlnet生成证件照模板；
-        controlnet = [
-            # ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-openpose", torch_dtype=torch.float32, cache_dir="../model_data/controlnet"),
-            # ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-canny", torch_dtype=torch.float32, cache_dir="../model_data/controlnet"),
-            ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-openpose", torch_dtype=torch.float32, cache_dir=os.path.join(args.model_cache_dir, 'controlnet')),
-            ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-canny", torch_dtype=torch.float32, cache_dir=os.path.join(args.model_cache_dir, 'controlnet')),
-        ]
-        pipeline_type = StableDiffusionControlNetInpaintPipeline if args.template_mask else StableDiffusionControlNetImg2ImgPipeline
-        # create pipeline
-        pipeline = pipeline_type.from_pretrained(
-            args.pretrained_model_name_or_path,
-            controlnet = controlnet, # [c.to(accelerator.device, weight_dtype) for c in controlnet], 
-            unet=accelerator.unwrap_model(unet).to(accelerator.device, torch.float32),
-            text_encoder=accelerator.unwrap_model(text_encoder).to(accelerator.device, torch.float32),
-            vae=accelerator.unwrap_model(vae).to(accelerator.device, torch.float32),
-            revision=args.revision,
-            torch_dtype=torch.float32,
-        )
-        pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config)
-    else:
-        # 当不存在template_dir时，根据验证提示词随机生成。
-        pipeline = DiffusionPipeline.from_pretrained(
-            args.pretrained_model_name_or_path,
-            unet=accelerator.unwrap_model(unet).to(accelerator.device, weight_dtype),
-            text_encoder=accelerator.unwrap_model(text_encoder).to(accelerator.device, weight_dtype),
-            vae=accelerator.unwrap_model(vae).to(accelerator.device, torch.float32),
-            revision=args.revision,
-            torch_dtype=weight_dtype,
-        )
+    # 当不存在template_dir时，根据验证提示词随机生成。
+    pipeline = StableDiffusionInpaintPipeline.from_pretrained(
+        args.pretrained_model_name_or_path,
+        unet=accelerator.unwrap_model(unet).to(accelerator.device, torch.float32),
+        text_encoder=accelerator.unwrap_model(text_encoder).to(accelerator.device, torch.float32),
+        vae=accelerator.unwrap_model(vae).to(accelerator.device, torch.float32),
+        revision=args.revision,
+        torch_dtype=torch.float32,
+    )
     pipeline = pipeline.to(accelerator.device)
+    pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config)
     pipeline.set_progress_bar_config(disable=True)
     generator = torch.Generator(device=accelerator.device)
     if args.seed is not None:
@@ -266,18 +243,16 @@ def log_validation(vae, text_encoder, tokenizer, unet, args, accelerator, weight
     if args.template_dir is not None:
         # 遍历生成证件照
         jpgs = os.listdir(args.template_dir)
-        for jpg, read_jpg, shape, read_control, read_mask in zip(jpgs, kwargs['input_images'], kwargs['input_images_shape'], kwargs['control_images'], kwargs['input_masks']):
+        for jpg, read_jpg, shape, read_mask in zip(jpgs, kwargs['input_images'], kwargs['input_images_shape'], kwargs['input_masks']):
             if args.template_mask:
                 image = pipeline(
-                    args.validation_prompt, image=read_jpg, mask_image=read_mask, control_image=read_control, strength=0.70, negative_prompt=args.neg_prompt, 
-                    guidance_scale=args.guidance_scale, num_inference_steps=20, generator=generator, height=kwargs['new_size'][1], width=kwargs['new_size'][0], \
-                    controlnet_conditioning_scale=[0.50, 0.30]
+                    args.validation_prompt, image=read_jpg, mask_image=read_mask, strength=0.65, negative_prompt=args.neg_prompt, 
+                    guidance_scale=args.guidance_scale, num_inference_steps=20, generator=generator, height=kwargs['new_size'][1], width=kwargs['new_size'][0],
                 ).images[0]
             else:
                 image = pipeline(
-                    args.validation_prompt, image=read_jpg, control_image=read_control, strength=0.70, negative_prompt=args.neg_prompt, 
-                    guidance_scale=args.guidance_scale, num_inference_steps=20, generator=generator, height=kwargs['new_size'][1], width=kwargs['new_size'][0], \
-                    controlnet_conditioning_scale=[0.50, 0.30]
+                    args.validation_prompt, image=read_jpg, strength=0.65, negative_prompt=args.neg_prompt, 
+                    guidance_scale=args.guidance_scale, num_inference_steps=20, generator=generator, height=kwargs['new_size'][1], width=kwargs['new_size'][0],
                 ).images[0]
 
             images.append(image)
@@ -711,6 +686,10 @@ def unet_attn_processors_state_dict(unet) -> Dict[str, torch.tensor]:
     return attn_processors_state_dict
 
 def main():
+    from utils import lora_utils as network_module
+    from utils.face_process_utils import call_face_crop
+    from utils.face_id_utils import eval_jpg_with_faceid
+
     args = parse_args()
     logging_dir = Path(args.output_dir, args.logging_dir)
 
@@ -1066,8 +1045,6 @@ def main():
         input_images_shape  = []
         control_images      = []
         input_masks         = []
-        # openpose            = OpenposeDetector.from_pretrained("lllyasviel/ControlNet", cache_dir="../model_data/controlnet_detector")
-        openpose            = OpenposeDetector.from_pretrained("lllyasviel/ControlNet", cache_dir=os.path.join(args.model_cache_dir, 'controlnet_detector'))
         # 人脸检测
         retinaface_detection = pipeline(Tasks.face_detection, 'damo/cv_resnet50_face-detection_retinaface')
         jpgs                = os.listdir(args.template_dir)
@@ -1081,21 +1058,12 @@ def main():
             new_size    = (int(read_jpg.width//resize) // 64 * 64, int(read_jpg.height//resize) // 64 * 64)
             read_jpg    = read_jpg.resize(new_size)
 
-            if args.template_mask:
-                if args.template_mask_dir is not None:
-                    input_mask      = Image.open(os.path.join(args.template_mask_dir, jpg))
-                else:
-                    _, _, input_mask = call_face_crop(retinaface_detection, read_jpg, crop_ratio=1.3)
-
-            openpose_image  = openpose(read_jpg)
-            canny_image     = cv2.Canny(np.array(read_jpg, np.uint8), 100, 200)[:, :, None]
-            canny_image     = Image.fromarray(np.concatenate([canny_image, canny_image, canny_image], axis=2))
+            _, _, input_mask = call_face_crop(retinaface_detection, read_jpg, crop_ratio=1.3)
 
             # append into list
             input_images.append(read_jpg)
             input_images_shape.append(shape)
             input_masks.append(input_mask if args.template_mask else None)
-            control_images.append([openpose_image, canny_image])
     else:
         new_size = None
         input_images = None
@@ -1306,10 +1274,7 @@ def main():
         if args.merge_best_lora_based_face_id:
             pivot_dir = os.path.join(args.train_data_dir, 'train')
             merge_best_lora_name = args.train_data_dir.split("/")[-1] if args.merge_best_lora_name is None else args.merge_best_lora_name
-            if args.faceid_post_url is not None:
-                t_result_list, tlist, scores = eval_jpg_with_faceidremote(pivot_dir, os.path.join(args.output_dir, "validation"), args.faceid_post_url)
-            else:
-                t_result_list, tlist, scores = eval_jpg_with_faceid(pivot_dir, os.path.join(args.output_dir, "validation"))
+            t_result_list, tlist, scores = eval_jpg_with_faceid(pivot_dir, os.path.join(args.output_dir, "validation"))
 
             for index, line in enumerate(zip(tlist, scores)):
                 print(f"Top-{str(index)}: {str(line)}")
@@ -1320,8 +1285,8 @@ def main():
 
             best_outputs_dir = os.path.join(args.output_dir, "best_outputs")
             os.makedirs(best_outputs_dir, exist_ok=True)
-            for result in t_result_list[:4]:
-                os.system(f"cp {result} {best_outputs_dir}")
+            for result in t_result_list[:1]:
+                os.system(f"cp {result} {best_outputs_dir}/face_id.jpg")
             os.system(f"cp {lora_save_path} {best_outputs_dir}")
 
 
