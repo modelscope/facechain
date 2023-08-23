@@ -138,9 +138,9 @@ def launch_pipeline(uuid,
         if not is_processing:
             cur_done_count = inference_done_count
             to_wait = before_queue_size - (cur_done_count - before_done_count)
-            yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5), None]
+            yield [uuid, "排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5), None]
         else:
-            yield ["生成中, 请耐心等待(Generating)...", None]
+            yield [uuid, "生成中, 请耐心等待(Generating)...", None]
         time.sleep(1)
 
     outputs = future.result()
@@ -334,7 +334,7 @@ def inference_input(uuid):
 
 
 with gr.Blocks(css='style.css') as demo:
-    uuid = gr.State(UUID.uuid4().hex)
+    uuid = gr.State([])
     with gr.Tabs():
         with gr.TabItem('\N{rocket}形象定制(Train)'):
             train_input(uuid)
