@@ -16,7 +16,7 @@ import torch
 from diffusers import AutoencoderKL
 from transformers import CLIPTextModel
 
-from .utils import precalculate_safetensors_hashes
+# from .utils import precalculate_safetensors_hashes
 
 RE_UPDOWN = re.compile(r"(up|down)_blocks_(\d+)_(resnets|upsamplers|downsamplers|attentions)_(\d+)_")
 

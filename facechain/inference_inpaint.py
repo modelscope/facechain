@@ -112,15 +112,15 @@ def call_face_crop(retinaface_detection, image, crop_ratio, prefix="tmp"):
 
 
 
+from transformers import CLIPTextModel, CLIPTokenizer
+from diffusers import (AutoencoderKL, ControlNetModel,
+                    DPMSolverMultistepScheduler,
+                    StableDiffusionControlNetInpaintPipeline,
+                    UNet2DConditionModel)
+import facechain.kohya_lora as network_module
+from controlnet_aux import OpenposeDetector
 # build_pipeline_with_lora is build a Inpaint pipeline with kohya Lora & controlnet
-def build_pipeline_with_lora(baseline_model_path : str, lora_model_path : str, cache_model_dir : str,  lora_dim : int=128, lora_alpha : int 64)
-    from diffusers import (AutoencoderKL, ControlNetModel,
-                       DPMSolverMultistepScheduler,
-                       StableDiffusionControlNetInpaintPipeline,
-                       UNet2DConditionModel)
-    import facechain.kohya_lora as network_module
-    from controlnet_aux import OpenposeDetector
-
+def build_pipeline_with_lora(baseline_model_path, lora_model_path, cache_model_dir,  lora_dim=128, lora_alpha=64):
     # Lora SD componets, to support Kohya Lora in diffusers=0.18.2 
     tokenizer       = CLIPTokenizer.from_pretrained(os.path.join(baseline_model_path), subfolder="tokenizer", revision=None)
     text_encoder    = CLIPTextModel.from_pretrained(os.path.join(baseline_model_path), subfolder="text_encoder", revision=None)
@@ -131,7 +131,7 @@ def build_pipeline_with_lora(baseline_model_path : str, lora_model_path : str, c
     
     # Build Kohya Lora and Load Lora
     network = network_module.create_network(
-        1.0, 128, 64, 
+        1.0, lora_dim, lora_alpha, 
         vae, text_encoder, unet, neuron_dropout=None,
     )
     network.apply_to(text_encoder, unet, True, True)
@@ -223,21 +223,44 @@ if __name__=="__main__":
     input_template = sys.argv[1]
     input_roop_image = sys.argv[2]
 
-    base_model_path = './'
-    lora_model_path = './mi.safetensors'
-    cache_model_dir = './model_data'
+    base_model_path = '/root/photog_dsw/model_data/ChilloutMix-ni-fp16/'
+    lora_model_path = './pai_ya_tmp/mi.safetensors'
+    cache_model_dir = '/root/photog_dsw/model_data/'
     input_prompt = f"mi_face, mi, 1girl," + DEFAULT_POSITIVE
-
-    # build pipeline
+    final_fusion_ratio  = 0.5
+    
+    # build pipeline sd/openpose/face_detection/image_face_fusion
     sd_inpaint_pipeline, generator = build_pipeline_with_lora(base_model_path, lora_model_path, cache_model_dir)    
+    openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet", cache_dir=os.path.join(cache_model_dir, "controlnet_detector"))
     retinaface_detection = pipeline(Tasks.face_detection, 'damo/cv_resnet50_face-detection_retinaface')
-
-
+    image_face_fusion = pipeline(Tasks.image_face_fusion, model='damo/cv_unet-image-face-fusion_damo')
+    
     #
-    input_image =  Image.open(input_template)
+    template_image =  Image.open(input_template)
     roop_image = Image.open(input_roop_image) 
     face_id_image =  Image.open(input_roop_image) 
     
+
+    # crop template to fit sd 
+    crop_template = True
+    if crop_template:
+        # 获取人像坐标并且截取
+        crop_safe_box, _, _ = call_face_crop(retinaface_detection, template_image, 3, "crop")
+        input_image = copy.deepcopy(template_image).crop(crop_safe_box)
+
+        # 对模板图像进行resize短边到512上
+        short_side  = min(input_image.width, input_image.height)
+        resize      = float(short_side / 768)
+        new_size    = (int(input_image.width//resize), int(input_image.height//resize))
+        input_image = input_image.resize(new_size)
+
+        # 保证是32的倍数
+        new_width   = int(np.shape(input_image)[1] // 32 * 32)
+        new_height  = int(np.shape(input_image)[0] // 32 * 32)
+        input_image = input_image.resize([new_width, new_height])
+
+
+
     roop_face_retinaface_box, roop_face_retinaface_keypoints, roop_face_retinaface_mask = call_face_crop(retinaface_detection, face_id_image, 1.5, "roop")
     retinaface_box, retinaface_keypoints, input_mask = call_face_crop(retinaface_detection, input_image, 1.1, "template")
     
@@ -292,4 +315,13 @@ if __name__=="__main__":
         controlnet_conditioning_scale=[0.75, 0.75]
     ).images[0]
 
-    generate_image.save('result.jpg')
+    generate_image.save('result_1.jpg')
+
+    if crop_template:
+        origin_image    = np.array(copy.deepcopy(template_image))
+        x1,y1,x2,y2     = crop_safe_box
+        generate_image  = generate_image.resize([x2-x1, y2-y1])
+        origin_image[y1:y2,x1:x2] = np.array(generate_image)
+        origin_image = Image.fromarray(np.uint8(origin_image))
+        # origin_image = Image.fromarray(codeformer_helper.infer(codeFormer_net, face_helper, bg_upsampler, np.array(origin_image)))
+        origin_image.save('result_2.jpg')
