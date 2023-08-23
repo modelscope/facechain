@@ -34,10 +34,6 @@ import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint
 import transformers
-<<<<<<< HEAD
-from .utils import lora_utils as network_module
-=======
->>>>>>> paiya_train
 from accelerate import Accelerator
 from accelerate.logging import get_logger
 from accelerate.utils import ProjectConfiguration, set_seed
