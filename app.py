@@ -9,6 +9,7 @@ import cv2
 import gradio as gr
 import numpy as np
 import torch
+import logging
 from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
@@ -16,6 +17,9 @@ from facechain.inference_inpaint import GenPortraitInpaint
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.train_text_to_image_paiya import prepare_dataset_paiya
 from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt
+from modelscope.utils.logger import get_logger
+logger = get_logger()
+logger.setLevel(logging.ERROR)
 
 training_threadpool = ThreadPoolExecutor(max_workers=1)
 inference_threadpool = ThreadPoolExecutor(max_workers=5)
@@ -79,10 +83,10 @@ def concatenate_images(images):
 def train_lora_fn_paiya(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
     os.system(
         f'''
-        accelerate launch --mixed_precision="fp16" train_kohya/train_lora.py \
+        accelerate launch --mixed_precision="fp16" facechain/train_text_to_image_paiya.py \
             --pretrained_model_name_or_path="{foundation_model_path}" \
             --model_cache_dir="/mnt/controlnet" \
-            --train_data_dir="{train_data_dir}" --caption_column="text" \
+            --train_data_dir="{output_img_dir}" --caption_column="text" \
             --resolution=512 --random_flip --train_batch_size=1 --gradient_accumulation_steps=4 --dataloader_num_workers=24 \
             --max_train_steps=800 --checkpointing_steps=100 \
             --learning_rate=1e-04 --lr_scheduler="constant" --lr_warmup_steps=0 \
@@ -399,5 +403,6 @@ with gr.Blocks(css='style.css') as demo:
 
 demo.queue(status_update_rate=1).launch(share=True)
 
-a = Trainer()
-a.run([])
+# import glob
+# a = Trainer()
+# a.run("1234", glob.glob("/mnt/zhoulou.wzh/AIGC/facechain/facechain/personalizaition_lora/*"))
