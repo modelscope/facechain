@@ -14,6 +14,7 @@ from modelscope import snapshot_download
 from facechain.inference import GenPortrait
 from facechain.inference_inpaint import GenPortraitInpaint 
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
+from facechain.train_text_to_image_paiya import prepare_dataset_paiya
 from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt
 
 training_threadpool = ThreadPoolExecutor(max_workers=1)
@@ -77,27 +78,29 @@ def concatenate_images(images):
 
 def train_lora_fn_paiya(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
     os.system(
-    f'''
-    accelerate launch --mixed_precision="fp16" train_kohya/train_lora.py \
-        --pretrained_model_name_or_path="{pretrained_model_name_or_path}" \
-        --model_cache_dir={MODEL_CACHE_DIR} \
-        --train_data_dir="{train_data_dir}" --caption_column="text" \
-        --resolution=512 --random_flip --train_batch_size=1 --gradient_accumulation_steps=4 --dataloader_num_workers=24 \
-        --max_train_steps=800 --checkpointing_steps=100 \
-        --learning_rate=1e-04 --lr_scheduler="constant" --lr_warmup_steps=0 \
-        --train_text_encoder \
-        --seed=42 \
-        --rank=128 --network_alpha=64 \
-        --validation_prompt="{validation_prompt}" \
-        --validation_steps=100 \
-        --output_dir="{train_output_path}" \
-        --logging_dir="{train_output_path}" \
-        --enable_xformers_memory_efficient_attention \
-        --mixed_precision='fp16' \
-        --template_dir="{template_dir}" \
-        --template_mask \
-        --merge_best_lora_based_face_id
-    '''
+        f'''
+        accelerate launch --mixed_precision="fp16" train_kohya/train_lora.py \
+            --pretrained_model_name_or_path="{foundation_model_path}" \
+            --model_cache_dir="/mnt/controlnet" \
+            --train_data_dir="{train_data_dir}" --caption_column="text" \
+            --resolution=512 --random_flip --train_batch_size=1 --gradient_accumulation_steps=4 --dataloader_num_workers=24 \
+            --max_train_steps=800 --checkpointing_steps=100 \
+            --learning_rate=1e-04 --lr_scheduler="constant" --lr_warmup_steps=0 \
+            --train_text_encoder \
+            --seed=42 \
+            --rank=128 --network_alpha=64 \
+            --validation_prompt="zhoumo_face, zhoumo, 1person" \
+            --validation_steps=100 \
+            --output_dataset_name={output_img_dir} \
+            --output_dir="{work_dir}" \
+            --logging_dir="{work_dir}" \
+            --enable_xformers_memory_efficient_attention \
+            --mixed_precision='fp16' \
+            --revision={revision} \
+            --template_dir="resources/template_girl" \
+            --template_mask \
+            --merge_best_lora_based_face_id
+        '''
     )
 
 def generate_pos_prompt(style_model, prompt_cloth):
@@ -233,14 +236,23 @@ class Trainer:
         shutil.rmtree(work_dir, ignore_errors=True)
         shutil.rmtree(instance_data_dir, ignore_errors=True)
 
-        prepare_dataset([img['name'] for img in instance_images], output_dataset_dir=instance_data_dir)
-        data_process_fn(instance_data_dir, True)
+        if 0:
+            prepare_dataset([img['name'] for img in instance_images], output_dataset_dir=instance_data_dir)
+            data_process_fn(instance_data_dir, True)
+        if 1:
+            prepare_dataset_paiya([img['name'] for img in instance_images], output_dataset_dir=instance_data_dir)
 
         # train lora
-        train_lora_fn(foundation_model_path='ly261666/cv_portrait_model',
-                      revision='v2.0',
-                      output_img_dir=instance_data_dir,
-                      work_dir=work_dir)
+        if 0:
+            train_lora_fn(foundation_model_path='ly261666/cv_portrait_model',
+                        revision='v2.0',
+                        output_img_dir=instance_data_dir,
+                        work_dir=work_dir)
+        if 1:
+            train_lora_fn_paiya(foundation_model_path='ly261666/cv_portrait_model',
+                        revision='v2.0',
+                        output_img_dir=instance_data_dir,
+                        work_dir=work_dir)
 
         message = f'训练已经完成！请切换至 [形象体验] 标签体验模型效果(Training done, please switch to the inference tab to generate photos.)'
         print(message)
@@ -329,7 +341,6 @@ def train_input():
 
     return demo
 
-
 def inference_input():
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
@@ -388,3 +399,5 @@ with gr.Blocks(css='style.css') as demo:
 
 demo.queue(status_update_rate=1).launch(share=True)
 
+a = Trainer()
+a.run([])
