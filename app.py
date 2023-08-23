@@ -229,8 +229,6 @@ def upload_file(files, current_files):
 
 def train_input(uuid):
     trainer = Trainer()
-    os.system('nvidia-smi')
-    os.system('df -h')
     with gr.Blocks() as demo:
         with gr.Row():
             with gr.Column():
