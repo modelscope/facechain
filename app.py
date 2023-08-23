@@ -237,7 +237,7 @@ def train_input(uuid):
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
                     upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
-                                                    file_count="multiple")
+                                                    file_count="multiple", queue=False)
 
                     clear_button = gr.Button("清空图片(Clear photos)")
                     clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
@@ -341,5 +341,6 @@ with gr.Blocks(css='style.css') as demo:
         with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input(uuid)
 
-demo.queue(status_update_rate=1).launch(share=False)
+demo.queue(status_update_rate=1, api_open=False).launch(share=True, show_error=True)
+
 
