@@ -34,8 +34,6 @@ import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint
 import transformers
-import facechain
-import facechain.utils
 from .utils import lora_utils as network_module
 from accelerate import Accelerator
 from accelerate.logging import get_logger

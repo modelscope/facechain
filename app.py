@@ -163,23 +163,10 @@ def launch_pipeline(uuid,
                                use_stylization)
 
 
-    num_images = min(4, num_images)
-    if 0:
-        future = inference_threadpool.submit(gen_portrait, instance_data_dir,
+    num_images = min(6, num_images)
+    future = inference_threadpool.submit(gen_portrait, instance_data_dir,
                                             num_images, base_model, lora_model_path, 'film/film', 'v2.0')
 
-
-    # paiya debug
-    if 1:
-        gen_portrait_inpaint = GenPortraitInpaint(crop_template=True, short_side_resize=512)
-        cache_model_dir = '/mnt/zhoulou.wzh/AIGC/model_data/'
-        input_prompt = f"zhoumo_face, zhoumo, 1girl,"
-        base_model_path = '/mnt/workspace/.cache/modelscope/ly261666/cv_portrait_model/realistic'
-        lora_model_path = './pai_ya_tmp/zhoumo.safetensors'
-        input_roop_image_list = ['pai_ya_tmp/yangmi1.jpeg', 'pai_ya_tmp/yangmi2.jpeg']
-        # input_template_list = ['pai_ya_tmp/White_1.jpg','pai_ya_tmp/White_2.jpg','pai_ya_tmp/Blue_1.jpg','pai_ya_tmp/Blue_2.jpg','pai_ya_tmp/Blue_3.jpg','pai_ya_tmp/Red_1.jpg']
-        input_template_list = ['pai_ya_tmp/White_1.jpg','pai_ya_tmp/Blue_1.jpg','pai_ya_tmp/Red_1.jpg']
-        future = inference_threadpool.submit(gen_portrait_inpaint, base_model_path, lora_model_path, input_template_list, input_roop_image_list, input_prompt, cache_model_dir)
 
     while not future.done():
         is_processing = future.running()
@@ -207,9 +194,15 @@ def launch_pipeline(uuid,
 
 def launch_pipeline_paiya(uuid, 
         selected_template_images, 
-        selected_roop_images
+        append_pos_prompt,
+        select_face_num = 1,
+        # selected_roop_images,
+        first_control_weight=0.5, 
+        second_control_weight=0.1,
+        final_fusion_ratio=0.5, 
+        use_fusion_before=True, 
+        use_fusion_after=True
     ):
-    base_model = 'ly261666/cv_portrait_model'
     before_queue_size = inference_threadpool._work_queue.qsize()
     before_done_count = inference_done_count
 
@@ -219,23 +212,19 @@ def launch_pipeline_paiya(uuid,
         else:
             uuid = 'qw'
 
-    use_main_model = True
-    use_face_swap = True
-    use_post_process = True
-    use_stylization = False
+    base_model = 'ly261666/cv_portrait_model'
+    base_model_path = os.path.join('/mnt/workspace/.cache/modelscope/', base_model, 'realistic')
 
-    output_model_name = 'personalizaition_lora'
-    instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
-
-    lora_model_path = f'/tmp/{uuid}/{output_model_name}'
+    instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
+    lora_model_path =  os.path.join(instance_data_dir, 'personalizaition_lora.safetensors')
+    input_prompt = f"zhoumo_face, zhoumo," + append_pos_prompt +','
+    face_id_image = os.path.join(instance_data_dir, 'face_id.jpg')
+    selected_roop_images = [os.path.join(instance_data_dir, f'best_roop_image_{idx}.jpg') for idx in range(select_face_num)]
 
     # paiya debug
     if 1:
         gen_portrait_inpaint = GenPortraitInpaint(crop_template=True, short_side_resize=512)
         cache_model_dir = '/mnt/zhoulou.wzh/AIGC/model_data/'
-        input_prompt = f"zhoumo_face, zhoumo, 1girl,"
-        base_model_path = '/mnt/workspace/.cache/modelscope/ly261666/cv_portrait_model/realistic'
-        lora_model_path = './pai_ya_tmp/zhoumo.safetensors'
         
         # input_roop_image_list = ['pai_ya_tmp/yangmi1.jpeg', 'pai_ya_tmp/yangmi2.jpeg']
         # input_template_list = ['pai_ya_tmp/White_1.jpg','pai_ya_tmp/White_2.jpg','pai_ya_tmp/Blue_1.jpg','pai_ya_tmp/Blue_2.jpg','pai_ya_tmp/Blue_3.jpg','pai_ya_tmp/Red_1.jpg']
@@ -243,7 +232,9 @@ def launch_pipeline_paiya(uuid,
         
         print('select_roop_images :', selected_roop_images)
         print('selected_template_images :', selected_template_images)
-        future = inference_threadpool.submit(gen_portrait_inpaint, base_model_path, lora_model_path, selected_template_images, selected_roop_images, input_prompt, cache_model_dir)
+
+        future = inference_threadpool.submit(gen_portrait_inpaint, base_model_path, lora_model_path, face_id_image, selected_template_images, selected_roop_images, 
+            input_prompt, cache_model_dir, first_control_weight, second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after)
 
     while not future.done():
         is_processing = future.running()
@@ -459,38 +450,48 @@ def inference_input():
     return demo
 
 
-def image_selector(selected_images):
-    # 在这里你可以调用其他函数并传递所选的图片
-    # 这里只是简单地返回所选图片的路径列表
-    return selected_images
 
-preset_template = ['pai_ya_tmp/White_1.jpg','pai_ya_tmp/Blue_1.jpg','pai_ya_tmp/Blue_2.jpg','pai_ya_tmp/Red_1.jpg']
-roop_images = ['pai_ya_tmp/yangmi1.jpeg','pai_ya_tmp/yangmi2.jpeg']
+preset_template = ['resources/paiya_template/0.jpg','resources/paiya_template/1.jpg','resources/paiya_template/2.jpg','resources/paiya_template/3.jpg']
 def inference_inpaint():
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
+        # print('uuid : ', uuid)
+
+        # best_input_images_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
+        # roop_images = [os.path.join(best_input_images_dir, f'best_roop_image_{idx}.jpg') for idx in range(4)]
+        
         with gr.Row():
             with gr.Column():
                 user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value",
                                        value=HOT_MODELS[0])
 
-
-
                 template_gallery_list= [(i,i) for i in preset_template]
-                gr.Gallery(template_gallery_list).style(grid=4)
+                gr.Gallery(template_gallery_list).style(grid=4, height=300)
                 selected_template_images = gr.CheckboxGroup(choices=preset_template, label="请选择预设模板")
                 
                 
-                template_roop_images= [(i,i) for i in roop_images]
-                gr.Gallery(template_roop_images).style(grid=4)
-                selected_roop_images = gr.CheckboxGroup(choices=roop_images, label="请选择参考图片")
+                # template_roop_images= [(i,i) for i in roop_images]
+                # gr.Gallery(template_roop_images).style(grid=4, height=300)
+                # selected_roop_images = gr.CheckboxGroup(choices=roop_images, label="请选择参考图片")
 
 
                 with gr.Accordion("高级选项(Expert)", open=False):
-                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
-                                        value=generate_pos_prompt(None, cloth_prompt[0]['prompt']), interactive=True)
-                    multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
-                                                 step=0.05, label='风格权重(Multiplier style)')
+                    append_pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
+                                        value='masterpiece, smile, beauty', interactive=True)
+                    first_control_weight = gr.Slider(minimum=0.35, maximum=0.6, value=0.45,
+                                                step=0.02, label='初次重绘权重')
+
+                    second_control_weight = gr.Slider(minimum=0.04, maximum=0.2, value=0.1,
+                                                step=0.02, label='再次重绘权重')
+                    final_fusion_ratio = gr.Slider(minimum=0.2, maximum=0.8, value=0.5,
+                                                step=0.1, label='某个神奇的混合')
+                    select_face_num = gr.Slider(minimum=1, maximum=4, value=1,
+                                                step=1, label='参考数目')
+                    use_fusion_before = gr.Radio(label="磨皮plus", type="value", choices=[True, False],
+                                       value=True)     
+                    use_fusion_after = gr.Radio(label="磨皮promax", type="value",choices=[True, False],
+                                       value=True)        
+
 
 
         display_button = gr.Button('开始生成(Start!)')
@@ -502,7 +503,9 @@ def inference_inpaint():
                                                                                object_fit="contain")
                                                                                
         display_button.click(fn=launch_pipeline_paiya,
-                             inputs=[uuid, selected_template_images, selected_roop_images],
+                             # inputs=[uuid, selected_template_images, selected_roop_images, first_control_weight, second_control_weight,
+                             inputs=[uuid, selected_template_images,append_pos_prompt, select_face_num, first_control_weight, second_control_weight,
+                                final_fusion_ratio, use_fusion_before, use_fusion_after],
                              outputs=[infer_progress, output_images])
 
     return demo
@@ -517,7 +520,3 @@ with gr.Blocks(css='style.css') as demo:
             inference_inpaint()
 
 demo.queue(status_update_rate=1).launch(share=True)
-
-# import glob
-# a = Trainer()
-# a.run("1234", glob.glob("/mnt/zhoulou.wzh/AIGC/facechain/facechain/personalizaition_lora/*"))
