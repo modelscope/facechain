@@ -393,11 +393,11 @@ def train_input():
 
         run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）'
                                'Start training (please wait until photo(s) fully uploaded, otherwise it may result in training failure)')
-        with gr.Box():
-            use_paiya = gr.Radio(
-                label="Enable Inpaint : False means only support Inference, True support Inference/Inpaint and pleas use > 5 images", type="value", choices=[True, False],
-                value=True
-            )
+        
+        use_paiya = gr.Radio(
+            label="Enable Inpaint : False means only support Inference, True support Inference/Inpaint and pleas use > 5 images", type="value", choices=[True, False],
+            value=True
+        )
         with gr.Box():
             gr.Markdown('''
             请等待训练完成
@@ -487,11 +487,11 @@ def inference_input():
                     gr.Markdown('''
                     Note: You may generate a maximum of 6 photos at one time!
                     ''')
-        with gr.Box():
-            use_paiya = gr.Radio(
-                label="Enable Inpaint : should Openit when train with Enable Inpaint=True", type="value", choices=[True, False],
-                value=True
-            ) 
+        
+        use_paiya = gr.Radio(
+            label="Enable Inpaint : should Openit when train with Enable Inpaint=True", type="value", choices=[True, False],
+            value=True
+        ) 
         display_button = gr.Button('Start Generation')
         
         with gr.Box():
