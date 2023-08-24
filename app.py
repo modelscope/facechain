@@ -157,6 +157,12 @@ def launch_pipeline(uuid,
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
 
     lora_model_path = f'/tmp/{uuid}/{output_model_name}'
+    
+    # paiya debug, use paiya face lora to replace original inference
+    if 1:
+        instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
+        lora_model_path =  os.path.join(instance_data_dir, 'personalizaition_lora.safetensors')
+        print(instance_data_dir)
 
     gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                                use_face_swap, use_post_process,
@@ -164,9 +170,11 @@ def launch_pipeline(uuid,
 
 
     num_images = min(6, num_images)
+    # future = inference_threadpool.submit(gen_portrait, instance_data_dir,
+    #                                         num_images, base_model, lora_model_path, 'film/film', 'v2.0')
+    print('debug : ', instance_data_dir)
     future = inference_threadpool.submit(gen_portrait, instance_data_dir,
-                                            num_images, base_model, lora_model_path, 'film/film', 'v2.0')
-
+                                            num_images, base_model, lora_model_path, 'realistic/', 'v2.0')
 
     while not future.done():
         is_processing = future.running()

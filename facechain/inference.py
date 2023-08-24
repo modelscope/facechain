@@ -48,46 +48,55 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
     lora_style_path = style_model_path
     lora_human_path = lora_model_path
     pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
-    pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=False)
-    train_dir = str(input_img_dir) + '_labeled'
-    add_prompt_style = []
-    f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')
-    tags_all = []
-    cnt = 0
-    cnts_trigger = np.zeros(6)
-    for line in f:
-        cnt += 1
-        data = json.loads(line)['text'].split(', ')
-        tags_all.extend(data)
-        if data[1] == 'a boy':
-            cnts_trigger[0] += 1
-        elif data[1] == 'a girl':
-            cnts_trigger[1] += 1
-        elif data[1] == 'a handsome man':
-            cnts_trigger[2] += 1
-        elif data[1] == 'a beautiful woman':
-            cnts_trigger[3] += 1
-        elif data[1] == 'a mature man':
-            cnts_trigger[4] += 1
-        elif data[1] == 'a mature woman':
-            cnts_trigger[5] += 1
-        else:
-            print('Error.')
-    f.close()
+    pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=lora_human_path.endswith('safetensors'))
+    
+    if 0:
+        train_dir = str(input_img_dir) + '_labeled'
+        add_prompt_style = []
+        f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')
+        tags_all = []
+        cnt = 0
+        cnts_trigger = np.zeros(6)
+        for line in f:
+            cnt += 1
+            data = json.loads(line)['text'].split(', ')
+            tags_all.extend(data)
+            if data[1] == 'a boy':
+                cnts_trigger[0] += 1
+            elif data[1] == 'a girl':
+                cnts_trigger[1] += 1
+            elif data[1] == 'a handsome man':
+                cnts_trigger[2] += 1
+            elif data[1] == 'a beautiful woman':
+                cnts_trigger[3] += 1
+            elif data[1] == 'a mature man':
+                cnts_trigger[4] += 1
+            elif data[1] == 'a mature woman':
+                cnts_trigger[5] += 1
+            else:
+                print('Error.')
+        f.close()
 
-    attr_idx = np.argmax(cnts_trigger)
-    trigger_styles = ['a boy, children, ', 'a girl, children, ', 'a handsome man, ', 'a beautiful woman, ',
-                      'a mature man, ', 'a mature woman, ']
-    trigger_style = '<sks>, ' + trigger_styles[attr_idx]
-    if attr_idx == 2 or attr_idx == 4:
-        neg_prompt += ', children'
+        attr_idx = np.argmax(cnts_trigger)
+        trigger_styles = ['a boy, children, ', 'a girl, children, ', 'a handsome man, ', 'a beautiful woman, ',
+                        'a mature man, ', 'a mature woman, ']
+        trigger_style = '<sks>, ' + trigger_styles[attr_idx]
+    
 
-    for tag in tags_all:
-        if tags_all.count(tag) > 0.5 * cnt:
-            if ('hair' in tag or 'face' in tag or 'mouth' in tag or 'skin' in tag or 'smile' in tag):
-                if not tag in add_prompt_style:
-                    add_prompt_style.append(tag)
+        if attr_idx == 2 or attr_idx == 4:
+            neg_prompt += ', children'
 
+        for tag in tags_all:
+            if tags_all.count(tag) > 0.5 * cnt:
+                if ('hair' in tag or 'face' in tag or 'mouth' in tag or 'skin' in tag or 'smile' in tag):
+                    if not tag in add_prompt_style:
+                        add_prompt_style.append(tag)
+    
+    # paiya debug to replace trigger keyword
+    if 1:
+        add_prompt_style = ''
+        trigger_style = 'zhoumo, zhoumo_face, 1girl' 
+    
     if len(add_prompt_style) > 0:
         add_prompt_style = ", ".join(add_prompt_style) + ', '
     else:
@@ -117,22 +126,26 @@ def main_model_inference(pos_prompt, neg_prompt, style_model_path, multiplier_st
 
 
 def select_high_quality_face(input_img_dir):
-    input_img_dir = str(input_img_dir) + '_labeled'
+    #PAIYA debug
+    if 0:
+        input_img_dir = str(input_img_dir) + '_labeled'
     quality_score_list = []
     abs_img_path_list = []
     ## TODO
     face_quality_func = pipeline(Tasks.face_quality_assessment, 'damo/cv_manual_face-quality-assessment_fqa')
 
     for img_name in os.listdir(input_img_dir):
-        if img_name.endswith('jsonl') or img_name.startswith('.ipynb'):
+        if img_name.endswith('jsonl') or img_name.startswith('.ipynb') or img_name.startswith('.safetensors'):
             continue
-        abs_img_name = os.path.join(input_img_dir, img_name)
-        face_quality_score = face_quality_func(abs_img_name)[OutputKeys.SCORES]
-        if face_quality_score is None:
-            quality_score_list.append(0)
-        else:
-            quality_score_list.append(face_quality_score[0])
-        abs_img_path_list.append(abs_img_name)
+        
+        if img_name.endswith('jpg'):
+            abs_img_name = os.path.join(input_img_dir, img_name)
+            face_quality_score = face_quality_func(abs_img_name)[OutputKeys.SCORES]
+            if face_quality_score is None:
+                quality_score_list.append(0)
+            else:
+                quality_score_list.append(face_quality_score[0])
+            abs_img_path_list.append(abs_img_name)
 
     sort_idx = np.argsort(quality_score_list)[::-1]
     print('Selected face: ' + abs_img_path_list[sort_idx[0]])
@@ -215,6 +228,9 @@ class GenPortrait:
                                            self.style_model_path, self.multiplier_style,
                                            self.use_main_model, input_img_dir=input_img_dir,
                                            lora_model_path=lora_model_path, base_model_path=base_model_path)
+
+
+
         # select_high_quality_face PIL
         selected_face = select_high_quality_face(input_img_dir)
         # face_swap cv2
