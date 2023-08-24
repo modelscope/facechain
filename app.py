@@ -71,21 +71,22 @@ def concatenate_images(images):
     return concatenated_image
 
 
-# def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
-#     os.system(
-#         f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
-#         f'--revision={revision} --sub_path="film/film" '
-#         f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
-#         f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
-#         f'--learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
-#         f'--lora_r=32 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32')
+def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
+    os.system(
+        f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
+        f'--revision={revision} --sub_path="film/film" '
+        f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
+        f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
+        f'--learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
+        f'--lora_r=32 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32')
+
 
 def train_lora_fn_paiya(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
     os.system(
         f'''
         accelerate launch --mixed_precision="fp16" facechain/train_text_to_image_paiya.py \
             --pretrained_model_name_or_path="{foundation_model_path}" \
-            --model_cache_dir="/mnt/controlnet" \
+            --model_cache_dir='/mnt/zhoulou.wzh/AIGC/model_data/' \
             --train_data_dir="{output_img_dir}" --caption_column="text" \
             --resolution=512 --random_flip --train_batch_size=1 --gradient_accumulation_steps=4 --dataloader_num_workers=24 \
             --max_train_steps=800 --checkpointing_steps=100 \
@@ -95,17 +96,17 @@ def train_lora_fn_paiya(foundation_model_path=None, revision=None, output_img_di
             --rank=128 --network_alpha=64 \
             --validation_prompt="zhoumo_face, zhoumo, 1person" \
             --validation_steps=100 \
-            --output_dataset_name={output_img_dir} \
             --output_dir="{work_dir}" \
             --logging_dir="{work_dir}" \
             --enable_xformers_memory_efficient_attention \
             --mixed_precision='fp16' \
             --revision={revision} \
-            --template_dir="resources/template_girl" \
+            --template_dir="resources/paiya_template" \
             --template_mask \
             --merge_best_lora_based_face_id
         '''
     )
+
 
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model == styles[0]['name'] or style_model is None:
@@ -159,10 +160,10 @@ def launch_pipeline(uuid,
     lora_model_path = f'/tmp/{uuid}/{output_model_name}'
     
     # paiya debug, use paiya face lora to replace original inference
-    if 1:
-        instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
-        lora_model_path =  os.path.join(instance_data_dir, 'personalizaition_lora.safetensors')
-        print(instance_data_dir)
+    # if 1:
+    #     instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
+    #     lora_model_path =  os.path.join(instance_data_dir, 'personalizaition_lora.safetensors')
+    #     print(instance_data_dir)
 
     gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                                use_face_swap, use_post_process,
@@ -222,6 +223,7 @@ def launch_pipeline_paiya(uuid,
 
     base_model = 'ly261666/cv_portrait_model'
     base_model_path = os.path.join('/mnt/workspace/.cache/modelscope/', base_model, 'realistic')
+    # base_model_path = "/mnt/workspace/.cache/modelscope/chillout"
 
     instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
     lora_model_path =  os.path.join(instance_data_dir, 'personalizaition_lora.safetensors')

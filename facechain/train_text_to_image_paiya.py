@@ -140,13 +140,13 @@ def prepare_dataset_paiya(instance_images: list, output_dataset_dir, work_dir):
     ref_indexes         = np.argsort(ref_total_scores)[::-1]
     for index in ref_indexes:
         print("selected paths:", selected_paths[index], "total scores: ", ref_total_scores[index], "face id score", face_id_scores[index], "face angles", face_angles[index])
-    
+    for i, index in enumerate(ref_indexes[:4]):
+        save_path = os.path.join(best_roop_image_path, f"best_roop_image_{str(i)}.jpg")
+        os.system(f"cp -rf {selected_paths[index]} {save_path}")
+
     # 根据得分进行训练人脸的筛选，考虑相似分
     total_scores    = np.array(face_id_scores)
     indexes         = np.argsort(total_scores)[::-1][:15]
-    for i, index in enumerate(indexes[:4]):
-        save_path = os.path.join(best_roop_image_path, f"best_roop_image_{str(index)}.jpg")
-        os.system(f"cp -rf {selected_paths[index]} {save_path}")
 
     _selected_paths = []
     selected_scores = []
