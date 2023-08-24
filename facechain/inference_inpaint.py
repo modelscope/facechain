@@ -272,15 +272,16 @@ class GenPortraitInpaint:
 
                 # Fusion ensemble before final SD
                 input_image_2   = Image.fromarray(np.uint8((np.array(generate_image_old, np.float32) * (1-final_fusion_ratio) + np.array(generate_image, np.float32) * final_fusion_ratio)))
+                generate_image = input_image_2
                 
-                # HERE IS THE FINAL OUTPUT
-                generate_image = sd_inpaint_pipeline(
-                    input_prompt, image=input_image_2, mask_image=input_mask, control_image=read_control, strength=second_controlnet_strength, negative_prompt=DEFAULT_NEGATIVE, 
-                    guidance_scale=9, num_inference_steps=30, generator=generator, height=np.shape(input_image)[0], width=np.shape(input_image)[1], \
-                    controlnet_conditioning_scale=second_controlnet_conditioning_scale
-                ).images[0]
+                # # HERE IS THE FINAL OUTPUT
+                # generate_image = sd_inpaint_pipeline(
+                #     input_prompt, image=input_image_2, mask_image=input_mask, control_image=read_control, strength=second_controlnet_strength, negative_prompt=DEFAULT_NEGATIVE, 
+                #     guidance_scale=9, num_inference_steps=30, generator=generator, height=np.shape(input_image)[0], width=np.shape(input_image)[1], \
+                #     controlnet_conditioning_scale=second_controlnet_conditioning_scale
+                # ).images[0]
 
-                generate_image.save('debug_result_1.jpg')
+                # generate_image.save('debug_result_1.jpg')
 
                 if self.crop_template:
                     origin_image    = np.array(copy.deepcopy(template_image))

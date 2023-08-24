@@ -231,7 +231,7 @@ def launch_pipeline_paiya(uuid,
 
     # paiya debug
     if 1:
-        gen_portrait_inpaint = GenPortraitInpaint(crop_template=True, short_side_resize=512)
+        gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
         cache_model_dir = '/mnt/zhoulou.wzh/AIGC/model_data/'
         
         # input_roop_image_list = ['pai_ya_tmp/yangmi1.jpeg', 'pai_ya_tmp/yangmi2.jpeg']
