@@ -1,5 +1,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import enum
+import logging
 import os
 import shutil
 import time
@@ -9,15 +10,21 @@ import cv2
 import gradio as gr
 import numpy as np
 import torch
-import logging
 from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
-from facechain.inference_inpaint import GenPortraitInpaint 
+from facechain.inference_inpaint import GenPortraitInpaint
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.train_text_to_image_paiya import prepare_dataset_paiya
-from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt
+from facechain.constants import (
+    neg_prompt,
+    pos_prompt_with_cloth,
+    pos_prompt_with_style,
+    styles,
+    cloth_prompt,
+)
 from modelscope.utils.logger import get_logger
+
 logger = get_logger()
 logger.setLevel(logging.ERROR)
 
@@ -125,7 +132,8 @@ def launch_pipeline(uuid,
                     user_models,
                     num_images=1,
                     style_model=None,
-                    multiplier_style=0.25
+                    multiplier_style=0.25,
+                    use_paiya=True
                     ):
     base_model = 'ly261666/cv_portrait_model'
     before_queue_size = inference_threadpool._work_queue.qsize()
@@ -156,26 +164,22 @@ def launch_pipeline(uuid,
 
     output_model_name = 'personalizaition_lora'
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
-
     lora_model_path = f'/tmp/{uuid}/{output_model_name}'
+    num_images = min(6, num_images)
     
     # paiya debug, use paiya face lora to replace original inference
-    # if 1:
-    #     instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
-    #     lora_model_path =  os.path.join(instance_data_dir, 'personalizaition_lora.safetensors')
-    #     print(instance_data_dir)
+    if use_paiya:
+        instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
+        lora_model_path =  os.path.join(instance_data_dir, 'personalizaition_lora.safetensors')
+        if not os.path.exists(lora_model_path):
+            raise gr.Error('不存在EnableInpaint=True训练出来的任务模型, 请关闭EnableInpaint')
 
     gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
-                               use_face_swap, use_post_process,
-                               use_stylization)
+                            use_face_swap, use_post_process,
+                            use_stylization)
 
-
-    num_images = min(6, num_images)
-    # future = inference_threadpool.submit(gen_portrait, instance_data_dir,
-    #                                         num_images, base_model, lora_model_path, 'film/film', 'v2.0')
-    print('debug : ', instance_data_dir)
     future = inference_threadpool.submit(gen_portrait, instance_data_dir,
-                                            num_images, base_model, lora_model_path, 'realistic/', 'v2.0')
+                                         num_images, base_model, lora_model_path, 'realistic/', 'v2.0', use_paiya)
 
     while not future.done():
         is_processing = future.running()
@@ -200,18 +204,15 @@ def launch_pipeline(uuid,
     else:
         yield ["生成失败，请重试(Generating failed, please retry)！", outputs_RGB]
 
-
-def launch_pipeline_paiya(uuid, 
-        selected_template_images, 
-        append_pos_prompt,
-        select_face_num = 1,
-        # selected_roop_images,
-        first_control_weight=0.5, 
-        second_control_weight=0.1,
-        final_fusion_ratio=0.5, 
-        use_fusion_before=True, 
-        use_fusion_after=True
-    ):
+def launch_pipeline_paiya(uuid,
+                          selected_template_images,
+                          append_pos_prompt,
+                          select_face_num=1,
+                          first_control_weight=0.5,
+                          second_control_weight=0.1,
+                          final_fusion_ratio=0.5,
+                          use_fusion_before=True,
+                          use_fusion_after=True):
     before_queue_size = inference_threadpool._work_queue.qsize()
     before_done_count = inference_done_count
 
@@ -222,29 +223,23 @@ def launch_pipeline_paiya(uuid,
             uuid = 'qw'
 
     base_model = 'ly261666/cv_portrait_model'
-    base_model_path = os.path.join('/mnt/workspace/.cache/modelscope/', base_model, 'realistic')
-    # base_model_path = "/mnt/workspace/.cache/modelscope/chillout"
 
     instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
-    lora_model_path =  os.path.join(instance_data_dir, 'personalizaition_lora.safetensors')
-    input_prompt = f"zhoumo_face, zhoumo," + append_pos_prompt +','
+    lora_model_path = os.path.join(instance_data_dir, 'personalizaition_lora.safetensors')
+    input_prompt = f"zhoumo_face, zhoumo," + append_pos_prompt + ','
     face_id_image = os.path.join(instance_data_dir, 'face_id.jpg')
     selected_roop_images = [os.path.join(instance_data_dir, f'best_roop_image_{idx}.jpg') for idx in range(select_face_num)]
 
-    # paiya debug
-    if 1:
-        gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
-        cache_model_dir = '/mnt/zhoulou.wzh/AIGC/model_data/'
-        
-        # input_roop_image_list = ['pai_ya_tmp/yangmi1.jpeg', 'pai_ya_tmp/yangmi2.jpeg']
-        # input_template_list = ['pai_ya_tmp/White_1.jpg','pai_ya_tmp/White_2.jpg','pai_ya_tmp/Blue_1.jpg','pai_ya_tmp/Blue_2.jpg','pai_ya_tmp/Blue_3.jpg','pai_ya_tmp/Red_1.jpg']
-        # input_template_list = ['pai_ya_tmp/White_1.jpg','pai_ya_tmp/Blue_1.jpg','pai_ya_tmp/Red_1.jpg']
-        
-        print('select_roop_images :', selected_roop_images)
-        print('selected_template_images :', selected_template_images)
 
-        future = inference_threadpool.submit(gen_portrait_inpaint, base_model_path, lora_model_path, face_id_image, selected_template_images, selected_roop_images, 
-            input_prompt, cache_model_dir, first_control_weight, second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after)
+    gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
+    # TODO this cache_model_dir & base_model_path should fix with snapshot_download
+    cache_model_dir = '/mnt/zhoulou.wzh/AIGC/model_data/'
+    base_model_path = os.path.join('/mnt/workspace/.cache/modelscope/', base_model, 'realistic')
+
+    future = inference_threadpool.submit(gen_portrait_inpaint, base_model_path, lora_model_path, face_id_image,\
+                                        selected_template_images, selected_roop_images,\
+                                        input_prompt, cache_model_dir, first_control_weight, \
+                                        second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after)
 
     while not future.done():
         is_processing = future.running()
@@ -270,7 +265,6 @@ def launch_pipeline_paiya(uuid,
         yield ["生成失败，请重试(Generating failed, please retry)！", outputs_RGB]
 
 
-
 class Trainer:
     def __init__(self):
         pass
@@ -279,52 +273,67 @@ class Trainer:
             self,
             uuid: str,
             instance_images: list,
+            use_paiya: bool = True
     ) -> str:
-
+        # 检查CUDA是否可用
         if not torch.cuda.is_available():
-            raise gr.Error('CUDA is not available.')
+            raise gr.Error('CUDA不可用。')
+
+        # 检查是否上传了图片
         if instance_images is None:
-            raise gr.Error('您需要上传训练图片(Please upload photos)！')
-        if len(instance_images) > 10:
-            raise gr.Error('您需要上传小于10张训练图片(Please upload at most 10 photos)！')
+            raise gr.Error('请上传训练图片！')
+
+        # 限制图片数量
+        if len(instance_images) > 20:
+            raise gr.Error('请最多上传20张训练图片！')
+
+        # 检查启用Inpaint所需的最小图片数量
+        if use_paiya and len(instance_images) < 4:
+            raise gr.Error('当EnableInpaint=True时，请上传至少4张训练图片！')
+
+        # 检查UUID或Studio环境
         if not uuid:
             if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-                return "请登陆后使用(Please login first)! "
+                return "请先登录！"
             else:
                 uuid = 'qw'
 
-        output_model_name = 'personalizaition_lora'
+        output_model_name = 'personalization_lora'
 
-        # mv user upload data to target dir
+        # 将用户上传的数据移动到目标目录
         instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
-        print("--------uuid: ", uuid)
+        print("UUID:", uuid)
 
         if not os.path.exists(f"/tmp/{uuid}"):
             os.makedirs(f"/tmp/{uuid}")
         work_dir = f"/tmp/{uuid}/{output_model_name}"
-        print("----------work_dir: ", work_dir)
+        print("工作目录:", work_dir)
         shutil.rmtree(work_dir, ignore_errors=True)
         shutil.rmtree(instance_data_dir, ignore_errors=True)
 
-        if 0:
-            prepare_dataset([img['name'] for img in instance_images], output_dataset_dir=instance_data_dir)
+        # 根据use_paiya准备数据集
+        if not use_paiya:
+            prepare_dataset([img['name'] for img in instance_images],\
+             output_dataset_dir=instance_data_dir)
             data_process_fn(instance_data_dir, True)
-        if 1:
-            prepare_dataset_paiya([img['name'] for img in instance_images], output_dataset_dir=instance_data_dir, work_dir=work_dir)
+        else:
+            prepare_dataset_paiya([img['name'] for img in instance_images], \
+            output_dataset_dir=instance_data_dir, work_dir=work_dir)
 
-        # train lora
-        if 0:
+        # 根据use_paiya训练LoRA模型
+        if not use_paiya:
             train_lora_fn(foundation_model_path='ly261666/cv_portrait_model',
                         revision='v2.0',
                         output_img_dir=instance_data_dir,
                         work_dir=work_dir)
-        if 1:
-            train_lora_fn_paiya(foundation_model_path='/mnt/workspace/.cache/modelscope/ly261666/cv_portrait_model/realistic',
-                        revision='v2.0',
-                        output_img_dir=instance_data_dir,
-                        work_dir=work_dir)
+        else:
+            train_lora_fn_paiya(foundation_model_path='/mnt/workspace/.\
+                        cache/modelscope/ly261666/cv_portrait_model/realistic',
+                                revision='v2.0',
+                                output_img_dir=instance_data_dir,
+                                work_dir=work_dir)
 
-        message = f'训练已经完成！请切换至 [形象体验] 标签体验模型效果(Training done, please switch to the inference tab to generate photos.)'
+        message = '训练完成！切换到 [形象体验] 标签体验模型效果。'
         print(message)
         return message
 
@@ -370,6 +379,7 @@ def train_input():
                     clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
 
                     upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images, queue=False)
+                    
                     gr.Markdown('''
                         - Step 1. 上传计划训练的图片，3~10张头肩照（注意：请避免图片中出现多人脸、脸部遮挡等情况，否则可能导致效果异常）
                         - Step 2. 点击 [开始训练] ，启动形象定制化训练，约需15分钟，请耐心等待～
@@ -383,7 +393,11 @@ def train_input():
 
         run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）'
                                'Start training (please wait until photo(s) fully uploaded, otherwise it may result in training failure)')
-
+        with gr.Box():
+            use_paiya = gr.Radio(
+                label="Enable Inpaint : False means only support Inference, True support Inference/Inpaint and pleas use > 5 images", type="value", choices=[True, False],
+                value=True
+            )
         with gr.Box():
             gr.Markdown('''
             请等待训练完成
@@ -406,118 +420,191 @@ def train_input():
                          inputs=[
                              uuid,
                              instance_images,
+                             use_paiya
                          ],
                          outputs=[output_message])
 
     return demo
 
 def inference_input():
+    """
+        Original FaceChain Inference, combine style lora with personalize lora  &&  
+        postprocess with face_fusion and faceid check
+    """
+
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
-        with gr.Row():
-            with gr.Column():
-                user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value",
-                                       value=HOT_MODELS[0])
-                style_model_list = []
-                for style in styles:
-                    style_model_list.append(style['name'])
-                style_model = gr.Dropdown(choices=style_model_list, value=styles[0]['name'], 
-                                          type="index", label="风格模型(Style model)")
-                
-                prompts=[]
-                for prompt in cloth_prompt:
-                    prompts.append(prompt['name'])
-                cloth_style = gr.Radio(choices=prompts, value=cloth_prompt[0]['name'],
-                                       type="index", label="服装风格(Cloth style)")
-
-                with gr.Accordion("高级选项(Expert)", open=False):
-                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
-                                        value=generate_pos_prompt(None, cloth_prompt[0]['prompt']), interactive=True)
-                    multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
-                                                 step=0.05, label='风格权重(Multiplier style)')
-                with gr.Box():
-                    num_images = gr.Number(
-                        label='生成图片数量(Number of photos)', value=6, precision=1, minimum=1, maximum=6)
-                    gr.Markdown('''
-                    注意：最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
-                        ''')
-
-        display_button = gr.Button('开始生成(Start!)')
-
-        with gr.Box():
-            infer_progress = gr.Textbox(label="生成进度(Progress)", value="当前无生成任务(No task)", interactive=False)
-        with gr.Box():
-            gr.Markdown('生成结果(Result)')
-            output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
-                                                                               object_fit="contain")
-                                                                               
-        style_model.change(update_cloth, style_model, [cloth_style, pos_prompt])
-        cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt])
-        display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style],
-                             outputs=[infer_progress, output_images])
-
-    return demo
-
-
-
-preset_template = ['resources/paiya_template/0.jpg','resources/paiya_template/1.jpg','resources/paiya_template/2.jpg','resources/paiya_template/3.jpg']
-def inference_inpaint():
-    with gr.Blocks() as demo:
-        uuid = gr.Text(label="modelscope_uuid", visible=False)
-        # print('uuid : ', uuid)
-
-        # best_input_images_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
-        # roop_images = [os.path.join(best_input_images_dir, f'best_roop_image_{idx}.jpg') for idx in range(4)]
+        # Set up the GUI for generating images
         
         with gr.Row():
             with gr.Column():
-                user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value",
-                                       value=HOT_MODELS[0])
+                user_models = gr.Radio(
+                    label="Model Selection",
+                    choices=HOT_MODELS,
+                    type="value",
+                    value=HOT_MODELS[0]
+                )
+                
+                style_model_list = [style['name'] for style in styles]
+                style_model = gr.Dropdown(
+                    choices=style_model_list,
+                    value=styles[0]['name'],
+                    type="index",
+                    label="Style Model"
+                )
+                
+                prompts = [prompt['name'] for prompt in cloth_prompt]
+                cloth_style = gr.Radio(
+                    choices=prompts,
+                    value=cloth_prompt[0]['name'],
+                    type="index",
+                    label="Clothing Style"
+                )
+                
+                with gr.Accordion("Advanced Options", open=False):
+                    pos_prompt = gr.Textbox(
+                        label="Prompt",
+                        lines=3,
+                        value=generate_pos_prompt(None, cloth_prompt[0]['prompt']),
+                        interactive=True
+                    )
+                    multiplier_style = gr.Slider(
+                        minimum=0,
+                        maximum=1,
+                        value=0.25,
+                        step=0.05,
+                        label='Style Multiplier'
+                    )
+                    
+                with gr.Box():
+                    num_images = gr.Number(
+                        label='Number of Photos',
+                        value=6,
+                        precision=1,
+                        minimum=1,
+                        maximum=6
+                    )
+                    gr.Markdown('''
+                    Note: You may generate a maximum of 6 photos at one time!
+                    ''')
+        with gr.Box():
+            use_paiya = gr.Radio(
+                label="Enable Inpaint : should Openit when train with Enable Inpaint=True", type="value", choices=[True, False],
+                value=True
+            ) 
+        display_button = gr.Button('Start Generation')
+        
+        with gr.Box():
+            infer_progress = gr.Textbox(
+                label="Generation Progress",
+                value="No task currently",
+                interactive=False
+            )
+        with gr.Box():
+            gr.Markdown('Generated Results')
+            output_images = gr.Gallery(
+                label='Output',
+                show_label=False
+            ).style(columns=3, rows=2, height=600, object_fit="contain")
+            
+        style_model.change(update_cloth, style_model, [cloth_style, pos_prompt])
+        cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt])
+        
 
-                template_gallery_list= [(i,i) for i in preset_template]
+        display_button.click(
+            fn=launch_pipeline,
+            inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style, use_paiya],
+            outputs=[infer_progress, output_images]
+        )
+        
+    return demo
+
+# Define preset template paths
+preset_template = [
+    'resources/paiya_template/0.jpg',
+    'resources/paiya_template/1.jpg',
+    'resources/paiya_template/2.jpg',
+    'resources/paiya_template/3.jpg'
+]
+
+def inference_inpaint():
+    """
+        Inpaint Tab with PAIYA-Lora + MultiControlnet, support preset_template
+        #TODO: Support user upload template && template check logits
+    """
+    with gr.Blocks() as demo:
+        uuid = gr.Text(label="modelscope_uuid", visible=False)
+        # Initialize the GUI
+        
+        with gr.Row():
+            with gr.Column():
+                user_models = gr.Radio(
+                    label="Model Selection",
+                    choices=HOT_MODELS,
+                    type="value",
+                    value=HOT_MODELS[0]
+                )
+                
+                template_gallery_list = [(i, i) for i in preset_template]
                 gr.Gallery(template_gallery_list).style(grid=4, height=300)
-                selected_template_images = gr.CheckboxGroup(choices=preset_template, label="请选择预设模板")
+                selected_template_images = gr.CheckboxGroup(choices=preset_template, label="Select Preset Templates")
                 
+                # More options can be added here, e.g., selecting roop images
                 
-                # template_roop_images= [(i,i) for i in roop_images]
-                # gr.Gallery(template_roop_images).style(grid=4, height=300)
-                # selected_roop_images = gr.CheckboxGroup(choices=roop_images, label="请选择参考图片")
+                with gr.Accordion("Advanced Options", open=False):
+                    append_pos_prompt = gr.Textbox(
+                        label="Prompt",
+                        lines=3,
+                        value='masterpiece, smile, beauty',
+                        interactive=True
+                    )
+                    first_control_weight = gr.Slider(
+                        minimum=0.35, maximum=0.6, value=0.45,
+                        step=0.02, label='Initial Control Weight'
+                    )
 
-
-                with gr.Accordion("高级选项(Expert)", open=False):
-                    append_pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
-                                        value='masterpiece, smile, beauty', interactive=True)
-                    first_control_weight = gr.Slider(minimum=0.35, maximum=0.6, value=0.45,
-                                                step=0.02, label='初次重绘权重')
-
-                    second_control_weight = gr.Slider(minimum=0.04, maximum=0.2, value=0.1,
-                                                step=0.02, label='再次重绘权重')
-                    final_fusion_ratio = gr.Slider(minimum=0.2, maximum=0.8, value=0.5,
-                                                step=0.1, label='某个神奇的混合')
-                    select_face_num = gr.Slider(minimum=1, maximum=4, value=1,
-                                                step=1, label='参考数目')
-                    use_fusion_before = gr.Radio(label="磨皮plus", type="value", choices=[True, False],
-                                       value=True)     
-                    use_fusion_after = gr.Radio(label="磨皮promax", type="value",choices=[True, False],
-                                       value=True)        
-
-
-
-        display_button = gr.Button('开始生成(Start!)')
+                    second_control_weight = gr.Slider(
+                        minimum=0.04, maximum=0.2, value=0.1,
+                        step=0.02, label='Secondary Control Weight'
+                    )
+                    final_fusion_ratio = gr.Slider(
+                        minimum=0.2, maximum=0.8, value=0.5,
+                        step=0.1, label='Final Fusion Ratio'
+                    )
+                    select_face_num = gr.Slider(
+                        minimum=1, maximum=4, value=1,
+                        step=1, label='Number of Reference Faces'
+                    )
+                    use_fusion_before = gr.Radio(
+                        label="Apply Fusion Before", type="value", choices=[True, False],
+                        value=True
+                    )
+                    use_fusion_after = gr.Radio(
+                        label="Apply Fusion After", type="value", choices=[True, False],
+                        value=True
+                    )
+                
+        display_button = gr.Button('Start Generation')
         with gr.Box():
-            infer_progress = gr.Textbox(label="生成进度(Progress)", value="当前无生成任务(No task)", interactive=False)
+            infer_progress = gr.Textbox(
+                label="Generation Progress",
+                value="No task currently",
+                interactive=False
+            )
         with gr.Box():
-            gr.Markdown('生成结果(Result)')
-            output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
-                                                                               object_fit="contain")
-                                                                               
-        display_button.click(fn=launch_pipeline_paiya,
-                             # inputs=[uuid, selected_template_images, selected_roop_images, first_control_weight, second_control_weight,
-                             inputs=[uuid, selected_template_images,append_pos_prompt, select_face_num, first_control_weight, second_control_weight,
-                                final_fusion_ratio, use_fusion_before, use_fusion_after],
-                             outputs=[infer_progress, output_images])
-
+            gr.Markdown('Generated Results')
+            output_images = gr.Gallery(
+                label='Output',
+                show_label=False
+            ).style(columns=3, rows=2, height=600, object_fit="contain")
+            
+        display_button.click(
+            fn=launch_pipeline_paiya,
+            inputs=[uuid, selected_template_images, append_pos_prompt, select_face_num, first_control_weight, second_control_weight,
+                    final_fusion_ratio, use_fusion_before, use_fusion_after],
+            outputs=[infer_progress, output_images]
+        )
+        
     return demo
 
 with gr.Blocks(css='style.css') as demo:

@@ -37,7 +37,7 @@ def txt2img(pipe, pos_prompt, neg_prompt, num_images=10):
 
 
 def main_diffusion_inference(pos_prompt, neg_prompt,
-                             input_img_dir, base_model_path, style_model_path, lora_model_path,
+                             input_img_dir, base_model_path, style_model_path, lora_model_path, use_paiya,
                              multiplier_style=0.25,
                              multiplier_human=1.0):
     if style_model_path is None:
@@ -50,7 +50,7 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
     pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
     pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=lora_human_path.endswith('safetensors'))
     
-    if 0:
+    if not use_paiya:
         train_dir = str(input_img_dir) + '_labeled'
         add_prompt_style = []
         f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')
@@ -93,7 +93,7 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
                         add_prompt_style.append(tag)
     
     # paiya debug to replace trigger keyword
-    if 1:
+    else:
         add_prompt_style = ''
         trigger_style = 'zhoumo, zhoumo_face, 1girl' 
     
@@ -101,6 +101,7 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
         add_prompt_style = ", ".join(add_prompt_style) + ', '
     else:
         add_prompt_style = ''
+
     # trigger_style = trigger_style + 'with <input_id> face, '
     # pos_prompt = 'Generate a standard ID photo of a chinese {}, solo, wearing high-class business/working suit, beautiful smooth face, with high-class/simple pure color background, looking straight into the camera with shoulders parallel to the frame, smile, high detail face, best quality, photorealistic'.format(gender)
     pipe = pipe.to("cuda")
@@ -118,17 +119,18 @@ def stylization_fn(use_stylization, rank_results):
 
 
 def main_model_inference(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
-                         input_img_dir=None, base_model_path=None, lora_model_path=None):
+                         input_img_dir=None, base_model_path=None, lora_model_path=None, use_paiya=True):
     if use_main_model:
         multiplier_style_kwargs = {'multiplier_style': multiplier_style} if multiplier_style is not None else {}
-        return main_diffusion_inference(pos_prompt, neg_prompt, input_img_dir, base_model_path, style_model_path, lora_model_path,
+        return main_diffusion_inference(pos_prompt, neg_prompt, input_img_dir, base_model_path, style_model_path, lora_model_path, use_paiya
                                         **multiplier_style_kwargs)
 
 
-def select_high_quality_face(input_img_dir):
-    #PAIYA debug
-    if 0:
+def select_high_quality_face(input_img_dir, use_paiya):
+    #PAIYA debug=1, this set to 0
+    if not use_paiya:
         input_img_dir = str(input_img_dir) + '_labeled'
+
     quality_score_list = []
     abs_img_path_list = []
     ## TODO
@@ -218,7 +220,7 @@ class GenPortrait:
         self.neg_prompt = neg_prompt
 
     def __call__(self, input_img_dir, num_gen_images=6, base_model_path=None,
-                 lora_model_path=None, sub_path=None, revision=None):
+                 lora_model_path=None, sub_path=None, revision=None, use_paiya=True):
         base_model_path = snapshot_download(base_model_path, revision=revision)
         if sub_path is not None and len(sub_path) > 0:
             base_model_path = os.path.join(base_model_path, sub_path)
@@ -227,12 +229,12 @@ class GenPortrait:
         gen_results = main_model_inference(self.pos_prompt, self.neg_prompt,
                                            self.style_model_path, self.multiplier_style,
                                            self.use_main_model, input_img_dir=input_img_dir,
-                                           lora_model_path=lora_model_path, base_model_path=base_model_path)
+                                           lora_model_path=lora_model_path, base_model_path=base_model_path, use_paiya=use_paiya)
 
 
 
         # select_high_quality_face PIL
-        selected_face = select_high_quality_face(input_img_dir)
+        selected_face = select_high_quality_face(input_img_dir, use_paiya=use_paiya)
         # face_swap cv2
         swap_results = face_swap_fn(self.use_face_swap, gen_results, selected_face)
         # pose_process
