@@ -17,9 +17,10 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+- Add awesome prompts! Refer to: [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)   (August 18th, 2023 UTC)
 - Support a series of new style models in a plug-and-play fashion. Refer to: [Features](#Features)   (August 16th, 2023 UTC)
 - Support customizable prompts. Refer to: [Features](#Features)    (August 16th, 2023 UTC)
-- Colab notebook is available now! You can experience FaceChain directly with our [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).   (August 15th, 2023 UTC)
+- Colab notebook is available now! You can experience FaceChain directly with  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).   (August 15th, 2023 UTC)
 
 
 # To-Do List
@@ -38,35 +39,29 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
     - Allow users to select different style models for training distinct types of Digital-Twins.
   - Installation
     - Refer to [Installation Guide](#installation-guide)
-  - Execution
-  ```shell
-    cd facechain/advanced-style
-    python3 app.py
-  ```
+  - Usage
+    - Select  "凤冠霞帔(Chinese traditional gorgeous suit)" on the `inference` tab and change the prompt as you want.
   - Exampled outcomes
   ![image](resources/style_lora_xiapei.jpg)
   - Reference
     - [xiapei lora model](https://www.liblibai.com/modelinfo/f746450340a3a932c99be55c1a82d20c)
     - For more LoRA styles, refer to [Civitai](https://civitai.com/)
-
 - Support customizable prompts
   - Description
     - Allow users to achieve various portrait styles with customized prompts.
   - Installation
     - Refer to [Installation Guide](#installation-guide)
-  - Execution
-  ```shell
-    cd facechain/advanced-prompt
-    python3 app.py
-  ```
-  - Exampled outcomes (prompt: wearing an elegant evening gown)
-    ![image](resources/prompt_evening_gown.jpg)
+  - Usage
+    - Edit the prompt on the `inference` tab as you want.
+  - Exampled outcomes
+    - (prompt: The lord of the rings, ELF, Arwen Undomiel, beautiful, upper_body, best quality, Professional)
+      ![image](resources/prompt_elf_lord_of_rings.jpg)
 
 
 # Installation
 
 ## Compatibility Verification
-The following are the environment dependencies that have been verified:
+We have verified e2e execution on the following environment:
 - python: py3.8, py3.10
 - pytorch: torch2.0.0, torch2.0.1
 - tensorflow: 2.8.0, tensorflow-cpu
@@ -75,7 +70,7 @@ The following are the environment dependencies that have been verified:
 - OS: Ubuntu 20.04, CentOS 7.9
 - GPU: Nvidia-A10 24G
 
-## Resource Usage
+## Resource Requirement
 - GPU: About 19G
 - Disk: About 50GB
 
@@ -85,19 +80,17 @@ The following installation methods are supported:
 
 ### 1. ModelScope notebook【recommended】
 
-   The ModelScope notebook has a free tier that allows you to run the FaceChain application, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
-   
-    In addition to ModelScope notebook and ECS, I would suggest that we add that user may also start DSW instance with the option of ModelScope (GPU) image, to create a ready-to-use environment.
+   The ModelScope Notebook offers a free-tier that allows ModelScope user to run the FaceChain application with minimum setup, refer to [ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
 
 ```shell
 # Step1: 我的notebook -> PAI-DSW -> GPU环境
 
-# Step2: Open the Terminal，clone FaceChain from github:
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+# Step2: Entry the Notebook cell，clone FaceChain from github:
+!GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 
-# Step3: Entry the Notebook cell:
+# Step3: Change the working directory to facechain:
 import os
-os.chdir('/mnt/workspace/facechain')
+os.chdir('/mnt/workspace/facechain')    # You may change to your own path
 print(os.getcwd())
 
 !pip3 install gradio
@@ -107,6 +100,7 @@ print(os.getcwd())
 # Step4: click "public URL" or "local URL", upload your images to 
 # train your own model and then generate your digital twin.
 ```
+   Alternatively, you may also purchase a [PAI-DSW](https://www.aliyun.com/activity/bigdata/pai/dsw) instance (using A10 resource), with the option of ModelScope image to run FaceChain following similar steps.
 
 
 ### 2. Docker
@@ -130,12 +124,14 @@ pip3 install gradio
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 cd facechain
 python3 app.py
+# Note: FaceChain currently assume single-GPU, if your environment has multiple GPU, please use the following instead:
+# CUDA_VISIBLE_DEVICES=0 python3 app.py
 
 # Step6
 Run the app server: click "public URL" --> in the form of: https://xxx.gradio.live
 ```
 
-### 3. conda Virtual Environment
+### 3. Conda Virtual Environment
 
 Use the conda virtual environment, and refer to [Anaconda](https://docs.anaconda.com/anaconda/install/) to manage your dependencies. After installation, execute the following commands:
 (Note: mmcv has strict environment requirements and might not be compatible in some cases. It's recommended to use Docker.)
@@ -153,6 +149,8 @@ mim install mmcv-full==1.7.0
 
 # Navigate to the facechain directory and run:
 python3 app.py
+# Note: FaceChain currently assume single-GPU, if your environment has multiple GPU, please use the following instead:
+# CUDA_VISIBLE_DEVICES=0 python3 app.py
 
 # Finally, click on the URL generated in the log to access the web page.
 ```
@@ -160,8 +158,12 @@ python3 app.py
 **Note**: After the app service is successfully launched, go to the URL in the log, enter the "Image Customization" tab, click "Select Image to Upload", and choose at least one image with a face. Then, click "Start Training" to begin model training. After the training is completed, there will be corresponding displays in the log. Afterwards, switch to the "Image Experience" tab and click "Start Inference" to generate your own digital image.
 
 
-### 4. colab notebook
-Please refer to [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing) for details.
+### 4. Colab notebook
+
+| Colab | Info
+| --- | --- |
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing) | FaceChain Installation on Colab
+
 
 
 # Script Execution
@@ -172,7 +174,7 @@ FaceChain supports direct training and inference in the python environment. Run 
 PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./output"
 ```
 
-Parameter meaning:
+Parameters description:
 
 ```text
 ly261666/cv_portrait_model: The stable diffusion base model of the ModelScope model hub, which will be used for training, no need to be changed.
@@ -202,6 +204,8 @@ base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 # Specify a folder to save the generated images, this parameter can be modified as needed
 output_dir = './generated'
+# Use Chinese style model, default False
+use_style = False
 ```
 
 Then execute:
@@ -214,9 +218,9 @@ You can find the generated personal digital image photos in the `output_dir`.
 
 # Algorithm Introduction
 
-## Principle
+## Architectural Overview
 
-The ability of the personal portrait model comes from the text generation image function of the Stable Diffusion model. It inputs a piece of text or a series of prompt words and outputs corresponding images. We consider the main factors that affect the generation effect of personal portraits: portrait style information and user character information. For this, we use the style LoRA model trained offline and the face LoRA model trained online to learn the above information. LoRA is a fine-tuning model with fewer trainable parameters. In Stable Diffusion, the information of the input image can be injected into the LoRA model by the way of text generation image training with a small amount of input image. Therefore, the ability of the personal portrait model is divided into training and inference stages. The training stage generates image and text label data for fine-tuning the Stable Diffusion model, and obtains the face LoRA model. The inference stage generates personal portrait images based on the face LoRA model and style LoRA model.
+The ability of the personal portrait generation evolves around the text-to-image capability of Stable Diffusion model. We consider the main factors that affect the generation effect of personal portraits: portrait style information and user character information. For this, we use the style LoRA model trained offline and the face LoRA model trained online to learn the above information. LoRA is a fine-tuning model with fewer trainable parameters. In Stable Diffusion, the information of the input image can be injected into the LoRA model by the way of text generation image training with a small amount of input image. Therefore, the ability of the personal portrait model is divided into training and inference stages. The training stage generates image and text label data for fine-tuning the Stable Diffusion model, and obtains the face LoRA model. The inference stage generates personal portrait images based on the face LoRA model and style LoRA model.
 
 ![image](resources/framework_eng.jpg)
 

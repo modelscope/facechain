@@ -19,9 +19,10 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # News
+- 新增高质量提示词模板，欢迎大家一起贡献！ 参考 [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)    (2023-08-18)
 - 支持即插即用的风格LoRA模型！ 参考 [功能特性](#功能特性)    (2023-08-16)
 - 新增个性化prompt模块！    参考 [功能特性](#功能特性)    (2023-08-16)
-- Colab notebook安装已支持，您可以直接打开链接体验FaceChain: [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)   (2023-08-15)
+- Colab notebook安装已支持，您可以直接打开链接体验FaceChain： [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)   (2023-08-15)
 
 
 # 待办事项
@@ -38,27 +39,20 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 - 现成风格模型即插即用
   - 描述：支持用户在训练时选择不同的风格模型，以生成不同风格的个人数字形象
   - 安装：参考 [安装指南](#安装指南)
-  - 运行：参考以下代码
-  ```shell
-    cd facechain/advanced-style
-    python3 app.py
-  ```
+  - 用法：在“形象体验”页面选择“凤冠霞帔”风格
   - 效果
   ![image](resources/style_lora_xiapei.jpg)
   - 相关资源
     - 凤冠霞帔： [xiapei lora model](https://www.liblibai.com/modelinfo/f746450340a3a932c99be55c1a82d20c)
     - 更多优质风格lora模型，可以参考 [Civitai](https://civitai.com/)
-
+  
 - 增加个性化prompt模块
   - 描述：支持用户增加个性化的prompt，实现变装等效果
   - 安装：参考 [安装指南](#安装指南)
-  - 运行：参考以下代码
-  ```shell
-    cd facechain/advanced-prompt
-    python3 app.py
-  ```
-  - 效果（提示词：wearing an elegant evening gown）
-    ![image](resources/prompt_evening_gown.jpg)
+  - 用法：在“形象体验”页面直接修改prompt
+  - 效果
+    - （服饰选择提示词：The lord of the rings, ELF, Arwen Undomiel, beautiful, upper_body, best quality, Professional）
+      ![image](resources/prompt_elf_lord_of_rings.jpg)
 
 
 # 环境准备
@@ -74,7 +68,7 @@ FaceChain是一个组合模型，使用了包括PyTorch和TensorFlow在内的机
 - GPU型号: Nvidia-A10 24G
 
 
-## 资源占用
+## 资源要求
 - GPU: 显存占用约19G
 - 磁盘: 推荐预留50GB以上的存储空间
 
@@ -83,20 +77,20 @@ FaceChain是一个组合模型，使用了包括PyTorch和TensorFlow在内的机
 支持以下几种安装方式，任选其一：
 
 ### 1. 使用ModelScope提供的notebook环境【推荐】
+ModelScope(魔搭社区)提供给新用户初始的免费计算资源，参考[ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
+    
+如果初始免费计算资源无法满足要求，您还可以从上述页面开通付费流程，以便创建一个准备就绪的ModelScope(GPU) DSW镜像实例。
+    
+Notebook环境使用简单，您只需要按以下步骤操作（注意：目前暂不提供永久存储，实例重启后数据会丢失）：
 
-    ModelScope(魔搭社区)提供给新用户初始的免费计算资源，参考[ModelScope Notebook](https://modelscope.cn/my/mynotebook/preset)
-
-    如果初始免费计算资源无法满足要求，您还可以从上述页面开通付费流程，以便创建一个准备就绪的ModelScope(GPU) DSW镜像实例。
-
-    Notebook环境使用简单，您只需要按以下步骤操作（注意：目前暂不提供永久存储，实例重启后数据会丢失）：
 
 ```shell
 # Step1: 我的notebook -> PAI-DSW -> GPU环境
 
-# Step2: 打开Terminal，将github代码clone到本地
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+# Step2: 进入Notebook cell，执行下述命令从github clone代码：
+!GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 
-# Step3: 进入Notebook cell，执行：
+# Step3: 切换当前工作路径
 import os
 os.chdir('/mnt/workspace/facechain')    # 注意替换成上述clone后的代码文件夹主路径
 print(os.getcwd())
@@ -106,6 +100,9 @@ print(os.getcwd())
 
 # Step4: 点击生成的URL即可访问web页面，上传照片开始训练和预测
 ```
+
+除了ModelScope入口以外，您也可以前往[PAI-DSW](https://www.aliyun.com/activity/bigdata/pai/dsw) 直接购买带有ModelScope镜像的计算实例（推荐使用A10资源），这样同样可以使用如上的最简步骤运行起来。
+
 
 
 ### 2. docker镜像
@@ -130,6 +127,8 @@ pip3 install gradio
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 cd facechain
 python3 app.py
+# Note: FaceChain目前支持单卡GPU，如果您的环境有多卡，请使用如下命令
+# CUDA_VISIBLE_DEVICES=0 python3 app.py
 
 # Step6: 点击 "public URL", 形式为 https://xxx.gradio.live
 ```
@@ -153,16 +152,21 @@ mim install mmcv-full==1.7.0
 
 # 进入facechain文件夹，执行：
 python3 app.py
+# Note: FaceChain目前支持单卡GPU，如果您的环境有多卡，请使用如下命令
+# CUDA_VISIBLE_DEVICES=0 python3 app.py
 
 # 最后点击log中生成的URL即可访问页面。
 ```
 
 ### 4. colab运行
-支持colab notebook安装，参考： [Colab Notebook](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)
+
+| Colab | Info
+| --- | --- |
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing) | FaceChain Installation on Colab
 
 
 
-备注：app服务成功启动后，在log中访问页面URL，进入”形象定制“tab页，点击“选择图片上传”，并最少选1张包含人脸的图片；点击“开始训练”即可训练模型。训练完成后日志中会有对应展示，之后切换到“形象体验”标签页点击“开始推理”即可生成属于自己的数字形象。
+备注：app服务成功启动后，在log中访问页面URL，进入”形象定制“tab页，点击“选择图片上传”，并最少选1张包含人脸的图片；点击“开始训练”即可训练模型。训练完成后日志中会有对应展示，之后切换到“形象体验”标签页点击“开始生成”即可生成属于自己的数字形象。
 
 # 脚本运行
 
@@ -202,6 +206,8 @@ base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 # 指定一个保存生成的图片的文件夹，本参数可以根据需要修改
 output_dir = './generated'
+# 使用凤冠霞帔风格模型，默认False
+use_style = False
 ```
 
 之后执行：
