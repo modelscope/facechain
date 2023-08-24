@@ -13,7 +13,7 @@ from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
-from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt
+from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt, pose_models, pose_examples
 
 training_threadpool = ThreadPoolExecutor(max_workers=1)
 inference_threadpool = ThreadPoolExecutor(max_workers=5)
@@ -72,7 +72,7 @@ def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None
         f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
         f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
         f'--learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
-        f'--lora_r=32 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32')
+        f'--lora_r=4')
 
 
 def generate_pos_prompt(style_model, prompt_cloth):
@@ -92,7 +92,9 @@ def launch_pipeline(uuid,
                     user_models,
                     num_images=1,
                     style_model=None,
-                    multiplier_style=0.25
+                    multiplier_style=0.25,
+                    pose_model=None,
+                    pose_image=None
                     ):
     base_model = 'ly261666/cv_portrait_model'
     before_queue_size = inference_threadpool._work_queue.qsize()
@@ -108,6 +110,15 @@ def launch_pipeline(uuid,
         matched = matched[0]
         model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
         style_model_path = os.path.join(model_dir, matched['bin_file'])
+
+    if pose_model == None:
+        pose_model_path = None
+    else:
+        pose_model_path = pose_models[pose_model]['pth']
+    if pose_model == 1:
+        use_depth_control = True
+    else:
+        use_depth_control = False
 
     print("-------user_models: ", user_models)
     if not uuid:
@@ -126,7 +137,7 @@ def launch_pipeline(uuid,
 
     lora_model_path = f'/tmp/{uuid}/{output_model_name}'
 
-    gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
+    gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                                use_face_swap, use_post_process,
                                use_stylization)
 
@@ -308,12 +319,21 @@ def inference_input():
                     prompts.append(prompt['name'])
                 cloth_style = gr.Radio(choices=prompts, value=cloth_prompt[0]['name'],
                                        type="index", label="服装风格(Cloth style)")
+                pmodels = []
+                for md in pose_models:
+                    pmodels.append(md['name'])
+                pose_model = gr.Radio(choices=pmodels, value=pose_models[0]['name'],
+                                      type="index", label="姿态控制模型(Pose control model)")
 
                 with gr.Accordion("高级选项(Expert)", open=False):
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
                                         value=generate_pos_prompt(None, cloth_prompt[0]['prompt']), interactive=True)
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')
+                with gr.Box():
+                    pose_image = gr.Image(source='upload', type='filepath', label='姿态图片(Pose image)')
+                    # gr.Examples(pose_examples['man'], inputs=[pose_image], label='男性姿态示例')
+                    # gr.Examples(pose_examples['woman'], inputs=[pose_image], label='女性姿态示例')
                 with gr.Box():
                     num_images = gr.Number(
                         label='生成图片数量(Number of photos)', value=6, precision=1, minimum=1, maximum=6)
@@ -333,7 +353,7 @@ def inference_input():
         style_model.change(update_cloth, style_model, [cloth_style, pos_prompt])
         cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt])
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style],
+                             inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style, pose_model, pose_image],
                              outputs=[infer_progress, output_images])
 
     return demo

@@ -23,4 +23,24 @@ styles = [
      'add_prompt_style': 'red, hanfu, tiara, crown, '},
 ]
 
+pose_models = [
+    {'name': 'pose-v1.1', 'pth': 'lllyasviel/control_v11p_sd15_openpose'},
+    {'name': 'pose-v1.1-with-depth', 'pth': 'lllyasviel/control_v11p_sd15_openpose'}
+]
+
+pose_examples = {
+    'man': [
+        ['./poses/man/pose1.png'],
+        ['./poses/man/pose2.png'],
+        ['./poses/man/pose3.png'],
+        ['./poses/man/pose4.png']
+    ],
+    'woman': [
+        ['./poses/woman/pose1.png'],
+        ['./poses/woman/pose2.png'],
+        ['./poses/woman/pose3.png'],
+        ['./poses/woman/pose4.png'],
+    ]
+}
+
 
