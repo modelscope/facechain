@@ -1,23 +1,25 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
-import os
-import shutil
-
-import numpy as np
 import json
 import math
-
-from .deepbooru import DeepDanbooru
+import os
+import shutil
+import cv2
+import numpy as np
+from PIL import Image
 from tqdm import tqdm
 
-import cv2
-from PIL import Image
-from modelscope.pipelines import pipeline
 from modelscope.outputs import OutputKeys
+from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
 from facechain.utils.face_process_utils import call_face_crop
 
+from .deepbooru import DeepDanbooru
+
+
 def get_popular_prompts(train_img_dir):
+    """ check original Training datasets to calculate popular prompts
+    """
     train_dir = str(output_img_dir) + '_labeled'
     neg_prompt = ''
     add_prompt_style = []
@@ -249,11 +251,10 @@ def get_mask_head(result):
 
 def compare_jpg_with_face_id(embedding_list):
     embedding_array = np.vstack(embedding_list)
-    # 然后对真人图片取mean，获取真人图片的平均特征
+    # average embedding 
     pivot_feature   = np.mean(embedding_array, axis=0)
     pivot_feature   = np.reshape(pivot_feature, [512, 1])
-
-    # 计算一个文件夹中，和中位值最接近的图片排序
+    # get scores
     scores = [np.dot(emb, pivot_feature)[0][0] for emb in embedding_list]
     return scores
 
@@ -287,7 +288,7 @@ class Blipv2():
         result_list = []
         imgs_list = []
         
-        # ---------------------------人脸得分计算-------------------------- #
+        # ---------------------------calculate faceid best jpgs -------------------------- #
         face_id_scores  = []
         quality_scores  = []
         face_angles     = []
@@ -301,13 +302,13 @@ class Blipv2():
 
             retinaface_box, retinaface_keypoint, _ = call_face_crop(self.face_detection, image, 3, prefix="tmp")
             retinaface_keypoint = np.reshape(retinaface_keypoint, [5, 2])
-            # 计算人脸偏移角度
+            # caclculate angle
             x = retinaface_keypoint[0,0] - retinaface_keypoint[1,0]
             y = retinaface_keypoint[0,1] - retinaface_keypoint[1,1]
             angle = 0 if x==0 else abs(math.atan(y/x)*180/math.pi)
             angle = (90 - angle)/ 90 
 
-            # 人脸宽度判断
+            # face width
             face_width  = (retinaface_box[2] - retinaface_box[0]) / (3 - 1)
             face_height = (retinaface_box[3] - retinaface_box[1]) / (3 - 1)
             if face_width / w < 1/8 or face_height / h < 1/8:
@@ -325,7 +326,7 @@ class Blipv2():
 
             selected_paths.append(jpg)
 
-        # 根据得分进行参考人脸的筛选，考虑质量分，相似分与角度分
+        # sort all scores with muliply
         face_id_scores      = compare_jpg_with_face_id(face_id_scores)
         ref_total_scores    = np.array(face_id_scores) * np.array(quality_scores) * np.array(face_angles)
         ref_indexes         = np.argsort(ref_total_scores)[::-1]
@@ -335,7 +336,7 @@ class Blipv2():
             save_path = os.path.join(ensembledir, f"best_roop_image_{str(i)}.jpg")
             os.system(f"cp -rf {os.path.join(imdir, selected_paths[index])} {save_path}")
 
-        # 根据得分进行训练人脸的筛选，考虑相似分
+       
         total_scores    = np.array(face_id_scores)
         indexes         = np.argsort(total_scores)[::-1][:15]
 
