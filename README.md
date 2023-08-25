@@ -148,6 +148,21 @@ mim install mmcv-full==1.7.0
 # Navigate to the facechain directory and run:
 python3 app.py
 
+#### if you run on windows, there are four 4 more steps：1.reinstall pytorch GPU version; 2.reinstall numpy for tensorflow；3.install mmcv-full by pip；4.modify app.py for Windows。
+1. The default version of torch in requirements.txt is for CPU, if you want to use CUDA, you must install correct version. For more info, please refer pytorch online.
+pip3 uninstall torch
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+2. The wrong version numpy will report  "UserWarning: Failed to initialize NumPy:". Uninstall numpy，then install it by tensorflow, it will install the right version automaticlly.
+pip uninstall numpy
+pip install tensorflow
+3.Do not install mmcv-full by mim, but by pip.
+mim uninstall mmcv-full
+pip install mmcv-full
+4.You need to modify "train_lora_fn" in app.py.  There is PR on the way.
+
+If you want to share with others，you can add (server_name, server_port) in the last line of app.py
+demo.queue(status_update_rate=1).launch(server_name="0.0.0.0",server_port=7870,share=True)
+
 # Finally, click on the URL generated in the log to access the web page.
 ```
 
