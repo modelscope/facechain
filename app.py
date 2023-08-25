@@ -29,7 +29,7 @@ HOT_MODELS = [
 
 is_spaces = True if "SPACE_ID" in os.environ else False
 if is_spaces:
-    is_shared_ui = True if "modelscope/facechain" in os.environ['SPACE_ID'] else False
+    is_shared_ui = True if "modelscope/FaceChain" in os.environ['SPACE_ID'] else False
 else:
     is_shared_ui = False
 is_gpu_associated = torch.cuda.is_available()
