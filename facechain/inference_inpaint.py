@@ -361,8 +361,9 @@ if __name__=="__main__":
     input_template = sys.argv[1]
     input_roop_image = sys.argv[2]
 
+    # all this use for DEBUG
     cache_model_dir = '/mnt/zhoulou.wzh/AIGC/model_data/'
-    lora_model_path = './pai_ya_tmp/zhoumo.safetensors'
+    lora_model_path = './debug/zhoumo.safetensors'
     input_prompt = f"zhoumo_face, zhoumo, 1girl,"
     base_model_path = '/mnt/workspace/.cache/modelscope/ly261666/cv_portrait_model/realistic'
 

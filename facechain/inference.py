@@ -22,6 +22,7 @@ def data_process_fn(input_img_dir, use_data_process):
         ## TODO
         data_process_fn = Blipv2()
         out_json_name = data_process_fn(input_img_dir)
+        # this del will reduce GPU memory, which is useful when GPU Memory is less than 20G
         del data_process_fn
         torch.cuda.empty_cache()
         return out_json_name

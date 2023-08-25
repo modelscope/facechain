@@ -135,14 +135,15 @@ def get_rot(image):
     else:
         return image
 
-# --------------------------------功能说明-------------------------------- #
-#   log_validation训练时的验证函数：
-#   当存在template_dir，结合controlnet生成证件照模板；
-#   当不存在template_dir时，根据验证提示词随机生成。
-#   图片文件保存在validation文件夹下，结果会写入tensorboard或者wandb中。
-# --------------------------------功能说明-------------------------------- #
+#-------------------------------- Function Description --------------------------------
+#log_validation: Validation function during training:
+#If template_dir exists, generate ID photo templates based on controlnet;
+#If template_dir doesn't exist, generate randomly based on validation prompts.
+#Image files are saved in the validation folder, and results are logged in TensorBoard or WandB.
+#-------------------------------- Function Description --------------------------------
+
 def log_validation(model_dir, vae, text_encoder, tokenizer, unet, args, accelerator, weight_dtype, epoch, global_step, **kwargs):
-    # 当不存在template_dir时，根据验证提示词随机生成。
+    # When template_dir doesn't exist, generate randomly based on validation prompts.
     pipeline = StableDiffusionInpaintPipeline.from_pretrained(
         model_dir,
         unet=accelerator.unwrap_model(unet).to(accelerator.device, torch.float32),
@@ -157,10 +158,10 @@ def log_validation(model_dir, vae, text_encoder, tokenizer, unet, args, accelera
     if args.seed is not None:
         generator = generator.manual_seed(args.seed)
 
-    # 开始前传预测
+    # Predictions before the start
     images = []
     if args.template_dir is not None:
-        # 遍历生成证件照
+        # Iteratively generate ID photos
         jpgs = os.listdir(args.template_dir)
         for jpg, read_jpg, shape, read_mask in zip(jpgs, kwargs['input_images'], kwargs['input_images_shape'], kwargs['input_masks']):
             if args.template_mask:
@@ -182,7 +183,7 @@ def log_validation(model_dir, vae, text_encoder, tokenizer, unet, args, accelera
             image.save(os.path.join(args.output_dir, "validation", f"global_step_{save_name}_{global_step}_0.jpg"))
 
     else:
-        # 随机生成
+        # Random Generate
         for _ in range(args.num_validation_images):
             images.append(
                 pipeline(args.validation_prompt, negative_prompt=args.neg_prompt, guidance_scale=args.guidance_scale, \
@@ -193,7 +194,7 @@ def log_validation(model_dir, vae, text_encoder, tokenizer, unet, args, accelera
                 os.makedirs(os.path.join(args.output_dir, "validation"))
             image.save(os.path.join(args.output_dir, "validation", f"global_step_{global_step}_" + str(index) + ".jpg"))
 
-    # 写入wandb或者tensorboard
+    # Wandb or tensorboard if we have
     for tracker in accelerator.trackers:
         if tracker.name == "tensorboard":
             for index, image in enumerate(images):

@@ -18,7 +18,7 @@ from .deepbooru import DeepDanbooru
 
 
 def get_popular_prompts(train_img_dir):
-    """ check original Training datasets to calculate popular prompts
+    """ check original Training datasets to calculate popular prompts.
     """
     train_dir = str(train_img_dir) + '_labeled'
     neg_prompt = ''
@@ -322,7 +322,7 @@ class Blipv2():
                                                         'damo/cv_manual_facial-landmark-confidence_flcm')
         # embedding
         self.face_recognition = pipeline(Tasks.face_recognition, model='damo/cv_ir101_facerecognition_cfglint')
-        # 人脸评分
+        # face quality
         self.face_quality_func = pipeline(Tasks.face_quality_assessment, 'damo/cv_manual_face-quality-assessment_fqa')
 
     def __call__(self, imdir):

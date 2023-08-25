@@ -41,43 +41,46 @@ def post_face_get_emb(img_path, faceid_post_url='http://0.0.0.0:8005/test'):
 
 def eval_jpg_with_faceidremote(pivot_dir, test_img_dir, top_merge=10, faceid_post_url='http://0.0.0.0:8005/test'):
     """
-        pivot_dir       参考的真人图片，指向一个文件夹；
-        test_img_dir    指向训练生成的validation图像，图像名称满足xxxx_{step}_{indx}.jpg
-        top_merge       选择top_merge个权重进行merge，权重可重复使用；
-        faceid_post_url 指向post的url地址。
+        pivot_dir       Reference real human images, pointing to a directory;
+        test_img_dir    Point to the generated validation images for training, image names follow the format xxxx_{step}_{indx}.jpg
+        top_merge       Select top_merge weights for merging, weights can be reused;
+        faceid_post_url Point to the URL address for post.
 
-        函数功能：
-        faceid特征通过post获得
-        获取真人图片的平均特征，然后根据训练生成的validation图像，选择top_merge个权重进行merge。
+        Function:
+        Obtain faceid features through post
+        Get the average feature of real human images, then based on the generated validation images, select top_merge weights for merging.
     """
-    # 获取真人图像的列表
+    # Get the list of real human images
+
     face_image_list = glob(os.path.join(pivot_dir, '*.jpg')) + glob(os.path.join(pivot_dir, '*.JPG')) + \
                       glob(os.path.join(pivot_dir, '*.png')) + glob(os.path.join(pivot_dir, '*.PNG'))
     embedding_list = []
 
-    # 获取每张真人图像的embedding后进行堆叠
+    # vstack all embedding
     for img in face_image_list:
         try :
             embedding_list.append(post_face_get_emb(img, faceid_post_url=faceid_post_url))
         except:
             pass
     embedding_array = np.vstack(embedding_list)
-    # 然后对真人图片取mean，获取真人图片的平均特征
+    
+    # mean get pivot of ID
     pivot_feature   = np.mean(embedding_array, axis=0)
     pivot_feature   = np.reshape(pivot_feature, [512, 1])
 
-    # 计算一个文件夹中，和中位值最接近的图片排序
+    # sort by cosine distance
     embedding_list  = [[np.dot(emb,pivot_feature)[0][0], emb] for emb in embedding_list]
     embedding_list  = sorted(embedding_list, key = lambda a : -a[0])
     
-    # 取出embedding
+    
     top10_embedding         = [emb[1] for emb in embedding_list]
     top10_embedding_array   = np.vstack(top10_embedding)
+    
     # [512, n]
     top10_embedding_array   = np.swapaxes(top10_embedding_array, 0, 1)
     print('pivot features : ', top10_embedding_array.shape)
 
-    # 遍历训练生成的validation图像，并且计算得分，并排序
+    # traverse through the generated validation images for training, calculate scores, and sort them
     result_list = []
     if not test_img_dir.endswith('.jpg'):
         img_list = glob(os.path.join(test_img_dir, '*.jpg'))
@@ -89,66 +92,66 @@ def eval_jpg_with_faceidremote(pivot_dir, test_img_dir, top_merge=10, faceid_pos
                 result_list = sorted(result_list, key = lambda a : -a[0])
             except:
                 pass
-    # 最相似的几张图片
+  
     t_result_list = [i[1] for i in result_list][:top_merge]
-    # i[1].split('_')[-2]代表的是第n步
     tlist   = [i[1].split('_')[-2] for i in result_list][:top_merge]
-    # i[0]代表的是第n步的得分
     scores  = [i[0] for i in result_list][:top_merge]
     return t_result_list, tlist, scores
 
 def eval_jpg_with_faceid(pivot_dir, test_img_dir, top_merge=10):
     """
-        pivot_dir       参考的真人图片，指向一个文件夹；
-        test_img_dir    指向训练生成的validation图像，图像名称满足xxxx_{step}_{indx}.jpg
-        top_merge       选择top_merge个权重进行merge，权重可重复使用；
+        pivot_dir       Reference real human images, pointing to a directory;
+        test_img_dir    Point to the generated validation images for training, image names follow the format xxxx_{step}_{indx}.jpg
+        top_merge       Select top_merge weights for merging, weights can be reused;
 
-        函数功能：
-        faceid特征通过本地获得
-        获取真人图片的平均特征，然后根据训练生成的validation图像，选择top_merge个权重进行merge。
+        Function:
+        Obtain faceid features locally
+        Get the average feature of real human images, then based on the generated validation images, select top_merge weights for merging.
     """
-    # 创建face_recognition模型
+    # Create a face_recognition model
+
     face_recognition    = pipeline(Tasks.face_recognition, model='damo/cv_ir101_facerecognition_cfglint')
-    # 获取真人图像的列表
+    # get ID list
     face_image_list     = glob(os.path.join(pivot_dir, '*.jpg')) + glob(os.path.join(pivot_dir, '*.JPG')) + \
                           glob(os.path.join(pivot_dir, '*.png')) + glob(os.path.join(pivot_dir, '*.PNG'))
     
-    # 获取每张真人图像的embedding后进行堆叠
+    #  vstack all embedding
     embedding_list = []
     for img in face_image_list:
         embedding_list.append(face_recognition(img)[OutputKeys.IMG_EMBEDDING])
     embedding_array = np.vstack(embedding_list)
-    # 然后对真人图片取mean，获取真人图片的平均特征
+    
+    #  mean, get pivot
     pivot_feature   = np.mean(embedding_array, axis=0)
     pivot_feature   = np.reshape(pivot_feature, [512, 1])
 
-    # 计算一个文件夹中，和中位值最接近的图片排序
+    # sort with cosine distance
     embedding_list = [[np.dot(emb, pivot_feature)[0][0], emb] for emb in embedding_list]
     embedding_list = sorted(embedding_list, key = lambda a : -a[0])
     # for i in range(10):
     #     print(embedding_list[i][0], embedding_list[i][1].shape)
-    
-    # 取出embedding
+
     top10_embedding         = [emb[1] for emb in embedding_list]
     top10_embedding_array   = np.vstack(top10_embedding)
     # [512, n]
     top10_embedding_array   = np.swapaxes(top10_embedding_array, 0, 1)
 
-    # 遍历训练生成的validation图像，并且计算得分，并排序
+    # sort all validation image
     result_list = []
     if not test_img_dir.endswith('.jpg'):
         img_list = glob(os.path.join(test_img_dir, '*.jpg')) + glob(os.path.join(test_img_dir, '*.JPG')) + \
                    glob(os.path.join(test_img_dir, '*.png')) + glob(os.path.join(test_img_dir, '*.PNG'))
         for img in img_list:
             try:
-                # 生成人脸和所有真实人脸的平均得分
+                # a average above all
                 emb1 = face_recognition(img)[OutputKeys.IMG_EMBEDDING]
                 res = np.mean(np.dot(emb1, top10_embedding_array))
                 result_list.append([res, img])
                 result_list = sorted(result_list, key = lambda a : -a[0])
             except:
                 pass
-    # 最相似的几张图片
+
+    # pick most similar using faceid
     t_result_list = [i[1] for i in result_list][:top_merge]
     # i[1].split('_')[-2]代表的是第n步
     tlist   = [i[1].split('_')[-2] for i in result_list][:top_merge]
