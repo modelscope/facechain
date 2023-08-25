@@ -1219,7 +1219,7 @@ def main():
             lora_save_path = network_module.merge_from_name_and_index("pytorch_model", tlist, output_dir=args.output_dir)
             logger.info(f"Save Best Merged Loras To:{lora_save_path}.")
 
-            best_outputs_dir = args.output_dir
+            best_outputs_dir = os.path.join(args.output_dir, "ensemble")
             os.makedirs(best_outputs_dir, exist_ok=True)
             for result in t_result_list[:1]:
                 os.system(f"cp {result} {best_outputs_dir}/face_id.jpg")
