@@ -183,18 +183,8 @@ def build_pipeline_facechain(baseline_model_path, lora_model_path, cache_model_d
     return pipeline, generator
 
 
-class GenPortraitInpaint:
-    def __init__(self, 
-                 cache_model_dir=None,
-                 use_main_model=True, 
-                 crop_template=True, 
-                 short_side_resize=768):
-        self.crop_template = crop_template 
-        self.short_side_resize = short_side_resize
-
-
-    def __call__(self, base_model_path, lora_model_path, face_id_image_path,
-                 input_template_list, input_roop_image_list, input_prompt, cache_model_dir,
+    def __call__(self, base_model_path, lora_model_path, instance_data_dir,
+                 input_template_list, cache_model_dir,
                  first_controlnet_strength=0.45, second_controlnet_strength=0.1, final_fusion_ratio=0.5,
                  use_fusion_before=True, use_fusion_after=True,
                  first_controlnet_conditioning_scale=[0.5, 0.3], second_controlnet_conditioning_scale=[0.75, 0.75]):
@@ -227,8 +217,61 @@ class GenPortraitInpaint:
         print(f'use_fusion_before          :', use_fusion_before)
         print(f'use_fusion_after           :', use_fusion_after)
 
+        pos_prompt = 'Generate a standard photo of a chinese , beautiful smooth face, smile, high detail face, best quality, photorealistic' + paiya_default_positive
+        neg_prompt = paiya_default_negative
 
-        input_prompt = input_prompt + paiya_default_positive
+        # facechain original lora prompt engineering
+        add_prompt_style = ''
+        trigger_style = '<sks>'
+        if 1: 
+            train_dir = str(input_img_dir) + '_labeled'
+            add_prompt_style = []
+            f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')
+            tags_all = []
+            cnt = 0
+            cnts_trigger = np.zeros(6)
+            for line in f:
+                cnt += 1
+                data = json.loads(line)['text'].split(', ')
+                tags_all.extend(data)
+                if data[1] == 'a boy':
+                    cnts_trigger[0] += 1
+                elif data[1] == 'a girl':
+                    cnts_trigger[1] += 1
+                elif data[1] == 'a handsome man':
+                    cnts_trigger[2] += 1
+                elif data[1] == 'a beautiful woman':
+                    cnts_trigger[3] += 1
+                elif data[1] == 'a mature man':
+                    cnts_trigger[4] += 1
+                elif data[1] == 'a mature woman':
+                    cnts_trigger[5] += 1
+                else:
+                    print('Error.')
+            f.close()
+
+            attr_idx = np.argmax(cnts_trigger)
+            trigger_styles = ['a boy, children, ', 'a girl, children, ', 'a handsome man, ', 'a beautiful woman, ',
+                            'a mature man, ', 'a mature woman, ']
+            trigger_style = '<sks>, ' + trigger_styles[attr_idx]
+    
+
+            if attr_idx == 2 or attr_idx == 4:
+                neg_prompt += ', children'
+
+            add_prompt_style_list = []
+            for tag in tags_all:
+                if tags_all.count(tag) > 0.5 * cnt:
+                    if ('hair' in tag or 'face' in tag or 'mouth' in tag or 'skin' in tag or 'smile' in tag):
+                        if not tag in add_prompt_style_list:
+                            add_prompt_style_list.append(tag)
+            
+            if len(add_prompt_style_list) > 0:
+                add_prompt_style = ", ".join(add_prompt_style_list) + ', '
+            else:
+                add_prompt_style = ''
+
+        input_prompt = add_prompt_style + trigger_style  + paiya_default_positive
         
         # build pipeline
         sd_inpaint_pipeline, generator = build_pipeline_facechain(

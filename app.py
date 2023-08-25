@@ -204,7 +204,7 @@ def launch_pipeline(uuid,
     else:
         yield ["生成失败，请重试(Generating failed, please retry)！", outputs_RGB]
 
-def launch_pipeline_paiya(uuid,
+def launch_pipeline_inpaint(uuid,
                           selected_template_images,
                           append_pos_prompt,
                           select_face_num=1,
@@ -223,22 +223,24 @@ def launch_pipeline_paiya(uuid,
             uuid = 'qw'
 
     base_model = 'ly261666/cv_portrait_model'
+    
+    output_model_name = 'personalizaition_lora'
+    instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
+    lora_model_path = f'/tmp/{uuid}/{output_model_name}/ensemble.safetensors'
 
-    instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
-    lora_model_path = os.path.join(instance_data_dir, 'personalizaition_lora.safetensors')
-    input_prompt = f"zhoumo_face, zhoumo," + append_pos_prompt + ','
-    face_id_image = os.path.join(instance_data_dir, 'face_id.jpg')
-    selected_roop_images = [os.path.join(instance_data_dir, f'best_roop_image_{idx}.jpg') for idx in range(select_face_num)]
-
+    # instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora',)
+    # lora_model_path = os.path.join(instance_data_dir, 'ensemble.bin')
+    # input_prompt = f"zhoumo_face, zhoumo," + append_pos_prompt + ','
+    # face_id_image = os.path.join(instance_data_dir, 'face_id.jpg')
+    # selected_roop_images = [os.path.join(instance_data_dir, f'best_roop_image_{idx}.jpg') for idx in range(select_face_num)]
 
     gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
     # TODO this cache_model_dir & base_model_path should fix with snapshot_download
     cache_model_dir = '/mnt/zhoulou.wzh/AIGC/model_data/'
     base_model_path = os.path.join('/mnt/workspace/.cache/modelscope/', base_model, 'realistic')
 
-    future = inference_threadpool.submit(gen_portrait_inpaint, base_model_path, lora_model_path, face_id_image,\
-                                        selected_template_images, selected_roop_images,\
-                                        input_prompt, cache_model_dir, first_control_weight, \
+    future = inference_threadpool.submit(gen_portrait_inpaint, base_model_path, lora_model_path, instance_data_dir,\
+                                        selected_template_images, cache_model_dir, first_control_weight, \
                                         second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after)
 
     while not future.done():
@@ -599,7 +601,7 @@ def inference_inpaint():
             ).style(columns=3, rows=2, height=600, object_fit="contain")
             
         display_button.click(
-            fn=launch_pipeline_paiya,
+            fn=launch_pipeline_inpaint,
             inputs=[uuid, selected_template_images, append_pos_prompt, select_face_num, first_control_weight, second_control_weight,
                     final_fusion_ratio, use_fusion_before, use_fusion_after],
             outputs=[infer_progress, output_images]
