@@ -474,41 +474,41 @@ def inference_inpaint():
                     )
                     first_control_weight = gr.Slider(
                         minimum=0.35, maximum=0.6, value=0.45,
-                        step=0.02, label='Initial Control Weight'
+                        step=0.02, label='初始权重(Initial Control Weight)'
                     )
 
                     second_control_weight = gr.Slider(
                         minimum=0.04, maximum=0.2, value=0.1,
-                        step=0.02, label='Secondary Control Weight'
+                        step=0.02, label='二次权重(Secondary Control Weight)'
                     )
                     final_fusion_ratio = gr.Slider(
                         minimum=0.2, maximum=0.8, value=0.5,
-                        step=0.1, label='Final Fusion Ratio'
+                        step=0.1, label='融合系数(Final Fusion Ratio)'
                     )
                     select_face_num = gr.Slider(
                         minimum=1, maximum=4, value=1,
-                        step=1, label='Number of Reference Faces'
+                        step=1, label='生成数目(Number of Reference Faces)'
                     )
                     use_fusion_before = gr.Radio(
-                        label="Apply Fusion Before", type="value", choices=[True, False],
+                        label="前融合(Apply Fusion Before)", type="value", choices=[True, False],
                         value=True
                     )
                     use_fusion_after = gr.Radio(
-                        label="Apply Fusion After", type="value", choices=[True, False],
+                        label="后融合(Apply Fusion After)", type="value", choices=[True, False],
                         value=True
                     )
                 
         display_button = gr.Button('Start Generation')
         with gr.Box():
             infer_progress = gr.Textbox(
-                label="Generation Progress",
+                label="生成(Generation Progress)",
                 value="No task currently",
                 interactive=False
             )
         with gr.Box():
             gr.Markdown('Generated Results')
             output_images = gr.Gallery(
-                label='Output',
+                label='输出(Output)',
                 show_label=False
             ).style(columns=3, rows=2, height=600, object_fit="contain")
             
