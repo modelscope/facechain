@@ -1299,10 +1299,10 @@ def merge_different_loras(loras_load_path, lora_save_path, ratios=None):
             torch.save(state_dict, lora_save_path)
     return 
 
-
 def merge_from_name_and_index(name, index_list, output_dir='output_dir/'):
-    loras_load_path = [os.path.join(output_dir, f'checkpoint-{i}.safetensors') for i in index_list]
-    lora_save_path  = os.path.join(output_dir,f'{name}.safetensors')
+    loras_load_path = [os.path.join(output_dir, f'checkpoint-{i}/pytorch_model.bin') for i in index_list]
+    os.mkdir(os.path.join(output_dir, 'ensemble'))
+    lora_save_path  = os.path.join(output_dir, 'ensemble', f'{name}.bin')
     for l in loras_load_path:
         # print('fuck : ', l)
         assert os.path.exists(l)==True

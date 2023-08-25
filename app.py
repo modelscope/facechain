@@ -6,6 +6,7 @@ import shutil
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+import json
 import cv2
 import gradio as gr
 import numpy as np
@@ -79,41 +80,70 @@ def concatenate_images(images):
 
 
 def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
-    os.system(
-        f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
-        f'--revision={revision} --sub_path="film/film" '
-        f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
-        f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
-        f'--learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
-        f'--lora_r=32 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32')
+    train_dir = str(output_img_dir) + '_labeled'
+    add_prompt_style = []
+    f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')
+    tags_all = []
+    cnt = 0
+    cnts_trigger = np.zeros(6)
+    for line in f:
+        cnt += 1
+        data = json.loads(line)['text'].split(', ')
+        tags_all.extend(data)
+        if data[1] == 'a boy':
+            cnts_trigger[0] += 1
+        elif data[1] == 'a girl':
+            cnts_trigger[1] += 1
+        elif data[1] == 'a handsome man':
+            cnts_trigger[2] += 1
+        elif data[1] == 'a beautiful woman':
+            cnts_trigger[3] += 1
+        elif data[1] == 'a mature man':
+            cnts_trigger[4] += 1
+        elif data[1] == 'a mature woman':
+            cnts_trigger[5] += 1
+        else:
+            print('Error.')
+    f.close()
 
+    attr_idx = np.argmax(cnts_trigger)
+    trigger_styles = ['a boy, children, ', 'a girl, children, ', 'a handsome man, ', 'a beautiful woman, ',
+                    'a mature man, ', 'a mature woman, ']
+    trigger_style = '<sks>, ' + trigger_styles[attr_idx]
 
-def train_lora_fn_paiya(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
+    if attr_idx == 2 or attr_idx == 4:
+        neg_prompt += ', children'
+
+    for tag in tags_all:
+        if tags_all.count(tag) > 0.5 * cnt:
+            if ('hair' in tag or 'face' in tag or 'mouth' in tag or 'skin' in tag or 'smile' in tag):
+                if not tag in add_prompt_style:
+                    add_prompt_style.append(tag)
+
+    if len(add_prompt_style) > 0:
+        add_prompt_style = ", ".join(add_prompt_style) + ', '
+    else:
+        add_prompt_style = ''
+    validation_prompt = trigger_style + add_prompt_style
     os.system(
         f'''
-        accelerate launch --mixed_precision="fp16" facechain/train_text_to_image_paiya.py \
+            PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py \
             --pretrained_model_name_or_path="{foundation_model_path}" \
-            --model_cache_dir='/mnt/zhoulou.wzh/AIGC/model_data/' \
-            --train_data_dir="{output_img_dir}" --caption_column="text" \
-            --resolution=512 --random_flip --train_batch_size=1 --gradient_accumulation_steps=4 --dataloader_num_workers=24 \
-            --max_train_steps=800 --checkpointing_steps=100 \
-            --learning_rate=1e-04 --lr_scheduler="constant" --lr_warmup_steps=0 \
-            --train_text_encoder \
-            --seed=42 \
-            --rank=128 --network_alpha=64 \
-            --validation_prompt="zhoumo_face, zhoumo, 1person" \
-            --validation_steps=100 \
-            --output_dir="{work_dir}" \
-            --logging_dir="{work_dir}" \
+            --output_dataset_name="{output_img_dir}" \
+            --caption_column="text" --resolution=512 \
+            --random_flip --train_batch_size=1 --gradient_accumulation_steps=4 --max_train_steps=800 --checkpointing_steps=100 \
+            --learning_rate=1e-04 --lr_scheduler="constant" --lr_warmup_steps=0 --seed=42 --output_dir="{work_dir}" \
+            --lora_r=128 --lora_alpha=64 \
             --enable_xformers_memory_efficient_attention \
-            --mixed_precision='fp16' \
-            --revision={revision} \
+            --validation_prompt="{validation_prompt}" \
+            --validation_steps=100 \
             --template_dir="resources/paiya_template" \
             --template_mask \
-            --merge_best_lora_based_face_id
+            --merge_best_lora_based_face_id  \
+            --revision="{revision}" \
+            --sub_path="film/film" \
         '''
     )
-
 
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model == styles[0]['name'] or style_model is None:
@@ -162,15 +192,15 @@ def launch_pipeline(uuid,
     use_post_process = True
     use_stylization = False
 
-    output_model_name = 'personalizaition_lora'
+    output_model_name = 'personalization_lora/'
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
     lora_model_path = f'/tmp/{uuid}/{output_model_name}'
     num_images = min(6, num_images)
     
     # paiya debug, use paiya face lora to replace original inference
     if use_paiya:
-        instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
-        lora_model_path =  os.path.join(instance_data_dir, 'personalizaition_lora.safetensors')
+        instance_data_dir = os.path.join('/tmp', uuid, 'personalization_lora/', 'best_outputs')
+        lora_model_path =  os.path.join(instance_data_dir, 'personalization_lora/.safetensors')
         if not os.path.exists(lora_model_path):
             raise gr.Error('不存在EnableInpaint=True训练出来的任务模型, 请关闭EnableInpaint')
 
@@ -224,8 +254,8 @@ def launch_pipeline_paiya(uuid,
 
     base_model = 'ly261666/cv_portrait_model'
 
-    instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
-    lora_model_path = os.path.join(instance_data_dir, 'personalizaition_lora.safetensors')
+    instance_data_dir = os.path.join('/tmp', uuid, 'personalization_lora/', 'best_outputs')
+    lora_model_path = os.path.join(instance_data_dir, 'personalization_lora/.safetensors')
     input_prompt = f"zhoumo_face, zhoumo," + append_pos_prompt + ','
     face_id_image = os.path.join(instance_data_dir, 'face_id.jpg')
     selected_roop_images = [os.path.join(instance_data_dir, f'best_roop_image_{idx}.jpg') for idx in range(select_face_num)]
@@ -311,27 +341,14 @@ class Trainer:
         shutil.rmtree(work_dir, ignore_errors=True)
         shutil.rmtree(instance_data_dir, ignore_errors=True)
 
-        # 根据use_paiya准备数据集
-        if not use_paiya:
-            prepare_dataset([img['name'] for img in instance_images],\
-             output_dataset_dir=instance_data_dir)
-            data_process_fn(instance_data_dir, True)
-        else:
-            prepare_dataset_paiya([img['name'] for img in instance_images], \
-            output_dataset_dir=instance_data_dir, work_dir=work_dir)
-
-        # 根据use_paiya训练LoRA模型
-        if not use_paiya:
-            train_lora_fn(foundation_model_path='ly261666/cv_portrait_model',
-                        revision='v2.0',
-                        output_img_dir=instance_data_dir,
-                        work_dir=work_dir)
-        else:
-            train_lora_fn_paiya(foundation_model_path='/mnt/workspace/.\
-                        cache/modelscope/ly261666/cv_portrait_model/realistic',
-                                revision='v2.0',
-                                output_img_dir=instance_data_dir,
-                                work_dir=work_dir)
+        prepare_dataset([img['name'] for img in instance_images], \
+            output_dataset_dir=instance_data_dir)
+        data_process_fn(instance_data_dir, True)
+        print("instance_data_dir", instance_data_dir)
+        train_lora_fn(foundation_model_path='ly261666/cv_portrait_model',
+                    revision='v2.0',
+                    output_img_dir=instance_data_dir,
+                    work_dir=work_dir)
 
         message = '训练完成！切换到 [形象体验] 标签体验模型效果。'
         print(message)
