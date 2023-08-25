@@ -168,7 +168,7 @@ def build_pipeline_facechain(baseline_model_path, lora_model_path, cache_model_d
         torch_dtype=weight_dtype,
     ).to("cuda")
     # Merge LoRA into pipeline
-    pipe = merge_lora(pipeline, lora_model_path, 0.9, from_safetensor=from_safetensor)
+    pipe = merge_lora(pipeline, lora_model_path, 1.2, from_safetensor=from_safetensor)
 
     # to fit some env lack of xformers
     try:
@@ -244,69 +244,11 @@ class GenPortraitInpaint:
 
         
         # setting prompt with original FaceChain training prompt engineering
-        # pos_prompt = 'Generate a standard photo of a chinese , beautiful smooth face, smile, high detail face, best quality,' + paiya_default_positive
-
-
-
+        pos_prompt = 'Generate a standard photo of a chinese , beautiful smooth face, smile, high detail face, best quality,'
         add_pos_prompt, add_neg_prompt = get_popular_prompts(instance_data_dir)
-        input_prompt = add_pos_prompt + paiya_default_positive
+        input_prompt = pos_prompt + add_pos_prompt + paiya_default_positive
         neg_prompt = add_neg_prompt + paiya_default_negative 
 
-        if 0: 
-            pos_prompt = ''
-            add_prompt_style = ''
-            trigger_style = '<sks>'
-            neg_prompt = paiya_default_negative
-
-            train_dir = str(instance_data_dir) + '_labeled'
-            add_prompt_style = []
-            f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')
-            tags_all = []
-            cnt = 0
-            cnts_trigger = np.zeros(6)
-            for line in f:
-                cnt += 1
-                data = json.loads(line)['text'].split(', ')
-                tags_all.extend(data)
-                if data[1] == 'a boy':
-                    cnts_trigger[0] += 1
-                elif data[1] == 'a girl':
-                    cnts_trigger[1] += 1
-                elif data[1] == 'a handsome man':
-                    cnts_trigger[2] += 1
-                elif data[1] == 'a beautiful woman':
-                    cnts_trigger[3] += 1
-                elif data[1] == 'a mature man':
-                    cnts_trigger[4] += 1
-                elif data[1] == 'a mature woman':
-                    cnts_trigger[5] += 1
-                else:
-                    print('Error.')
-            f.close()
-
-            attr_idx = np.argmax(cnts_trigger)
-            trigger_styles = ['a boy, children, ', 'a girl, children, ', 'a handsome man, ', 'a beautiful woman, ',
-                            'a mature man, ', 'a mature woman, ']
-            trigger_style = '<sks>, ' + trigger_styles[attr_idx]
-    
-
-            if attr_idx == 2 or attr_idx == 4:
-                neg_prompt += ', children'
-
-            add_prompt_style_list = []
-            for tag in tags_all:
-                if tags_all.count(tag) > 0.5 * cnt:
-                    if ('hair' in tag or 'face' in tag or 'mouth' in tag or 'skin' in tag or 'smile' in tag):
-                        if not tag in add_prompt_style_list:
-                            add_prompt_style_list.append(tag)
-            
-            if len(add_prompt_style_list) > 0:
-                add_prompt_style = ", ".join(add_prompt_style_list) + ', '
-            else:
-                add_prompt_style = ''
-
-            input_prompt = add_prompt_style + trigger_style  + paiya_default_positive
-        
         print("debug : ", input_prompt)
         # build inpaint pipeline && some other pilot pipeline
         sd_inpaint_pipeline, generator = build_pipeline_facechain(

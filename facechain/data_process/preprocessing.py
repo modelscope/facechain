@@ -20,7 +20,7 @@ from .deepbooru import DeepDanbooru
 def get_popular_prompts(train_img_dir):
     """ check original Training datasets to calculate popular prompts
     """
-    train_dir = str(output_img_dir) + '_labeled'
+    train_dir = str(train_img_dir) + '_labeled'
     neg_prompt = ''
     add_prompt_style = []
     f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')

@@ -198,7 +198,7 @@ def launch_pipeline(uuid,
 
     output_model_name = 'personalization_lora'
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
-    lora_model_path = f'/tmp/{uuid}/{output_model_name}'
+    lora_model_path = f'/tmp/{uuid}/{output_model_name}/ensemble'
     num_images = min(6, num_images)
     
     gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
