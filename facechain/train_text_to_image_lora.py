@@ -40,8 +40,11 @@ from accelerate import Accelerator
 from accelerate.logging import get_logger
 from accelerate.utils import ProjectConfiguration, set_seed
 from datasets import load_dataset
-from diffusers import AutoencoderKL, DDPMScheduler, DiffusionPipeline, UNet2DConditionModel
+from diffusers import AutoencoderKL, DDPMScheduler, DiffusionPipeline, UNet2DConditionModel, StableDiffusionInpaintPipeline, DPMSolverMultistepScheduler
 from diffusers.loaders import AttnProcsLayers
+from modelscope.outputs import OutputKeys
+from modelscope.pipelines import pipeline as modelscope_pipeline
+from modelscope.utils.constant import Tasks
 from diffusers.models.attention_processor import LoRAAttnProcessor
 from diffusers.optimization import get_scheduler
 from diffusers.utils import check_min_version, is_wandb_available
@@ -132,6 +135,82 @@ def get_rot(image):
     else:
         return image
 
+# --------------------------------功能说明-------------------------------- #
+#   log_validation训练时的验证函数：
+#   当存在template_dir，结合controlnet生成证件照模板；
+#   当不存在template_dir时，根据验证提示词随机生成。
+#   图片文件保存在validation文件夹下，结果会写入tensorboard或者wandb中。
+# --------------------------------功能说明-------------------------------- #
+def log_validation(model_dir, vae, text_encoder, tokenizer, unet, args, accelerator, weight_dtype, epoch, global_step, **kwargs):
+    # 当不存在template_dir时，根据验证提示词随机生成。
+    pipeline = StableDiffusionInpaintPipeline.from_pretrained(
+        model_dir,
+        unet=accelerator.unwrap_model(unet).to(accelerator.device, torch.float32),
+        text_encoder=accelerator.unwrap_model(text_encoder).to(accelerator.device, torch.float32),
+        vae=accelerator.unwrap_model(vae).to(accelerator.device, torch.float32),
+        torch_dtype=torch.float32,
+    )
+    pipeline = pipeline.to(accelerator.device)
+    pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config)
+    pipeline.set_progress_bar_config(disable=True)
+    generator = torch.Generator(device=accelerator.device)
+    if args.seed is not None:
+        generator = generator.manual_seed(args.seed)
+
+    # 开始前传预测
+    images = []
+    if args.template_dir is not None:
+        # 遍历生成证件照
+        jpgs = os.listdir(args.template_dir)
+        for jpg, read_jpg, shape, read_mask in zip(jpgs, kwargs['input_images'], kwargs['input_images_shape'], kwargs['input_masks']):
+            if args.template_mask:
+                image = pipeline(
+                    args.validation_prompt, image=read_jpg, mask_image=read_mask, strength=0.65, negative_prompt=args.neg_prompt, 
+                    guidance_scale=args.guidance_scale, num_inference_steps=20, generator=generator, height=kwargs['new_size'][1], width=kwargs['new_size'][0],
+                ).images[0]
+            else:
+                image = pipeline(
+                    args.validation_prompt, image=read_jpg, strength=0.65, negative_prompt=args.neg_prompt, 
+                    guidance_scale=args.guidance_scale, num_inference_steps=20, generator=generator, height=kwargs['new_size'][1], width=kwargs['new_size'][0],
+                ).images[0]
+
+            images.append(image)
+
+            save_name = jpg.split(".")[0]
+            if not os.path.exists(os.path.join(args.output_dir, "validation")):
+                os.makedirs(os.path.join(args.output_dir, "validation"))
+            image.save(os.path.join(args.output_dir, "validation", f"global_step_{save_name}_{global_step}_0.jpg"))
+
+    else:
+        # 随机生成
+        for _ in range(args.num_validation_images):
+            images.append(
+                pipeline(args.validation_prompt, negative_prompt=args.neg_prompt, guidance_scale=args.guidance_scale, \
+                        num_inference_steps=50, generator=generator, height=args.resolution, width=args.resolution,).images[0]
+            )
+        for index, image in enumerate(images):
+            if not os.path.exists(os.path.join(args.output_dir, "validation")):
+                os.makedirs(os.path.join(args.output_dir, "validation"))
+            image.save(os.path.join(args.output_dir, "validation", f"global_step_{global_step}_" + str(index) + ".jpg"))
+
+    # 写入wandb或者tensorboard
+    for tracker in accelerator.trackers:
+        if tracker.name == "tensorboard":
+            for index, image in enumerate(images):
+                tracker.writer.add_images("validation_" + str(index), np.asarray(image), epoch, dataformats="HWC")
+        if tracker.name == "wandb":
+            tracker.log(
+                {
+                    "validation": [
+                        wandb.Image(image, caption=f"{i}: {args.validation_prompt}")
+                        for i, image in enumerate(images)
+                    ]
+                }
+            )
+
+    del pipeline
+    torch.cuda.empty_cache()
+    vae.to(accelerator.device, dtype=weight_dtype)
 
 def prepare_dataset(instance_images: list, output_dataset_dir):
     if not os.path.exists(output_dataset_dir):
@@ -455,6 +534,46 @@ def parse_args():
         ),
     )
     parser.add_argument(
+        "--merge_best_lora_based_face_id",
+        default=False,
+        action="store_true",
+        help=(
+            "Merge the best loras based on face_id."
+        ),
+    )
+    parser.add_argument(
+        "--template_dir",
+        type=str,
+        default=None,
+        help=(
+            "The dir of template used, to make certificate photos."
+        ),
+    )
+    parser.add_argument(
+        "--template_mask",
+        default=False,
+        action="store_true",
+        help=(
+            "To mask certificate photos."
+        ),
+    )
+    parser.add_argument(
+        "--validation_steps",
+        type=int,
+        default=None,
+        help=(
+            "Run fine-tuning validation every X steps. The validation process consists of running the prompt"
+            " `args.validation_prompt` multiple times: `args.num_validation_images`."
+        ),
+    )
+    parser.add_argument(
+        "--neg_prompt", type=str, default="sketch, low quality, worst quality, low quality shadow, lowres, inaccurate eyes, huge eyes, longbody, bad anatomy, cropped, worst face, strange mouth, bad anatomy, inaccurate limb, bad composition, ugly, noface, disfigured, duplicate, ugly, text, logo", 
+        help="A prompt that is neg during training for inference."
+    )
+    parser.add_argument(
+        "--guidance_scale", type=int, default=9, help="A guidance_scale during training for inference."
+    )
+    parser.add_argument(
         "--enable_xformers_memory_efficient_attention", action="store_true", help="Whether or not to use xformers."
     )
 
@@ -476,6 +595,10 @@ DATASET_NAME_MAPPING = {
 
 
 def main():
+    from utils import lora_utils as network_module
+    from utils.face_process_utils import call_face_crop
+    from utils.face_id_utils import eval_jpg_with_faceid
+
     args = parse_args()
     logging_dir = os.path.join(args.output_dir, args.logging_dir)
     shutil.rmtree(args.output_dir, ignore_errors=True)
@@ -881,6 +1004,36 @@ def main():
     progress_bar = tqdm(range(global_step, args.max_train_steps), disable=not accelerator.is_local_main_process)
     progress_bar.set_description("Steps")
 
+    if args.template_dir is not None:
+        input_images        = []
+        input_images_shape  = []
+        control_images      = []
+        input_masks         = []
+        # 人脸检测
+        retinaface_detection = modelscope_pipeline(Tasks.face_detection, 'damo/cv_resnet50_face-detection_retinaface')
+        jpgs                = os.listdir(args.template_dir)
+        for jpg in jpgs:
+            read_jpg        = os.path.join(args.template_dir, jpg)
+            read_jpg        = Image.open(read_jpg)
+            shape           = np.shape(read_jpg)
+
+            short_side  = min(read_jpg.width, read_jpg.height)
+            resize      = float(short_side / 512.0)
+            new_size    = (int(read_jpg.width//resize) // 64 * 64, int(read_jpg.height//resize) // 64 * 64)
+            read_jpg    = read_jpg.resize(new_size)
+
+            _, _, input_mask = call_face_crop(retinaface_detection, read_jpg, crop_ratio=1.3)
+
+            # append into list
+            input_images.append(read_jpg)
+            input_images_shape.append(shape)
+            input_masks.append(input_mask if args.template_mask else None)
+    else:
+        new_size = None
+        input_images = None
+        input_images_shape = None
+        input_masks = None
+
     for epoch in range(first_epoch, args.num_train_epochs):
         unet.train()
         if args.train_text_encoder:
@@ -963,47 +1116,54 @@ def main():
             if global_step >= args.max_train_steps:
                 break
 
+            if accelerator.sync_gradients:
+                if accelerator.is_main_process:
+                    if args.validation_steps is not None and args.validation_prompt is not None and global_step % args.validation_steps == 0:
+                        logger.info(
+                            f"Running validation... \n Generating {args.num_validation_images} images with prompt:"
+                            f" {args.validation_prompt}."
+                        )
+                        log_validation(
+                            model_dir,
+                            vae,
+                            text_encoder,
+                            tokenizer,
+                            unet,
+                            args,
+                            accelerator,
+                            weight_dtype,
+                            epoch,
+                            global_step,
+                            input_images=input_images, 
+                            input_images_shape=input_images_shape, 
+                            control_images=control_images, 
+                            input_masks=input_masks,
+                            new_size=new_size
+                        )
+
         if accelerator.is_main_process:
-            if args.validation_prompt is not None and epoch % args.validation_epochs == 0:
+            if args.validation_steps is None and args.validation_prompt is not None and global_step % args.validation_epochs == 0:
                 logger.info(
                     f"Running validation... \n Generating {args.num_validation_images} images with prompt:"
                     f" {args.validation_prompt}."
                 )
-                # create pipeline
-                pipeline = DiffusionPipeline.from_pretrained(
+                log_validation(
                     model_dir,
-                    unet=accelerator.unwrap_model(unet),
-                    text_encoder=accelerator.unwrap_model(text_encoder),
-                    torch_dtype=weight_dtype,
+                    vae,
+                    text_encoder,
+                    tokenizer,
+                    unet,
+                    args,
+                    accelerator,
+                    weight_dtype,
+                    epoch,
+                    global_step,
+                    input_images=input_images, 
+                    input_images_shape=input_images_shape, 
+                    control_images=control_images, 
+                    input_masks=input_masks,
+                    new_size=new_size
                 )
-                pipeline = pipeline.to(accelerator.device)
-                pipeline.set_progress_bar_config(disable=True)
-
-                # run inference
-                generator = torch.Generator(device=accelerator.device).manual_seed(args.seed)
-                images = []
-                for _ in range(args.num_validation_images):
-                    images.append(
-                        pipeline(args.validation_prompt, num_inference_steps=30, generator=generator).images[0]
-                    )
-
-                if accelerator.is_main_process:
-                    for tracker in accelerator.trackers:
-                        if tracker.name == "tensorboard":
-                            np_images = np.stack([np.asarray(img) for img in images])
-                            tracker.writer.add_images("validation", np_images, epoch, dataformats="NHWC")
-                        if tracker.name == "wandb":
-                            tracker.log(
-                                {
-                                    "validation": [
-                                        wandb.Image(image, caption=f"{i}: {args.validation_prompt}")
-                                        for i, image in enumerate(images)
-                                    ]
-                                }
-                            )
-
-                del pipeline
-                torch.cuda.empty_cache()
 
     # Save the lora layers
     accelerator.wait_for_everyone()
@@ -1031,6 +1191,40 @@ def main():
             unet = unet.to(torch.float32)
             unet.save_attn_procs(args.output_dir, safe_serialization=False)
 
+        log_validation(
+            model_dir,
+            vae,
+            text_encoder,
+            tokenizer,
+            unet,
+            args,
+            accelerator,
+            weight_dtype,
+            epoch,
+            global_step,
+            input_images=input_images, 
+            input_images_shape=input_images_shape, 
+            control_images=control_images, 
+            input_masks=input_masks,
+            new_size=new_size
+        )
+        if args.merge_best_lora_based_face_id:
+            pivot_dir = args.output_dataset_name
+            t_result_list, tlist, scores = eval_jpg_with_faceid(pivot_dir, os.path.join(args.output_dir, "validation"))
+
+            for index, line in enumerate(zip(tlist, scores)):
+                print(f"Top-{str(index)}: {str(line)}")
+                logger.info(f"Top-{str(index)}: {str(line)}")
+            
+            lora_save_path = network_module.merge_from_name_and_index("pytorch_model", tlist, output_dir=args.output_dir)
+            logger.info(f"Save Best Merged Loras To:{lora_save_path}.")
+
+            best_outputs_dir = args.output_dir
+            os.makedirs(best_outputs_dir, exist_ok=True)
+            for result in t_result_list[:1]:
+                os.system(f"cp {result} {best_outputs_dir}/face_id.jpg")
+            # os.system(f"cp {lora_save_path} {best_outputs_dir}")
+
         if args.push_to_hub:
             save_model_card(
                 repo_id,
@@ -1053,7 +1247,6 @@ def main():
     )
 
     if args.use_peft:
-
         def load_and_set_lora_ckpt(pipe, ckpt_dir, global_step, device, dtype):
             with open(os.path.join(args.output_dir, f"{global_step}_lora_config.json"), "r") as f:
                 lora_config = json.load(f)
