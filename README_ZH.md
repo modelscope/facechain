@@ -35,6 +35,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 - 增加个性化美颜特效模块
 - 基模升级，SD 1.5升级为SDXL
 - 兼容WebUI使用
+- 增加模版图inpainting功能
 
 
 # 功能特性
