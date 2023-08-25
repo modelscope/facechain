@@ -182,6 +182,15 @@ def build_pipeline_facechain(baseline_model_path, lora_model_path, cache_model_d
     
     return pipeline, generator
 
+class GenPortraitInpaint:
+    def __init__(self, 
+                 cache_model_dir=None,
+                 use_main_model=True, 
+                 crop_template=True, 
+                 short_side_resize=768):
+        self.crop_template = crop_template 
+        self.short_side_resize = short_side_resize
+
 
     def __call__(self, base_model_path, lora_model_path, instance_data_dir,
                  input_template_list, cache_model_dir,
