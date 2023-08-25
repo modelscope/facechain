@@ -22,6 +22,7 @@ from diffusers import (
     StableDiffusionControlNetInpaintPipeline,
 )
 from controlnet_aux import OpenposeDetector
+from facechain.data_process.preprocessing import get_popular_prompts
 from facechain.constants import paiya_default_positive, paiya_default_negative
 from facechain.merge_lora import merge_lora
 
@@ -244,13 +245,19 @@ class GenPortraitInpaint:
         
         # setting prompt with original FaceChain training prompt engineering
         # pos_prompt = 'Generate a standard photo of a chinese , beautiful smooth face, smile, high detail face, best quality,' + paiya_default_positive
-        pos_prompt = ''
-        neg_prompt = paiya_default_negative
 
-        add_prompt_style = ''
-        trigger_style = '<sks>'
 
-        if 1: 
+
+        add_pos_prompt, add_neg_prompt = get_popular_prompts(instance_data_dir)
+        input_prompt = add_pos_prompt + paiya_default_positive
+        neg_prompt = add_neg_prompt + paiya_default_negative 
+
+        if 0: 
+            pos_prompt = ''
+            add_prompt_style = ''
+            trigger_style = '<sks>'
+            neg_prompt = paiya_default_negative
+
             train_dir = str(instance_data_dir) + '_labeled'
             add_prompt_style = []
             f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')
@@ -298,7 +305,7 @@ class GenPortraitInpaint:
             else:
                 add_prompt_style = ''
 
-        input_prompt = add_prompt_style + trigger_style  + paiya_default_positive
+            input_prompt = add_prompt_style + trigger_style  + paiya_default_positive
         
         print("debug : ", input_prompt)
         # build inpaint pipeline && some other pilot pipeline

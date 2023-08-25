@@ -145,10 +145,10 @@ def log_validation(model_dir, vae, text_encoder, tokenizer, unet, args, accelera
     # 当不存在template_dir时，根据验证提示词随机生成。
     pipeline = StableDiffusionInpaintPipeline.from_pretrained(
         model_dir,
-        unet=accelerator.unwrap_model(unet).to(accelerator.device, torch.float16),
-        text_encoder=accelerator.unwrap_model(text_encoder).to(accelerator.device, torch.float16),
-        vae=accelerator.unwrap_model(vae).to(accelerator.device, torch.float16),
-        torch_dtype=torch.float16,
+        unet=accelerator.unwrap_model(unet).to(accelerator.device, torch.float32),
+        text_encoder=accelerator.unwrap_model(text_encoder).to(accelerator.device, torch.float32),
+        vae=accelerator.unwrap_model(vae).to(accelerator.device, torch.float32),
+        torch_dtype=torch.float32,
     )
     pipeline = pipeline.to(accelerator.device)
     pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config)
