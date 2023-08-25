@@ -7,6 +7,7 @@ import math
 import numpy as np
 import os
 import torch
+import json
 from glob import glob
 
 from PIL import Image
@@ -231,10 +232,12 @@ class GenPortraitInpaint:
         neg_prompt = paiya_default_negative
 
         # facechain original lora prompt engineering
-        train_dir = str(input_img_dir) + '_labeled'
-        face_id_image_path = os.path.join(train_dir, 'faceid.jpg')
+        train_dir = str(instance_data_dir) + '_labeled'
+        print('debug :', train_dir)
+        # face_id_image_path = os.path.join(train_dir, 'faceid.jpg')
+        # input_roop_image_list = glob(os.path.join(train_dir, '*.png'))[:2] # debug for 2
+        face_id_image_path = glob(os.path.join(train_dir, '*.png'))[0]
         input_roop_image_list = glob(os.path.join(train_dir, '*.png'))[:2] # debug for 2
-
         add_prompt_style = ''
         trigger_style = '<sks>'
         if 1: 

@@ -224,9 +224,10 @@ def launch_pipeline_inpaint(uuid,
 
     base_model = 'ly261666/cv_portrait_model'
     
-    output_model_name = 'personalizaition_lora'
+    output_model_name = 'personalization_lora'
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
-    lora_model_path = f'/tmp/{uuid}/{output_model_name}/ensemble.safetensors'
+    # lora_model_path = f'/tmp/{uuid}/{output_model_name}/ensemble.safetensors'
+    lora_model_path = f'/tmp/{uuid}/{output_model_name}'
 
     # instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora',)
     # lora_model_path = os.path.join(instance_data_dir, 'ensemble.bin')
