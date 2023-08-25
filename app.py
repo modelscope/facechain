@@ -134,12 +134,11 @@ def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None
             --random_flip --train_batch_size=1 --gradient_accumulation_steps=4 --max_train_steps=800 --checkpointing_steps=100 \
             --learning_rate=1e-04 --lr_scheduler="constant" --lr_warmup_steps=0 --seed=42 --output_dir="{work_dir}" \
             --lora_r=128 --lora_alpha=64 \
-            --enable_xformers_memory_efficient_attention \
             --validation_prompt="{validation_prompt}" \
             --validation_steps=100 \
             --template_dir="resources/paiya_template" \
             --template_mask \
-            --merge_best_lora_based_face_id  \
+            --merge_best_lora_based_face_id \
             --revision="{revision}" \
             --sub_path="film/film" \
         '''

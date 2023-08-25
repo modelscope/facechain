@@ -1300,7 +1300,7 @@ def merge_different_loras(loras_load_path, lora_save_path, ratios=None):
     return 
 
 def merge_from_name_and_index(name, index_list, output_dir='output_dir/'):
-    loras_load_path = [os.path.join(output_dir, f'checkpoint-{i}/pytorch_model_weights.bin') for i in index_list]
+    loras_load_path = [os.path.join(output_dir, f'checkpoint-{i}/pytorch_model.bin') for i in index_list]
     os.mkdir(os.path.join(output_dir, 'ensemble'))
     lora_save_path  = os.path.join(output_dir, 'ensemble', f'{name}.bin')
     for l in loras_load_path:

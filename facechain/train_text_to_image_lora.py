@@ -303,7 +303,7 @@ def parse_args():
     parser.add_argument(
         "--num_validation_images",
         type=int,
-        default=4,
+        default=1,
         help="Number of images that should be generated during validation with `validation_prompt`.",
     )
     parser.add_argument(
@@ -1216,7 +1216,7 @@ def main():
                 print(f"Top-{str(index)}: {str(line)}")
                 logger.info(f"Top-{str(index)}: {str(line)}")
             
-            lora_save_path = network_module.merge_from_name_and_index("pytorch_model", tlist, output_dir=args.output_dir)
+            lora_save_path = network_module.merge_from_name_and_index("pytorch_model_weights", tlist, output_dir=args.output_dir)
             logger.info(f"Save Best Merged Loras To:{lora_save_path}.")
 
             best_outputs_dir = os.path.join(args.output_dir, "ensemble")
