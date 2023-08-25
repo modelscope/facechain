@@ -22,6 +22,7 @@ def data_process_fn(input_img_dir, use_data_process):
         ## TODO
         data_process_fn = Blipv2()
         out_json_name = data_process_fn(input_img_dir)
+        del data_process_fn
         return out_json_name
     else:
         return os.path.join(str(input_img_dir) + '_labeled', "metadata.jsonl")

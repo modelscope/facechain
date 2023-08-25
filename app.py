@@ -125,6 +125,8 @@ def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None
     else:
         add_prompt_style = ''
     validation_prompt = trigger_style + add_prompt_style
+
+    torch.cuda.empty_cache()
     os.system(
         f'''
             PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py \
