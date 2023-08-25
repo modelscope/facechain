@@ -15,5 +15,6 @@ protobuf==3.20.1
 timm
 scikit-image
 gradio
+controlnet_aux==0.0.6 
 
 # mmcv-full (need mim install)

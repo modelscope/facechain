@@ -203,7 +203,6 @@ def launch_pipeline_inpaint(uuid,
             uuid = 'qw'
 
     base_model = 'ly261666/cv_portrait_model'
-    
     output_model_name = 'personalization_lora'
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
 
@@ -214,7 +213,6 @@ def launch_pipeline_inpaint(uuid,
 
     gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
     
-    # TODO this cache_model_dir & base_model_path should fix with snapshot_download
     cache_model_dir = snapshot_download("bubbliiiing/controlnet_helper", revision="v2.2") # '/mnt/zhoulou.wzh/AIGC/model_data/'
     future = inference_threadpool.submit(gen_portrait_inpaint, base_model, lora_model_path, instance_data_dir,\
                                         selected_template_images, cache_model_dir, select_face_num, first_control_weight, \
