@@ -1,6 +1,8 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import enum
 import os
+import platform
+import subprocess
 import shutil
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -66,14 +68,43 @@ def concatenate_images(images):
 
 
 def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
-    os.system(
-        f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
-        f'--revision={revision} --sub_path="film/film" '
-        f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
-        f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
-        f'--learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
-        f'--lora_r=32 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32')
-
+    if platform.system() == 'Windows':
+        command = [
+            'accelerate', 'launch', 'facechain/train_text_to_image_lora.py',
+            f'--pretrained_model_name_or_path={foundation_model_path}',
+            f'--revision={revision}',
+            '--sub_path=film/film',
+            f'--output_dataset_name={output_img_dir}',
+            '--caption_column=text',
+            '--resolution=512',
+            '--random_flip',
+            '--train_batch_size=1',
+            '--num_train_epochs=200',
+            '--checkpointing_steps=5000',
+            '--learning_rate=1e-04',
+            '--lr_scheduler=cosine',
+            '--lr_warmup_steps=0',
+            '--seed=42',
+            f'--output_dir={work_dir}',
+            '--lora_r=32',
+            '--lora_alpha=32',
+            '--lora_text_encoder_r=32',
+            '--lora_text_encoder_alpha=32'
+        ]
+        try:
+            subprocess.run('set PYTHONPATH=.', check=True)
+            subprocess.run(command, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error executing the command: {e}")
+    else:
+        os.system(
+                f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
+                f'--revision={revision} --sub_path="film/film" '
+                f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
+                f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
+                f'--learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
+                f'--lora_r=32 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32')
+        
 
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model == styles[0]['name'] or style_model is None:
@@ -122,9 +153,15 @@ def launch_pipeline(uuid,
     use_stylization = False
 
     output_model_name = 'personalizaition_lora'
-    instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
-
-    lora_model_path = f'/tmp/{uuid}/{output_model_name}'
+    #  code to be compatible with the Windows environment.
+    if platform.system() == 'Windows':
+        instance_data_dir = os.path.join('C:\\tmp', uuid, 'training_data', output_model_name)
+        lora_model_path = f'C:\\tmp\\{uuid}\\{output_model_name}'
+        if not os.path.exists(f"C:\\tmp\\{uuid}"):
+            os.makedirs(f"C:\\tmp\\{uuid}")
+    else:
+        instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
+        lora_model_path = f'/tmp/{uuid}/{output_model_name}'
 
     gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                                use_face_swap, use_post_process,
@@ -183,12 +220,18 @@ class Trainer:
         output_model_name = 'personalizaition_lora'
 
         # mv user upload data to target dir
-        instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
+        if platform.system() == 'Windows':
+            instance_data_dir = os.path.join('C:\\tmp', uuid, 'training_data', output_model_name)
+            work_dir = f'C:\\tmp\\{uuid}\\{output_model_name}'
+            if not os.path.exists(f"C:\\tmp\\{uuid}"):
+                os.makedirs(f"C:\\tmp\\{uuid}")
+        else:
+            instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
+            work_dir = f"/tmp/{uuid}/{output_model_name}"
+            if not os.path.exists(f"/tmp/{uuid}"):
+                os.makedirs(f"/tmp/{uuid}")
+        
         print("--------uuid: ", uuid)
-
-        if not os.path.exists(f"/tmp/{uuid}"):
-            os.makedirs(f"/tmp/{uuid}")
-        work_dir = f"/tmp/{uuid}/{output_model_name}"
         print("----------work_dir: ", work_dir)
         shutil.rmtree(work_dir, ignore_errors=True)
         shutil.rmtree(instance_data_dir, ignore_errors=True)
