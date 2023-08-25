@@ -130,7 +130,7 @@ def launch_pipeline(uuid,
     train_file = os.path.join(lora_model_path,'pytorch_lora_weights.bin')
     
     if not os.path.exists(train_file):
-        raise gr.Error('您还没有进行形象定制，请先进行训练。')
+        raise gr.Error('您还没有进行形象定制，请先进行训练。(Training is required before inference.)')
 
     gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                                use_face_swap, use_post_process,
@@ -318,7 +318,7 @@ def inference_input():
                 cloth_style = gr.Radio(choices=prompts, value=cloth_prompt[0]['name'],
                                        type="index", label="服装风格(Cloth style)", visible=False)
 
-                with gr.Accordion("高级选项(Expert)", open=False):
+                with gr.Accordion("高级选项(Advanced Options)", open=False):
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, interactive=True)
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')

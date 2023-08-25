@@ -37,7 +37,10 @@ if not use_style:
     style_model_path = None
     pos_prompt = generate_pos_prompt(styles[0]['name'], cloth_prompt[0]['prompt'])
 else:
-    model_dir = snapshot_download(styles[1]['model_id'], revision=styles[1]['revision'])
+    if os.path.exists(styles[1]['model_id']):
+        model_dir = styles[1]['model_id']
+    else:
+        model_dir = snapshot_download(styles[1]['model_id'], revision=styles[1]['revision'])
     style_model_path = os.path.join(model_dir, styles[1]['bin_file'])
     pos_prompt = generate_pos_prompt(styles[1]['name'], styles[1]['add_prompt_style'])  # style has its own prompt
 
