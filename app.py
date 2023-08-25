@@ -11,6 +11,7 @@ import cv2
 import gradio as gr
 import numpy as np
 import torch
+from glob import glob 
 from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
@@ -382,109 +383,69 @@ def train_input():
     return demo
 
 def inference_input():
-    """
-        Original FaceChain Inference, combine style lora with personalize lora  &&  
-        postprocess with face_fusion and faceid check
-    """
-
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
-        # Set up the GUI for generating images
-        
         with gr.Row():
             with gr.Column():
-                user_models = gr.Radio(
-                    label="Model Selection",
-                    choices=HOT_MODELS,
-                    type="value",
-                    value=HOT_MODELS[0]
-                )
+                user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value",
+                                       value=HOT_MODELS[0])
+                style_model_list = []
+                for style in styles:
+                    style_model_list.append(style['name'])
+                style_model = gr.Dropdown(choices=style_model_list, value=styles[0]['name'], 
+                                          type="index", label="风格模型(Style model)")
                 
-                style_model_list = [style['name'] for style in styles]
-                style_model = gr.Dropdown(
-                    choices=style_model_list,
-                    value=styles[0]['name'],
-                    type="index",
-                    label="Style Model"
-                )
-                
-                prompts = [prompt['name'] for prompt in cloth_prompt]
-                cloth_style = gr.Radio(
-                    choices=prompts,
-                    value=cloth_prompt[0]['name'],
-                    type="index",
-                    label="Clothing Style"
-                )
-                
-                with gr.Accordion("Advanced Options", open=False):
-                    pos_prompt = gr.Textbox(
-                        label="Prompt",
-                        lines=3,
-                        value=generate_pos_prompt(None, cloth_prompt[0]['prompt']),
-                        interactive=True
-                    )
-                    multiplier_style = gr.Slider(
-                        minimum=0,
-                        maximum=1,
-                        value=0.25,
-                        step=0.05,
-                        label='Style Multiplier'
-                    )
-                    
+                prompts=[]
+                for prompt in cloth_prompt:
+                    prompts.append(prompt['name'])
+                cloth_style = gr.Radio(choices=prompts, value=cloth_prompt[0]['name'],
+                                       type="index", label="服装风格(Cloth style)")
+
+                with gr.Accordion("高级选项(Expert)", open=False):
+                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
+                                        value=generate_pos_prompt(None, cloth_prompt[0]['prompt']), interactive=True)
+                    multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
+                                                 step=0.05, label='风格权重(Multiplier style)')
                 with gr.Box():
                     num_images = gr.Number(
-                        label='Number of Photos',
-                        value=6,
-                        precision=1,
-                        minimum=1,
-                        maximum=6
-                    )
+                        label='生成图片数量(Number of photos)', value=6, precision=1, minimum=1, maximum=6)
                     gr.Markdown('''
-                    Note: You may generate a maximum of 6 photos at one time!
-                    ''')
-        
+                    注意：最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
+                        ''')
 
-        display_button = gr.Button('Start Generation')
-        
+        display_button = gr.Button('开始生成(Start!)')
+
         with gr.Box():
-            infer_progress = gr.Textbox(
-                label="Generation Progress",
-                value="No task currently",
-                interactive=False
-            )
+            infer_progress = gr.Textbox(label="生成进度(Progress)", value="当前无生成任务(No task)", interactive=False)
         with gr.Box():
-            gr.Markdown('Generated Results')
-            output_images = gr.Gallery(
-                label='Output',
-                show_label=False
-            ).style(columns=3, rows=2, height=600, object_fit="contain")
-            
+            gr.Markdown('生成结果(Result)')
+            output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
+                                                                               object_fit="contain")
+                                                                               
         style_model.change(update_cloth, style_model, [cloth_style, pos_prompt])
         cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt])
-        
+        display_button.click(fn=launch_pipeline,
+                             inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style],
+                             outputs=[infer_progress, output_images])
 
-        display_button.click(
-            fn=launch_pipeline,
-            inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style],
-            outputs=[infer_progress, output_images]
-        )
-        
     return demo
 
+
 # Define preset template paths
-preset_template = [
-    # photos will be add to here when inpaint is ready
-    'resources/paiya_template/0.jpg',
-    'resources/paiya_template/1.jpg',
-    'resources/paiya_template/2.jpg',
-    'resources/paiya_template/3.jpg'
-]
+# preset_template = [
+#     # photos will be add to here when inpaint is ready
+#     'resources/inpaint_template/0.jpg',
+#     'resources/inpaint_template/1.jpg',
+#     'resources/inpaint_template/2.jpg',
+#     'resources/inpaint_template/3.jpg'
+# ]
 
 def inference_inpaint():
     """
         Inpaint Tab with PAIYA-Lora + MultiControlnet, support preset_template
         #TODO: Support user upload template && template check logits
     """
+    preset_template=glob(os.path.join('resources/inpaint_template/*.jpg'))
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         # Initialize the GUI
@@ -566,8 +527,8 @@ with gr.Blocks(css='style.css') as demo:
             train_input()
         with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input()
-        # inpaint not display now
-        with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
-            inference_inpaint()
+        # hide inpaint 
+        # with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
+        #     inference_inpaint()
 
 demo.queue(status_update_rate=1).launch(share=True)
