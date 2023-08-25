@@ -6,22 +6,26 @@ from skimage import transform
 
 
 def safe_get_box_mask_keypoints(image, retinaface_result, crop_ratio, face_seg, mask_type):
-    '''
-    Inputs:
-        image                   输入图片；
-        retinaface_result       retinaface的检测结果；
-        crop_ratio              人脸部分裁剪扩充比例；
-        face_seg                人脸分割模型；
-        mask_type               人脸分割的方式，一个是crop，一个是skin，人脸分割结果是人脸皮肤或者人脸框
+    """
+    Get box, keypoints, and facial segmentation for a safe face region.
+
+    Args:
+        image (PIL.Image): Input image.
+        retinaface_result (list): Detection result from RetinaFace.
+        crop_ratio (float): Ratio to expand the cropped face region.
+        face_seg: Face segmentation model.
+        mask_type (str): Type of face segmentation, either 'crop' or 'skin', resulting in either facial skin or facial bounding box segmentation.
     
-    Outputs:
-        retinaface_box          扩增后相对于原图的box
-        retinaface_keypoints    相对于原图的keypoints
-        retinaface_mask_pil     人脸分割结果
-    '''
+    Returns:
+        tuple: A tuple containing:
+            - retinaface_box (tuple): Box coordinates relative to the original image after augmentation.
+            - retinaface_keypoints (list): Keypoints relative to the original image.
+            - retinaface_mask_pil (PIL.Image): Facial segmentation result as a PIL image.
+    """
+
     h, w, c = np.shape(image)
     if len(retinaface_result['boxes']) != 0:
-        # 获得retinaface的box并且做一手扩增
+        # safety expand retinadet box
         retinaface_box      = np.array(retinaface_result['boxes'][0])
         face_width          = retinaface_box[2] - retinaface_box[0]
         face_height         = retinaface_box[3] - retinaface_box[1]
@@ -31,11 +35,11 @@ def safe_get_box_mask_keypoints(image, retinaface_result, crop_ratio, face_seg, 
         retinaface_box[3]   = np.clip(np.array(retinaface_box[3], np.int32) + face_height * (crop_ratio - 1) / 2, 0, h - 1)
         retinaface_box      = np.array(retinaface_box, np.int32)
 
-        # 检测关键点
+        # detect for landmark
         retinaface_keypoints = np.reshape(retinaface_result['keypoints'][0], [5, 2])
         retinaface_keypoints = np.array(retinaface_keypoints, np.float32)
 
-        # mask部分
+        # mask 
         retinaface_crop     = image.crop(np.int32(retinaface_box))
         retinaface_mask     = np.zeros_like(np.array(image, np.uint8))
         if mask_type == "skin":
@@ -52,43 +56,42 @@ def safe_get_box_mask_keypoints(image, retinaface_result, crop_ratio, face_seg, 
         
     return retinaface_box, retinaface_keypoints, retinaface_mask_pil
 
-def crop_and_paste(Source_image, Source_image_mask, Target_image, Source_Five_Point, Target_Five_Point, Source_box):
-    '''
-    Inputs:
-        Source_image            原图像；
-        Source_image_mask       原图像人脸的mask比例；
-        Target_image            目标模板图像；
-        Source_Five_Point       原图像五个人脸关键点；
-        Target_Five_Point       目标图像五个人脸关键点；
-        Source_box              原图像人脸的坐标；
-    
-    Outputs:
-        output                  贴脸后的人像
-    '''
-    Source_Five_Point = np.reshape(Source_Five_Point, [5, 2]) - np.array(Source_box[:2])
-    Target_Five_Point = np.reshape(Target_Five_Point, [5, 2])
+def crop_and_paste(source_image, source_image_mask, target_image, source_five_point, target_five_point, source_box):
+    """
+    Crop and paste a face from the source image onto the target image.
 
-    Crop_Source_image                       = Source_image.crop(np.int32(Source_box))
-    Crop_Source_image_mask                  = Source_image_mask.crop(np.int32(Source_box))
-    Source_Five_Point, Target_Five_Point    = np.array(Source_Five_Point), np.array(Target_Five_Point)
+    Args:
+        source_image (PIL.Image): Original image.
+        source_image_mask (PIL.Image): Mask of the face in the original image.
+        target_image (PIL.Image): Target template image.
+        source_five_point (list): List of five facial keypoints of the source image.
+        target_five_point (list): List of five facial keypoints of the target image.
+        source_box (tuple): Coordinates of the face region in the source image.
+
+    Returns:
+        PIL.Image: Resultant image after face pasting.
+    """
+
+    source_five_point = np.reshape(source_five_point, [5, 2]) - np.array(source_box[:2])
+    target_five_point = np.reshape(target_five_point, [5, 2])
+
+    crop_source_image = source_image.crop(np.int32(source_box))
+    crop_source_image_mask = source_image_mask.crop(np.int32(source_box))
+    source_five_point, target_five_point = np.array(source_five_point), np.array(target_five_point)
 
     tform = transform.SimilarityTransform()
-    # 程序直接估算出转换矩阵M
-    tform.estimate(Source_Five_Point, Target_Five_Point)
+    tform.estimate(source_five_point, target_five_point)
     M = tform.params[0:2, :]
 
-    warped      = cv2.warpAffine(np.array(Crop_Source_image), M, np.shape(Target_image)[:2][::-1], borderValue=0.0)
-    warped_mask = cv2.warpAffine(np.array(Crop_Source_image_mask), M, np.shape(Target_image)[:2][::-1], borderValue=0.0)
+    warped = cv2.warpAffine(np.array(crop_source_image), M, np.shape(target_image)[:2][::-1], borderValue=0.0)
+    warped_mask = cv2.warpAffine(np.array(crop_source_image_mask), M, np.shape(target_image)[:2][::-1], borderValue=0.0)
 
-    mask        = np.float32(warped_mask == 0)
-    output      = mask * np.float32(Target_image) + (1 - mask) * np.float32(warped)
+    mask = np.float32(warped_mask == 0)
+    output = mask * np.float32(target_image) + (1 - mask) * np.float32(warped)
     return output
 
 def call_face_crop(retinaface_detection, image, crop_ratio, prefix="tmp"):
-    # retinaface检测部分
-    # 检测人脸框
     retinaface_result                                           = retinaface_detection(image) 
-    # 获取mask与关键点
     retinaface_box, retinaface_keypoints, retinaface_mask_pil   = safe_get_box_mask_keypoints(image, retinaface_result, crop_ratio, None, "crop")
 
     return retinaface_box, retinaface_keypoints, retinaface_mask_pil

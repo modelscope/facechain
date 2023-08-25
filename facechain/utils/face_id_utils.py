@@ -41,15 +41,24 @@ def post_face_get_emb(img_path, faceid_post_url='http://0.0.0.0:8005/test'):
 
 def eval_jpg_with_faceidremote(pivot_dir, test_img_dir, top_merge=10, faceid_post_url='http://0.0.0.0:8005/test'):
     """
-        pivot_dir       Reference real human images, pointing to a directory;
-        test_img_dir    Point to the generated validation images for training, image names follow the format xxxx_{step}_{indx}.jpg
-        top_merge       Select top_merge weights for merging, weights can be reused;
-        faceid_post_url Point to the URL address for post.
+    Evaluate images using remote face identification.
 
-        Function:
-        Obtain faceid features through post
-        Get the average feature of real human images, then based on the generated validation images, select top_merge weights for merging.
+    Args:
+        pivot_dir (str): Directory containing reference real human images.
+        test_img_dir (str): Directory pointing to generated validation images for training.
+            Image names follow the format xxxx_{step}_{indx}.jpg.
+        top_merge (int, optional): Number of top weights to select for merging. Defaults to 10.
+        faceid_post_url (str, optional): URL address for posting faceid data. Defaults to 'http://0.0.0.0:8005/test'.
+
+    Returns:
+        list: List of evaluated results.
+
+    Function:
+        - Obtain faceid features through a post request.
+        - Calculate the average feature of real human images.
+        - Select top_merge weights for merging based on generated validation images.
     """
+
     # Get the list of real human images
 
     face_image_list = glob(os.path.join(pivot_dir, '*.jpg')) + glob(os.path.join(pivot_dir, '*.JPG')) + \
@@ -100,14 +109,23 @@ def eval_jpg_with_faceidremote(pivot_dir, test_img_dir, top_merge=10, faceid_pos
 
 def eval_jpg_with_faceid(pivot_dir, test_img_dir, top_merge=10):
     """
-        pivot_dir       Reference real human images, pointing to a directory;
-        test_img_dir    Point to the generated validation images for training, image names follow the format xxxx_{step}_{indx}.jpg
-        top_merge       Select top_merge weights for merging, weights can be reused;
+    Evaluate images using local face identification.
 
-        Function:
-        Obtain faceid features locally
-        Get the average feature of real human images, then based on the generated validation images, select top_merge weights for merging.
+    Args:
+        pivot_dir (str): Directory containing reference real human images.
+        test_img_dir (str): Directory pointing to generated validation images for training.
+            Image names follow the format xxxx_{step}_{indx}.jpg.
+        top_merge (int, optional): Number of top weights to select for merging. Defaults to 10.
+
+    Returns:
+        list: List of evaluated results.
+
+    Function:
+        - Obtain faceid features locally.
+        - Calculate the average feature of real human images.
+        - Select top_merge weights for merging based on generated validation images.
     """
+
     # Create a face_recognition model
 
     face_recognition    = pipeline(Tasks.face_recognition, model='damo/cv_ir101_facerecognition_cfglint')
@@ -153,9 +171,7 @@ def eval_jpg_with_faceid(pivot_dir, test_img_dir, top_merge=10):
 
     # pick most similar using faceid
     t_result_list = [i[1] for i in result_list][:top_merge]
-    # i[1].split('_')[-2]代表的是第n步
     tlist   = [i[1].split('_')[-2] for i in result_list][:top_merge]
-    # i[0]代表的是第n步的得分
     scores  = [i[0] for i in result_list][:top_merge]
     return t_result_list, tlist, scores
 

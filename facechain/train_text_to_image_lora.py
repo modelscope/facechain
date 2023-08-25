@@ -135,14 +135,29 @@ def get_rot(image):
     else:
         return image
 
-#-------------------------------- Function Description --------------------------------
-#log_validation: Validation function during training:
-#If template_dir exists, generate ID photo templates based on controlnet;
-#If template_dir doesn't exist, generate randomly based on validation prompts.
-#Image files are saved in the validation folder, and results are logged in TensorBoard or WandB.
-#-------------------------------- Function Description --------------------------------
 
 def log_validation(model_dir, vae, text_encoder, tokenizer, unet, args, accelerator, weight_dtype, epoch, global_step, **kwargs):
+    """
+    This function, `log_validation`, serves as a validation step during training. 
+    It generates ID photo templates using controlnet if `template_dir` exists, otherwise, it creates random templates based on validation prompts. 
+    The resulting images are saved in the validation folder and logged in either TensorBoard or WandB.
+
+    Args:
+        model_dir (str): Directory path of the model.
+        vae: Variational Autoencoder model.
+        text_encoder: Text encoder model.
+        tokenizer: Tokenizer for text data.
+        unet: UNet model.
+        args: Command line arguments.
+        accelerator: Training accelerator.
+        weight_dtype: Data type for model weights.
+        epoch (int): Current training epoch.
+        global_step (int): Current global training step.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        None
+    """
     # When template_dir doesn't exist, generate randomly based on validation prompts.
     pipeline = StableDiffusionInpaintPipeline.from_pretrained(
         model_dir,
@@ -1036,7 +1051,6 @@ def main():
         input_images_shape  = []
         control_images      = []
         input_masks         = []
-        # 人脸检测
         retinaface_detection = modelscope_pipeline(Tasks.face_detection, 'damo/cv_resnet50_face-detection_retinaface')
         jpgs                = os.listdir(args.template_dir)
         for jpg in jpgs:
