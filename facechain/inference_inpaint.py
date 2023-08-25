@@ -195,7 +195,7 @@ class GenPortraitInpaint:
 
 
     def __call__(self, base_model_path, lora_model_path, instance_data_dir,
-                 input_template_list, cache_model_dir, roop_image_num=2,
+                 input_template_list, cache_model_dir, select_face_num=2,
                  first_controlnet_strength=0.45, second_controlnet_strength=0.1, final_fusion_ratio=0.5,
                  use_fusion_before=True, use_fusion_after=True,
                  first_controlnet_conditioning_scale=[0.5, 0.3], second_controlnet_conditioning_scale=[0.75, 0.75]):
@@ -222,6 +222,7 @@ class GenPortraitInpaint:
             final_res (list): List of generated images.
         """
         print(f'lora_model_path            :', lora_model_path)
+        print(f'select_face_num            :', select_face_num)
         print(f'first_controlnet_strength  :', first_controlnet_strength)
         print(f'second_controlnet_strength :', second_controlnet_strength)
         print(f'final_fusion_ratio         :', final_fusion_ratio)
@@ -233,11 +234,11 @@ class GenPortraitInpaint:
         reference_dir = str(instance_data_dir) + '_ensemble'
         if os.path.exists(reference_dir):
             face_id_image_path = glob(os.path.join(train_dir, 'face_id.jpg'))[0]
-            input_roop_image_list = glob(os.path.join(train_dir, 'best_roop_image_*.jpg'))[:roop_image_num] # debug for 2
+            input_roop_image_list = glob(os.path.join(train_dir, 'best_roop_image_*.jpg'))[:select_face_num] # debug for 2
         else:
             reference_dir = str(instance_data_dir) + '_labeled'
             face_id_image_path = glob(os.path.join(train_dir, '*.png'))[0]
-            input_roop_image_list = glob(os.path.join(train_dir, '*.png'))[:roop_image_num] # debug for 2
+            input_roop_image_list = glob(os.path.join(train_dir, '*.png'))[:select_face_num] # debug for 2
 
         
         # setting prompt with original FaceChain training prompt engineering

@@ -229,7 +229,7 @@ def launch_pipeline_inpaint(uuid,
     base_model_path = os.path.join('/mnt/workspace/.cache/modelscope/', base_model, 'realistic')
 
     future = inference_threadpool.submit(gen_portrait_inpaint, base_model_path, lora_model_path, instance_data_dir,\
-                                        selected_template_images, cache_model_dir, first_control_weight, \
+                                        selected_template_images, cache_model_dir,select_face_num, first_control_weight, \
                                         second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after)
 
     while not future.done():
