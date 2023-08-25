@@ -82,53 +82,6 @@ def concatenate_images(images):
 
 def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
 
-    if 0:
-        train_dir = str(output_img_dir) + '_labeled'
-        add_prompt_style = []
-        f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')
-        tags_all = []
-        cnt = 0
-        cnts_trigger = np.zeros(6)
-        for line in f:
-            cnt += 1
-            data = json.loads(line)['text'].split(', ')
-            tags_all.extend(data)
-            if data[1] == 'a boy':
-                cnts_trigger[0] += 1
-            elif data[1] == 'a girl':
-                cnts_trigger[1] += 1
-            elif data[1] == 'a handsome man':
-                cnts_trigger[2] += 1
-            elif data[1] == 'a beautiful woman':
-                cnts_trigger[3] += 1
-            elif data[1] == 'a mature man':
-                cnts_trigger[4] += 1
-            elif data[1] == 'a mature woman':
-                cnts_trigger[5] += 1
-            else:
-                print('Error.')
-        f.close()
-
-        attr_idx = np.argmax(cnts_trigger)
-        trigger_styles = ['a boy, children, ', 'a girl, children, ', 'a handsome man, ', 'a beautiful woman, ',
-                        'a mature man, ', 'a mature woman, ']
-        trigger_style = '<sks>, ' + trigger_styles[attr_idx]
-
-        if attr_idx == 2 or attr_idx == 4:
-            neg_prompt += ', children'
-
-        for tag in tags_all:
-            if tags_all.count(tag) > 0.5 * cnt:
-                if ('hair' in tag or 'face' in tag or 'mouth' in tag or 'skin' in tag or 'smile' in tag):
-                    if not tag in add_prompt_style:
-                        add_prompt_style.append(tag)
-
-        if len(add_prompt_style) > 0:
-            add_prompt_style = ", ".join(add_prompt_style) + ', '
-        else:
-            add_prompt_style = ''
-        validation_prompt = trigger_style + add_prompt_style
-
     validation_prompt, _ = get_popular_prompts(output_img_dir)
     torch.cuda.empty_cache()
     os.system(
