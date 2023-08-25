@@ -191,9 +191,9 @@ def launch_pipeline(uuid,
     use_post_process = True
     use_stylization = False
 
-    output_model_name = 'personalization_lora/'
+    output_model_name = 'personalization_lora'
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
-    lora_model_path = f'/tmp/{uuid}/{output_model_name}/'
+    lora_model_path = f'/tmp/{uuid}/{output_model_name}'
     num_images = min(6, num_images)
     
     gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
@@ -255,7 +255,7 @@ def launch_pipeline_inpaint(uuid,
     gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
     # TODO this cache_model_dir & base_model_path should fix with snapshot_download
     cache_model_dir = '/mnt/zhoulou.wzh/AIGC/model_data/'
-    base_model_path = os.path.join('/mnt/workspace/.cache/modelscope/', base_model, 'realistic')
+    base_model_path = os.path.join('/mnt/workspace/.cache/modelscope/', base_model, 'film/film')
 
     future = inference_threadpool.submit(gen_portrait_inpaint, base_model_path, lora_model_path, instance_data_dir,\
                                         selected_template_images, cache_model_dir,select_face_num, first_control_weight, \

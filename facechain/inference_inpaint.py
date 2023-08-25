@@ -167,7 +167,7 @@ def build_pipeline_facechain(baseline_model_path, lora_model_path, cache_model_d
         torch_dtype=weight_dtype,
     ).to("cuda")
     # Merge LoRA into pipeline
-    pipe = merge_lora(pipeline, lora_model_path, 1.0, from_safetensor=from_safetensor)
+    pipe = merge_lora(pipeline, lora_model_path, 0.9, from_safetensor=from_safetensor)
 
     # to fit some env lack of xformers
     try:
@@ -243,7 +243,8 @@ class GenPortraitInpaint:
 
         
         # setting prompt with original FaceChain training prompt engineering
-        pos_prompt = 'Generate a standard photo of a chinese , beautiful smooth face, smile, high detail face, best quality,' + paiya_default_positive
+        # pos_prompt = 'Generate a standard photo of a chinese , beautiful smooth face, smile, high detail face, best quality,' + paiya_default_positive
+        pos_prompt = ''
         neg_prompt = paiya_default_negative
 
         add_prompt_style = ''
@@ -299,6 +300,7 @@ class GenPortraitInpaint:
 
         input_prompt = add_prompt_style + trigger_style  + paiya_default_positive
         
+        print("debug : ", input_prompt)
         # build inpaint pipeline && some other pilot pipeline
         sd_inpaint_pipeline, generator = build_pipeline_facechain(
             base_model_path, lora_model_path, cache_model_dir, from_safetensor=lora_model_path.endswith('safetensors')

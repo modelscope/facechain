@@ -123,9 +123,8 @@ def main_model_inference(pos_prompt, neg_prompt, style_model_path, multiplier_st
                                         **multiplier_style_kwargs)
 
 
-def select_high_quality_face(input_img_dir, use_paiya):
+def select_high_quality_face(input_img_dir):
     input_img_dir = str(input_img_dir) + '_labeled'
-
     quality_score_list = []
     abs_img_path_list = []
     ## TODO
@@ -135,7 +134,7 @@ def select_high_quality_face(input_img_dir, use_paiya):
         if img_name.endswith('jsonl') or img_name.startswith('.ipynb') or img_name.startswith('.safetensors'):
             continue
         
-        if img_name.endswith('jpg'):
+        if img_name.endswith('jpg') or img_name.endswith('png'):
             abs_img_name = os.path.join(input_img_dir, img_name)
             face_quality_score = face_quality_func(abs_img_name)[OutputKeys.SCORES]
             if face_quality_score is None:
@@ -228,15 +227,21 @@ class GenPortrait:
 
 
 
-        # select_high_quality_face PIL
-        selected_face = select_high_quality_face(input_img_dir,)
-        # face_swap cv2
-        swap_results = face_swap_fn(self.use_face_swap, gen_results, selected_face)
-        # pose_process
-        rank_results = post_process_fn(self.use_post_process, swap_results, selected_face,
-                                       num_gen_images=num_gen_images)
-        # stylization
-        final_gen_results = stylization_fn(self.use_stylization, rank_results)
+        if 1:
+            # select_high_quality_face PIL
+            selected_face = select_high_quality_face(input_img_dir)
+            # face_swap cv2
+            swap_results = face_swap_fn(self.use_face_swap, gen_results, selected_face)
+            # pose_process
+            rank_results = post_process_fn(self.use_post_process, swap_results, selected_face,
+                                        num_gen_images=num_gen_images)
+            # stylization
+            final_gen_results = stylization_fn(self.use_stylization, rank_results)
+        
+        if 0:
+            final_gen_results = []
+            for img in gen_results:
+                final_gen_results.append(cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR))
 
         return final_gen_results
 
