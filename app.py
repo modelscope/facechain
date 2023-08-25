@@ -164,22 +164,15 @@ def launch_pipeline(uuid,
 
     output_model_name = 'personalizaition_lora'
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
-    lora_model_path = f'/tmp/{uuid}/{output_model_name}'
+    lora_model_path = f'/tmp/{uuid}/{output_model_name}/'
     num_images = min(6, num_images)
     
-    # paiya debug, use paiya face lora to replace original inference
-    if use_paiya:
-        instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora', 'best_outputs')
-        lora_model_path =  os.path.join(instance_data_dir, 'personalizaition_lora.safetensors')
-        if not os.path.exists(lora_model_path):
-            raise gr.Error('不存在EnableInpaint=True训练出来的任务模型, 请关闭EnableInpaint')
-
     gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                             use_face_swap, use_post_process,
                             use_stylization)
 
     future = inference_threadpool.submit(gen_portrait, instance_data_dir,
-                                         num_images, base_model, lora_model_path, 'realistic/', 'v2.0', use_paiya)
+                                         num_images, base_model, lora_model_path, 'film/film', 'v2.0', use_paiya)
 
     while not future.done():
         is_processing = future.running()
@@ -226,14 +219,9 @@ def launch_pipeline_inpaint(uuid,
     
     output_model_name = 'personalization_lora'
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
-    # lora_model_path = f'/tmp/{uuid}/{output_model_name}/ensemble.safetensors'
-    lora_model_path = f'/tmp/{uuid}/{output_model_name}'
-
-    # instance_data_dir = os.path.join('/tmp', uuid, 'personalizaition_lora',)
-    # lora_model_path = os.path.join(instance_data_dir, 'ensemble.bin')
-    # input_prompt = f"zhoumo_face, zhoumo," + append_pos_prompt + ','
-    # face_id_image = os.path.join(instance_data_dir, 'face_id.jpg')
-    # selected_roop_images = [os.path.join(instance_data_dir, f'best_roop_image_{idx}.jpg') for idx in range(select_face_num)]
+    lora_model_path = f'/tmp/{uuid}/{output_model_name}/ensemble/'
+    if not os.path.exists(lora_model_path):
+        lora_model_path = f'/tmp/{uuid}/{output_model_name}/'
 
     gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
     # TODO this cache_model_dir & base_model_path should fix with snapshot_download

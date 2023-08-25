@@ -195,7 +195,7 @@ class GenPortraitInpaint:
 
 
     def __call__(self, base_model_path, lora_model_path, instance_data_dir,
-                 input_template_list, cache_model_dir,
+                 input_template_list, cache_model_dir, roop_image_num=2,
                  first_controlnet_strength=0.45, second_controlnet_strength=0.1, final_fusion_ratio=0.5,
                  use_fusion_before=True, use_fusion_after=True,
                  first_controlnet_conditioning_scale=[0.5, 0.3], second_controlnet_conditioning_scale=[0.75, 0.75]):
@@ -228,20 +228,27 @@ class GenPortraitInpaint:
         print(f'use_fusion_before          :', use_fusion_before)
         print(f'use_fusion_after           :', use_fusion_after)
 
-        pos_prompt = 'Generate a standard photo of a chinese , beautiful smooth face, smile, high detail face, best quality, photorealistic' + paiya_default_positive
+
+        # setting inpaint used faceid image & roop image with preprocessed output in xx_ensemble dir, if not exists fallback to original FC traindata dir
+        reference_dir = str(instance_data_dir) + '_ensemble'
+        if os.path.exists(reference_dir):
+            face_id_image_path = glob(os.path.join(train_dir, 'face_id.jpg'))[0]
+            input_roop_image_list = glob(os.path.join(train_dir, 'best_roop_image_*.jpg'))[:roop_image_num] # debug for 2
+        else:
+            reference_dir = str(instance_data_dir) + '_labeled'
+            face_id_image_path = glob(os.path.join(train_dir, '*.png'))[0]
+            input_roop_image_list = glob(os.path.join(train_dir, '*.png'))[:roop_image_num] # debug for 2
+
+        
+        # setting prompt with original FaceChain training prompt engineering
+        pos_prompt = 'Generate a standard photo of a chinese , beautiful smooth face, smile, high detail face, best quality,' + paiya_default_positive
         neg_prompt = paiya_default_negative
 
-        # facechain original lora prompt engineering
-        train_dir = str(instance_data_dir) + '_labeled'
-        print('debug :', train_dir)
-        # face_id_image_path = os.path.join(train_dir, 'faceid.jpg')
-        # input_roop_image_list = glob(os.path.join(train_dir, '*.png'))[:2] # debug for 2
-        face_id_image_path = glob(os.path.join(train_dir, '*.png'))[0]
-        input_roop_image_list = glob(os.path.join(train_dir, '*.png'))[:2] # debug for 2
         add_prompt_style = ''
         trigger_style = '<sks>'
+
         if 1: 
-            # train_dir = str(input_img_dir) + '_labeled'
+            train_dir = str(instance_data_dir) + '_labeled'
             add_prompt_style = []
             f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')
             tags_all = []
@@ -290,7 +297,7 @@ class GenPortraitInpaint:
 
         input_prompt = add_prompt_style + trigger_style  + paiya_default_positive
         
-        # build pipeline
+        # build inpaint pipeline && some other pilot pipeline
         sd_inpaint_pipeline, generator = build_pipeline_facechain(
             base_model_path, lora_model_path, cache_model_dir, from_safetensor=lora_model_path.endswith('safetensors')
         )    
@@ -299,6 +306,7 @@ class GenPortraitInpaint:
         self.openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet", cache_dir=os.path.join(cache_model_dir, "controlnet_detector"))
         face_id_image = Image.open(face_id_image_path) 
 
+        # generate in roop
         final_res = []
         for roop_idx, input_roop_image in enumerate(input_roop_image_list):
             for template_idx, input_template in enumerate(input_template_list):
