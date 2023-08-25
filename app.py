@@ -27,6 +27,13 @@ HOT_MODELS = [
     "\N{fire}数字身份(Digital Identity)",
 ]
 
+is_spaces = True if "SPACE_ID" in os.environ else False
+if is_spaces:
+    is_shared_ui = True if "modelscope/facechain" in os.environ['SPACE_ID'] else False
+else:
+    is_shared_ui = False
+is_gpu_associated = torch.cuda.is_available()
+
 
 class UploadTarget(enum.Enum):
     PERSONAL_PROFILE = 'Personal Profile'
@@ -333,6 +340,37 @@ def inference_input(uuid):
 
 
 with gr.Blocks(css='style.css') as demo:
+    with gr.Box():
+        if is_shared_ui:
+            top_description = gr.HTML(f'''
+                <div class="gr-prose" style="max-width: 80%">
+                <p>If the waiting queue is too long, you can either run locally or duplicate the Space and run it on your own profile using a (paid) private A10G-large GPU for training. A A10G-large costs US$3.15/h. &nbsp;&nbsp;<a class="duplicate-button" style="display:inline-block" target="_blank" href="https://huggingface.co/spaces/{os.environ['SPACE_ID']}?duplicate=true"><img src="https://img.shields.io/badge/-Duplicate%20Space-blue?labelColor=white&style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAP5JREFUOE+lk7FqAkEURY+ltunEgFXS2sZGIbXfEPdLlnxJyDdYB62sbbUKpLbVNhyYFzbrrA74YJlh9r079973psed0cvUD4A+4HoCjsA85X0Dfn/RBLBgBDxnQPfAEJgBY+A9gALA4tcbamSzS4xq4FOQAJgCDwV2CPKV8tZAJcAjMMkUe1vX+U+SMhfAJEHasQIWmXNN3abzDwHUrgcRGmYcgKe0bxrblHEB4E/pndMazNpSZGcsZdBlYJcEL9Afo75molJyM2FxmPgmgPqlWNLGfwZGG6UiyEvLzHYDmoPkDDiNm9JR9uboiONcBXrpY1qmgs21x1QwyZcpvxt9NS09PlsPAAAAAElFTkSuQmCC&logoWidth=14" alt="Duplicate Space"></a></p>
+                <img class="instruction" src="file=duplicate.png"> 
+                <img class="arrow" src="file=arrow.png" />
+                </div>
+            ''')
+        elif is_spaces:
+            if is_gpu_associated:
+                top_description = gr.HTML(f'''
+                                <div class="gr-prose" style="max-width: 80%">
+                                <h2>You have successfully associated a GPU to the FaceChain Space 🎉</h2>
+                                <p>You can now train your model! You will be billed by the minute from when you activated the GPU until when it is turned it off.</p> 
+                                </div>
+                        ''')
+            else:
+                top_description = gr.HTML(f'''
+                                <div class="gr-prose" style="max-width: 80%">
+                                <h2>You have successfully duplicated the FaceChain Space 🎉</h2>
+                                <p>There's only one step left before you can train your model: <a href="https://huggingface.co/spaces/{os.environ['SPACE_ID']}/settings" style="text-decoration: underline" target="_blank">attribute a <b>A10G-large GPU</b> to it (via the Settings tab)</a> and run the training below. You will be billed by the minute from when you activate the GPU until when it is turned it off.</p> 
+                                </div>
+                        ''')
+        else:
+            top_description = gr.HTML(f'''
+                            <div class="gr-prose" style="max-width: 80%">
+                            <h2>You have successfully cloned the FaceChain Space locally 🎉</h2>
+                            <p>Do a <code>pip install requirements.txt</code></p> 
+                            </div>
+                        ''')
     uuid = gr.State([])
     with gr.Tabs():
         with gr.TabItem('\N{rocket}形象定制(Train)'):
