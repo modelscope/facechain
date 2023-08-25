@@ -133,7 +133,6 @@ def launch_pipeline(uuid,
                     num_images=1,
                     style_model=None,
                     multiplier_style=0.25,
-                    use_paiya=True
                     ):
     base_model = 'ly261666/cv_portrait_model'
     before_queue_size = inference_threadpool._work_queue.qsize()
@@ -172,7 +171,7 @@ def launch_pipeline(uuid,
                             use_stylization)
 
     future = inference_threadpool.submit(gen_portrait, instance_data_dir,
-                                         num_images, base_model, lora_model_path, 'film/film', 'v2.0', use_paiya)
+                                         num_images, base_model, lora_model_path, 'film/film', 'v2.0')
 
     while not future.done():
         is_processing = future.running()
@@ -479,10 +478,7 @@ def inference_input():
                     Note: You may generate a maximum of 6 photos at one time!
                     ''')
         
-        use_paiya = gr.Radio(
-            label="Enable Inpaint : should Openit when train with Enable Inpaint=True", type="value", choices=[True, False],
-            value=True
-        ) 
+
         display_button = gr.Button('Start Generation')
         
         with gr.Box():
@@ -504,7 +500,7 @@ def inference_input():
 
         display_button.click(
             fn=launch_pipeline,
-            inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style, use_paiya],
+            inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style],
             outputs=[infer_progress, output_images]
         )
         
