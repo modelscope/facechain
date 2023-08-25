@@ -254,20 +254,20 @@ class Trainer:
     ) -> str:
         # Check Cuda
         if not torch.cuda.is_available():
-            raise gr.Error('CUDA不可用。')
+            raise gr.Error('CUDA不可用(CUDA not available)')
 
         # Check Instance Valid
         if instance_images is None:
-            raise gr.Error('请上传训练图片！')
+            raise gr.Error('请上传训练图片!(Please Upload Training Images)')
 
         # Limit input Image
         if len(instance_images) > 20:
-            raise gr.Error('请最多上传20张训练图片！')
+            raise gr.Error('请最多上传20张训练图片(20 images most!)')
 
         # Check UUID & Studio
         if not uuid:
             if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-                return "请先登录！"
+                return "请先登录!(Please login first)"
             else:
                 uuid = 'qw'
 
@@ -293,7 +293,7 @@ class Trainer:
                     output_img_dir=instance_data_dir,
                     work_dir=work_dir)
 
-        message = '训练完成！切换到 [形象体验] 标签体验模型效果。'
+        message = '训练完成！切换到 [形象体验] 标签体验模型效果。(Training complete! Switch to the [Visual Experience] tab to see the models performance.)'
         print(message)
         return message
 
