@@ -16,7 +16,6 @@ from modelscope import snapshot_download
 from facechain.inference import GenPortrait
 from facechain.inference_inpaint import GenPortraitInpaint
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
-from facechain.train_text_to_image_paiya import prepare_dataset_paiya
 from facechain.data_process.preprocessing import get_popular_prompts
 from facechain.constants import (
     neg_prompt,
@@ -215,12 +214,10 @@ def launch_pipeline_inpaint(uuid,
     gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
     
     # TODO this cache_model_dir & base_model_path should fix with snapshot_download
-    cache_model_dir = '/mnt/zhoulou.wzh/AIGC/model_data/'
-    base_model_path = os.path.join('/mnt/workspace/.cache/modelscope/', base_model, 'film/film')
-
-    future = inference_threadpool.submit(gen_portrait_inpaint, base_model_path, lora_model_path, instance_data_dir,\
-                                        selected_template_images, cache_model_dir,select_face_num, first_control_weight, \
-                                        second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after)
+    cache_model_dir = snapshot_download("bubbliiiing/controlnet_helper", revision="v2.2") # '/mnt/zhoulou.wzh/AIGC/model_data/'
+    future = inference_threadpool.submit(gen_portrait_inpaint, base_model, lora_model_path, instance_data_dir,\
+                                        selected_template_images, cache_model_dir, select_face_num, first_control_weight, \
+                                        second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after, sub_path='film/film', revision='v2.0')
 
     while not future.done():
         is_processing = future.running()
@@ -476,6 +473,7 @@ def inference_input():
 
 # Define preset template paths
 preset_template = [
+    # photos will be add to here when inpaint is ready
     'resources/paiya_template/0.jpg',
     'resources/paiya_template/1.jpg',
     'resources/paiya_template/2.jpg',
@@ -568,6 +566,7 @@ with gr.Blocks(css='style.css') as demo:
             train_input()
         with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input()
+        # inpaint not display now
         with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
             inference_inpaint()
 

@@ -212,6 +212,33 @@ def log_validation(model_dir, vae, text_encoder, tokenizer, unet, args, accelera
     torch.cuda.empty_cache()
     vae.to(accelerator.device, dtype=weight_dtype)
 
+def merge_from_name_and_index(name, index_list, output_dir='output_dir/'):
+    loras_load_path = [os.path.join(output_dir, f'checkpoint-{i}/pytorch_model.bin') for i in index_list]
+    os.mkdir(os.path.join(output_dir, 'ensemble'))
+    lora_save_path  = os.path.join(output_dir, 'ensemble', f'{name}.bin')
+    for l in loras_load_path:
+        # print('fuck : ', l)
+        assert os.path.exists(l)==True
+    merge_different_loras(loras_load_path, lora_save_path)
+    return lora_save_path
+
+def merge_different_loras(loras_load_path, lora_save_path, ratios=None):
+    if ratios is None:
+        ratios = [1 / float(len(loras_load_path)) for _ in loras_load_path]
+
+    state_dict = {}
+    for lora_load, ratio in zip(loras_load_path, ratios):
+        weights_sd = torch.load(lora_load, map_location="cpu")
+
+        for key in weights_sd.keys():
+            if key not in state_dict.keys():
+                state_dict[key] = weights_sd[key] * ratio
+            else:
+                state_dict[key] += weights_sd[key] * ratio
+
+        torch.save(state_dict, lora_save_path)
+    return 
+
 def prepare_dataset(instance_images: list, output_dataset_dir):
     if not os.path.exists(output_dataset_dir):
         os.makedirs(output_dataset_dir)
@@ -595,7 +622,6 @@ DATASET_NAME_MAPPING = {
 
 
 def main():
-    from utils import lora_utils as network_module
     from utils.face_process_utils import call_face_crop
     from utils.face_id_utils import eval_jpg_with_faceid
 
@@ -1216,7 +1242,7 @@ def main():
                 print(f"Top-{str(index)}: {str(line)}")
                 logger.info(f"Top-{str(index)}: {str(line)}")
             
-            lora_save_path = network_module.merge_from_name_and_index("pytorch_model_weights", tlist, output_dir=args.output_dir)
+            lora_save_path = merge_from_name_and_index("pytorch_lora_weights", tlist, output_dir=args.output_dir)
             logger.info(f"Save Best Merged Loras To:{lora_save_path}.")
 
             best_outputs_dir = os.path.join(args.output_dir, "ensemble")

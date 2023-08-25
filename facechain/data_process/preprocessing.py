@@ -258,6 +258,56 @@ def compare_jpg_with_face_id(embedding_list):
     scores = [np.dot(emb, pivot_feature)[0][0] for emb in embedding_list]
     return scores
 
+def most_similar_faces_pick(imdir, face_detection, face_recognition, face_quality_func):
+    # ---------------------------calculate faceid best jpgs -------------------------- #
+    imlist = os.listdir(imdir)
+
+    face_id_scores  = []
+    quality_scores  = []
+    face_angles     = []
+    selected_paths  = []
+    for index, jpg in enumerate(tqdm(imlist)):
+        try:
+            if not jpg.lower().endswith(('.bmp', '.dib', '.png', '.jpg', '.jpeg', '.pbm', '.pgm', '.ppm', '.tif', '.tiff')):
+                continue
+            img_path = os.path.join(imdir, jpg)
+            image       = Image.open(img_path)
+            h, w, c     = np.shape(image)
+
+            retinaface_box, retinaface_keypoint, _ = call_face_crop(face_detection, image, 3, prefix="tmp")
+            retinaface_keypoint = np.reshape(retinaface_keypoint, [5, 2])
+            # caclculate angle
+            x = retinaface_keypoint[0,0] - retinaface_keypoint[1,0]
+            y = retinaface_keypoint[0,1] - retinaface_keypoint[1,1]
+            angle = 0 if x==0 else abs(math.atan(y/x)*180/math.pi)
+            angle = (90 - angle)/ 90 
+
+            # face width
+            face_width  = (retinaface_box[2] - retinaface_box[0]) / (3 - 1)
+            face_height = (retinaface_box[3] - retinaface_box[1]) / (3 - 1)
+            if face_width / w < 1/8 or face_height / h < 1/8:
+                continue
+
+            sub_image = image.crop(retinaface_box)
+
+            embedding   = np.array(face_recognition(sub_image)[OutputKeys.IMG_EMBEDDING])
+            score       = face_quality_func(sub_image)[OutputKeys.SCORES]
+            score       = 0 if score is None else score[0]
+
+            face_id_scores.append(embedding)
+            quality_scores.append(score)
+            face_angles.append(angle)
+            selected_paths.append(jpg)
+        except:
+            print(jpg, "is error skip")
+
+    # sort all scores with muliply
+    face_id_scores      = compare_jpg_with_face_id(face_id_scores)
+    ref_total_scores    = np.array(face_id_scores) * np.array(quality_scores) * np.array(face_angles)
+    ref_indexes         = np.argsort(ref_total_scores)[::-1]
+
+    return ref_total_scores, ref_indexes, selected_paths
+
 class Blipv2():
     def __init__(self):
         self.model = DeepDanbooru()
@@ -280,70 +330,25 @@ class Blipv2():
         savedir = str(imdir) + '_labeled'
         ensembledir = str(imdir) + '_ensemble'
         shutil.rmtree(savedir, ignore_errors=True)
-        os.makedirs(savedir, exist_ok=True)
         shutil.rmtree(ensembledir, ignore_errors=True)
+        os.makedirs(savedir, exist_ok=True)
         os.makedirs(ensembledir, exist_ok=True)
 
-        imlist = os.listdir(imdir)
         result_list = []
         imgs_list = []
+
+        ref_total_scores, ref_indexes, selected_paths = most_similar_faces_pick(imdir, self.face_detection, self.face_recognition, self.face_quality_func)
+
+        # select top-15 photos for training
+        _selected_paths = []
+        for index in ref_indexes[:15]:
+            _selected_paths.append(selected_paths[index])
+            print("selected paths:", selected_paths[index], "total scores: ", ref_total_scores[index])
         
-        # ---------------------------calculate faceid best jpgs -------------------------- #
-        face_id_scores  = []
-        quality_scores  = []
-        face_angles     = []
-        selected_paths  = []
-        for index, jpg in enumerate(tqdm(imlist)):
-            if not jpg.lower().endswith(('.bmp', '.dib', '.png', '.jpg', '.jpeg', '.pbm', '.pgm', '.ppm', '.tif', '.tiff')):
-                continue
-            img_path = os.path.join(imdir, jpg)
-            image       = Image.open(img_path)
-            h, w, c     = np.shape(image)
-
-            retinaface_box, retinaface_keypoint, _ = call_face_crop(self.face_detection, image, 3, prefix="tmp")
-            retinaface_keypoint = np.reshape(retinaface_keypoint, [5, 2])
-            # caclculate angle
-            x = retinaface_keypoint[0,0] - retinaface_keypoint[1,0]
-            y = retinaface_keypoint[0,1] - retinaface_keypoint[1,1]
-            angle = 0 if x==0 else abs(math.atan(y/x)*180/math.pi)
-            angle = (90 - angle)/ 90 
-
-            # face width
-            face_width  = (retinaface_box[2] - retinaface_box[0]) / (3 - 1)
-            face_height = (retinaface_box[3] - retinaface_box[1]) / (3 - 1)
-            if face_width / w < 1/8 or face_height / h < 1/8:
-                continue
-
-            sub_image = image.crop(retinaface_box)
-
-            embedding   = np.array(self.face_recognition(sub_image)[OutputKeys.IMG_EMBEDDING])
-            score       = self.face_quality_func(sub_image)[OutputKeys.SCORES]
-            score       = 0 if score is None else score[0]
-
-            face_id_scores.append(embedding)
-            quality_scores.append(score)
-            face_angles.append(angle)
-
-            selected_paths.append(jpg)
-
-        # sort all scores with muliply
-        face_id_scores      = compare_jpg_with_face_id(face_id_scores)
-        ref_total_scores    = np.array(face_id_scores) * np.array(quality_scores) * np.array(face_angles)
-        ref_indexes         = np.argsort(ref_total_scores)[::-1]
-        for index in ref_indexes:
-            print("selected paths:", selected_paths[index], "total scores: ", ref_total_scores[index], "face id score", face_id_scores[index], "face angles", face_angles[index])
+        # copy to the ensembledir for reading
         for i, index in enumerate(ref_indexes[:4]):
             save_path = os.path.join(ensembledir, f"best_roop_image_{str(i)}.jpg")
             os.system(f"cp -rf {os.path.join(imdir, selected_paths[index])} {save_path}")
-
-       
-        total_scores    = np.array(face_id_scores)
-        indexes         = np.argsort(total_scores)[::-1][:15]
-
-        _selected_paths = []
-        for index in indexes:
-            _selected_paths.append(selected_paths[index])
-            print("jpg:", selected_paths[index], "face_id_scores", face_id_scores[index])
 
         cnt = 0
         tmp_path = os.path.join(savedir, 'tmp.png')

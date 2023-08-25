@@ -16,6 +16,7 @@ from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
 from modelscope.preprocessors import LoadImage
 from modelscope.utils.constant import Tasks
+from modelscope import snapshot_download
 from diffusers import (
     ControlNetModel,
     DPMSolverMultistepScheduler,
@@ -155,10 +156,8 @@ def build_pipeline_facechain(baseline_model_path, lora_model_path, cache_model_d
 
     # Build ControlNet
     controlnet = [
-        ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-openpose", torch_dtype=weight_dtype, \
-            cache_dir=os.path.join(cache_model_dir, "controlnet")),
-        ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-canny", torch_dtype=weight_dtype, \
-            cache_dir=os.path.join(cache_model_dir, "controlnet")),
+        ControlNetModel.from_pretrained(os.path.join(cache_model_dir, "controlnet", "sd-controlnet-openpose"), torch_dtype=weight_dtype),
+        ControlNetModel.from_pretrained(os.path.join(cache_model_dir, "controlnet", "sd-controlnet-canny"), torch_dtype=weight_dtype),
     ]
 
     # Build SDInpaint Pipeline
@@ -199,7 +198,8 @@ class GenPortraitInpaint:
                  input_template_list, cache_model_dir, select_face_num=2,
                  first_controlnet_strength=0.45, second_controlnet_strength=0.1, final_fusion_ratio=0.5,
                  use_fusion_before=True, use_fusion_after=True,
-                 first_controlnet_conditioning_scale=[0.5, 0.3], second_controlnet_conditioning_scale=[0.75, 0.75]):
+                 first_controlnet_conditioning_scale=[0.5, 0.3], 
+                 sub_path=None, revision=None):
         """
         Generate portrait inpaintings.
 
@@ -222,6 +222,9 @@ class GenPortraitInpaint:
         Returns:
             final_res (list): List of generated images.
         """
+        base_model_path = snapshot_download(base_model_path, revision=revision)
+        if sub_path is not None and len(sub_path) > 0:
+            base_model_path = os.path.join(base_model_path, sub_path)
         print(f'lora_model_path            :', lora_model_path)
         print(f'select_face_num            :', select_face_num)
         print(f'first_controlnet_strength  :', first_controlnet_strength)
@@ -254,9 +257,10 @@ class GenPortraitInpaint:
         sd_inpaint_pipeline, generator = build_pipeline_facechain(
             base_model_path, lora_model_path, cache_model_dir, from_safetensor=lora_model_path.endswith('safetensors')
         )    
+        print("inpaint pipeline load end")
         retinaface_detection = pipeline(Tasks.face_detection, 'damo/cv_resnet50_face-detection_retinaface')
         image_face_fusion = pipeline(Tasks.image_face_fusion, model='damo/cv_unet-image-face-fusion_damo')
-        self.openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet", cache_dir=os.path.join(cache_model_dir, "controlnet_detector"))
+        self.openpose = OpenposeDetector.from_pretrained(os.path.join(cache_model_dir, "controlnet_detector"))
         face_id_image = Image.open(face_id_image_path) 
 
         # generate in roop
