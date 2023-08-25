@@ -37,7 +37,6 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 - Support more beauty-retouch effects
 - Support latest foundation models such as SDXL
 - Provide WebUI compatibility
-- 增加模版图inpainting功能
 - Support template images inpainting
 
 
