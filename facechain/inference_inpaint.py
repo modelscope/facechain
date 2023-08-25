@@ -24,7 +24,7 @@ from diffusers import (
 )
 from controlnet_aux import OpenposeDetector
 from facechain.data_process.preprocessing import get_popular_prompts
-from facechain.constants import paiya_default_positive, paiya_default_negative
+from facechain.constants import inpaint_default_positive, inpaint_default_negative
 from facechain.merge_lora import merge_lora
 
 
@@ -239,7 +239,7 @@ class GenPortraitInpaint:
         if os.path.exists(reference_dir):
             face_id_image_path = glob(os.path.join(lora_model_path, 'face_id.jpg'))[0]
             input_roop_image_list = glob(os.path.join(reference_dir, 'best_roop_image_*.jpg'))[:select_face_num] # debug for 2
-        # not exists means no PAIYA training ensemble
+        # not exists means no PR104 training ensemble
         else:
             reference_dir = str(instance_data_dir) + '_labeled'
             face_id_image_path = glob(os.path.join(reference_dir, '*.png'))[0]
@@ -249,8 +249,8 @@ class GenPortraitInpaint:
         # setting prompt with original FaceChain training prompt engineering
         pos_prompt = 'Generate a standard photo of a chinese , beautiful smooth face, smile, high detail face, best quality,'
         add_pos_prompt, add_neg_prompt = get_popular_prompts(instance_data_dir)
-        input_prompt = pos_prompt + add_pos_prompt + paiya_default_positive
-        neg_prompt = add_neg_prompt + paiya_default_negative 
+        input_prompt = pos_prompt + add_pos_prompt + inpaint_default_positive
+        neg_prompt = add_neg_prompt + inpaint_default_negative 
 
         print("debug : ", input_prompt)
         # build inpaint pipeline && some other pilot pipeline
@@ -315,7 +315,7 @@ class GenPortraitInpaint:
                 
                 #  Fusion as Input, and mask inpaint with ControlNet
                 generate_image_old = sd_inpaint_pipeline(
-                    input_prompt, image=result, mask_image=input_mask, control_image=read_control, strength=first_controlnet_strength, negative_prompt=paiya_default_negative, 
+                    input_prompt, image=result, mask_image=input_mask, control_image=read_control, strength=first_controlnet_strength, negative_prompt=inpaint_default_negative, 
                     guidance_scale=9, num_inference_steps=30, generator=generator, height=np.shape(input_image)[0], width=np.shape(input_image)[1], \
                     controlnet_conditioning_scale=first_controlnet_conditioning_scale
                 ).images[0]

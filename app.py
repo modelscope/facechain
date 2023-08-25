@@ -95,7 +95,7 @@ def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None
             --lora_r=128 --lora_alpha=64 \
             --validation_prompt="{validation_prompt}" \
             --validation_steps=100 \
-            --template_dir="resources/paiya_template" \
+            --template_dir="resources/inpaint_template" \
             --template_mask \
             --merge_best_lora_based_face_id \
             --revision="{revision}" \
@@ -442,7 +442,7 @@ def inference_input():
 
 def inference_inpaint():
     """
-        Inpaint Tab with PAIYA-Lora + MultiControlnet, support preset_template
+        Inpaint Tab with Ensemble-Lora + MultiControlnet, support preset_template
         #TODO: Support user upload template && template check logits
     """
     preset_template=glob(os.path.join('resources/inpaint_template/*.jpg'))
