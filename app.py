@@ -252,19 +252,19 @@ class Trainer:
             uuid: str,
             instance_images: list,
     ) -> str:
-        # 检查CUDA是否可用
+        # Check Cuda
         if not torch.cuda.is_available():
             raise gr.Error('CUDA不可用。')
 
-        # 检查是否上传了图片
+        # Check Instance Valid
         if instance_images is None:
             raise gr.Error('请上传训练图片！')
 
-        # 限制图片数量
+        # Limit input Image
         if len(instance_images) > 20:
             raise gr.Error('请最多上传20张训练图片！')
 
-        # 检查UUID或Studio环境
+        # Check UUID & Studio
         if not uuid:
             if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
                 return "请先登录！"
@@ -273,7 +273,7 @@ class Trainer:
 
         output_model_name = 'personalization_lora'
 
-        # 将用户上传的数据移动到目标目录
+        # Mv data to Userdir
         instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
         print("UUID:", uuid)
 
