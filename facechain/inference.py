@@ -227,7 +227,7 @@ class GenPortrait:
         swap_results = face_swap_fn(self.use_face_swap, gen_results, selected_face)
         # pose_process
         rank_results = post_process_fn(self.use_post_process, swap_results, selected_face,
-                                    num_gen_images=num_gen_images)
+                                       num_gen_images=num_gen_images)
         # stylization
         final_gen_results = stylization_fn(self.use_stylization, rank_results)
 
