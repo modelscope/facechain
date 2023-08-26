@@ -9,7 +9,7 @@ cloth_prompt = [
     {'name': 'T恤衫(T-shirt)', 'prompt': 'wearing T-shirt, simple background, high-class pure color background'},  # male and female
     {'name': '汉服风(hanfu)', 'prompt': 'wearing beautiful traditional hanfu, upper_body, simple background, high-class pure color background'},  # female
     {'name': '女士晚礼服(gown)', 'prompt': 'wearing an elegant evening gown, simple background, high-class pure color background'},  # female
-    {'name': '赛博朋克(cybernetics punk)', 'prompt': 'white hair, futuristic glasses, neon glowing glasses, neon glowing eyes,  (Glowing neon:1.4), cybernetics, punks, robotic arm, AI, NFT art, Fluorescent color, ustration'}, # male and female
+    {'name': '赛博朋克(cybernetics punk)', 'prompt': 'white hair, futuristic glasses, neon glowing glasses, neon glowing eyes, (Glowing neon:1.4), cybernetics, punks, robotic arm, AI, NFT art, Fluorescent color, ustration'}, # male and female
 ]
 
 styles = [
