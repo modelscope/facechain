@@ -27,6 +27,7 @@ HOT_MODELS = [
 ]
 
 
+
 class UploadTarget(enum.Enum):
     PERSONAL_PROFILE = 'Personal Profile'
     LORA_LIaBRARY = 'LoRA Library'
