@@ -532,7 +532,7 @@ with gr.Blocks(css='style.css') as demo:
         with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input()
         # hide inpaint 
-        with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
-            inference_inpaint()
+        # with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
+        #     inference_inpaint()
 
 demo.queue(status_update_rate=1).launch(share=True)
