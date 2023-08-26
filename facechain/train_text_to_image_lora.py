@@ -34,6 +34,9 @@ import onnxruntime
 import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint
+from torch import Tensor
+from typing import List, Optional, Tuple, Union
+import torchvision.transforms.functional as Ft
 import transformers
 from PIL import Image
 from accelerate import Accelerator
@@ -59,6 +62,39 @@ from facechain.inference import data_process_fn
 check_min_version("0.14.0.dev0")
 
 logger = get_logger(__name__, log_level="INFO")
+
+
+class FaceCrop(torch.nn.Module):
+
+    @staticmethod
+    def get_params(img: Tensor) -> Tuple[int, int, int, int]:
+        _, h, w = Ft.get_dimensions(img)
+        if h != w:
+            raise ValueError(f"The input image is not square.")
+        ratio = torch.rand(size=(1,)).item() * 0.1 + 0.35
+        yc = torch.rand(size=(1,)).item() * 0.15 + 0.35
+
+        th = int(h / 1.15 * 0.35 / ratio)
+        tw = th
+
+        cx = int(0.5 * w)
+        cy = int(0.5 / 1.15 * h)
+
+        i = min(max(int(cy - yc * th), 0), h - th)
+        j = int(cx - 0.5 * tw)
+
+        return i, j, th, tw
+
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, img):
+        i, j, h, w = self.get_params(img)
+
+        return Ft.crop(img, i, j, h, w)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}"
 
 
 def save_model_card(repo_id: str, images=None, base_model=str, dataset_name=str, repo_folder=None):
@@ -624,7 +660,7 @@ def main():
                 block_id = int(name[len("down_blocks.")])
                 hidden_size = unet.config.block_out_channels[block_id]
 
-            lora_attn_procs[name] = LoRAAttnProcessor(hidden_size=hidden_size, cross_attention_dim=cross_attention_dim)
+            lora_attn_procs[name] = LoRAAttnProcessor(hidden_size=hidden_size, cross_attention_dim=cross_attention_dim, rank=args.lora_r)
 
         unet.set_attn_processor(lora_attn_procs)
         lora_layers = AttnProcsLayers(unet.attn_processors)
@@ -763,8 +799,10 @@ def main():
     # Preprocessing the datasets.
     train_transforms = transforms.Compose(
         [
+            #transforms.Resize(args.resolution, interpolation=transforms.InterpolationMode.BILINEAR),
+            #transforms.CenterCrop(args.resolution) if args.center_crop else transforms.RandomCrop(args.resolution),
+            FaceCrop(),
             transforms.Resize(args.resolution, interpolation=transforms.InterpolationMode.BILINEAR),
-            transforms.CenterCrop(args.resolution) if args.center_crop else transforms.RandomCrop(args.resolution),
             transforms.RandomHorizontalFlip() if args.random_flip else transforms.Lambda(lambda x: x),
             transforms.ToTensor(),
             transforms.Normalize([0.5], [0.5]),
@@ -854,7 +892,10 @@ def main():
 
     # Potentially load in the weights and states from a previous save
     if args.resume_from_checkpoint:
-        if args.resume_from_checkpoint != "latest":
+        if args.resume_from_checkpoint == 'fromfacecommon':
+            weight_model_dir = snapshot_download('damo/face_frombase_c4', revision='v1.0.0')
+            path = os.path.join(weight_model_dir, 'face_frombase_c4.bin')
+        elif args.resume_from_checkpoint != "latest":
             path = os.path.basename(args.resume_from_checkpoint)
         else:
             # Get the most recent checkpoint
@@ -869,9 +910,15 @@ def main():
             )
             args.resume_from_checkpoint = None
         else:
-            accelerator.print(f"Resuming from checkpoint {path}")
-            accelerator.load_state(os.path.join(args.output_dir, path))
-            global_step = int(path.split("-")[1])
+            if args.resume_from_checkpoint == 'fromfacecommon':
+                accelerator.print(f"Resuming from checkpoint {path}")
+                unet_state_dict = torch.load(path, map_location='cpu')
+                accelerator._models[-1].load_state_dict(unet_state_dict)
+                global_step = 0
+            else:
+                accelerator.print(f"Resuming from checkpoint {path}")
+                accelerator.load_state(os.path.join(args.output_dir, path))
+                global_step = int(path.split("-")[1])
 
             resume_global_step = global_step * args.gradient_accumulation_steps
             first_epoch = global_step // num_update_steps_per_epoch
