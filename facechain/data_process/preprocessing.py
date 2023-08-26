@@ -4,17 +4,17 @@ import json
 import math
 import os
 import shutil
+
 import cv2
 import numpy as np
-from PIL import Image
-from tqdm import tqdm
-
 from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
-from facechain.utils.face_process_utils import call_face_crop
+from PIL import Image
+from tqdm import tqdm
 
 from .deepbooru import DeepDanbooru
+from .face_process_utils import call_face_crop
 
 
 def get_popular_prompts(train_img_dir):

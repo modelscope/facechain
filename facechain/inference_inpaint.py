@@ -26,115 +26,7 @@ from controlnet_aux import OpenposeDetector
 from facechain.data_process.preprocessing import get_popular_prompts
 from facechain.constants import inpaint_default_positive, inpaint_default_negative
 from facechain.merge_lora import merge_lora
-
-
-def safe_get_box_mask_keypoints(image, retinaface_result, crop_ratio, face_seg, mask_type):
-    """
-    Get expanded box, keypoints, and face segmentation mask.
-
-    Args:
-        image (np.ndarray): The input image.
-        retinaface_result (dict): The detection result from RetinaFace.
-        crop_ratio (float): The ratio for expanding the crop of the face part.
-        face_seg (function): The face segmentation model.
-        mask_type (str): The method of face segmentation, either 'crop' or 'skin'.
-
-    Returns:
-        np.ndarray: The box relative to the original image, expanded.
-        np.ndarray: The keypoints relative to the original image.
-        Image: The face segmentation result.
-    """
-    h, w, c = np.shape(image)
-    if len(retinaface_result['boxes']) != 0:
-        # Get the RetinaFace box and expand it
-        retinaface_box = np.array(retinaface_result['boxes'][0])
-        face_width = retinaface_box[2] - retinaface_box[0]
-        face_height = retinaface_box[3] - retinaface_box[1]
-        retinaface_box[0] = np.clip(retinaface_box[0] - face_width * (crop_ratio - 1) / 2, 0, w - 1)
-        retinaface_box[1] = np.clip(retinaface_box[1] - face_height * (crop_ratio - 1) / 2, 0, h - 1)
-        retinaface_box[2] = np.clip(retinaface_box[2] + face_width * (crop_ratio - 1) / 2, 0, w - 1)
-        retinaface_box[3] = np.clip(retinaface_box[3] + face_height * (crop_ratio - 1) / 2, 0, h - 1)
-        retinaface_box = np.array(retinaface_box, np.int32)
-
-        # Detect keypoints
-        retinaface_keypoints = np.reshape(retinaface_result['keypoints'][0], [5, 2])
-        retinaface_keypoints = np.array(retinaface_keypoints, np.float32)
-
-        # Mask part
-        # retinaface_crop = Image.fromarray(image).crop(tuple(np.int32(retinaface_box)))
-        retinaface_crop = image.crop(tuple(np.int32(retinaface_box)))
-        retinaface_mask = np.zeros_like(np.array(image, np.uint8))
-        if mask_type == "skin":
-            retinaface_sub_mask = face_seg(retinaface_crop)
-            retinaface_mask[retinaface_box[1]:retinaface_box[3], retinaface_box[0]:retinaface_box[2]] = np.expand_dims(retinaface_sub_mask, -1)
-        else:
-            retinaface_mask[retinaface_box[1]:retinaface_box[3], retinaface_box[0]:retinaface_box[2]] = 255
-        retinaface_mask_pil = Image.fromarray(np.uint8(retinaface_mask))
-    else:
-        retinaface_box = np.array([])
-        retinaface_keypoints = np.array([])
-        retinaface_mask = np.zeros_like(np.array(image, np.uint8))
-        retinaface_mask_pil = Image.fromarray(np.uint8(retinaface_mask))
-
-    return retinaface_box, retinaface_keypoints, retinaface_mask_pil
-
-
-def crop_and_paste(Source_image, Source_image_mask, Target_image, Source_Five_Point, Target_Five_Point, Source_box):
-    """
-    Crop and paste a face from the source image to the target image.
-
-    Args:
-        Source_image (Image): The source image.
-        Source_image_mask (Image): The mask of the face in the source image.
-        Target_image (Image): The target template image.
-        Source_Five_Point (np.ndarray): Five facial keypoints in the source image.
-        Target_Five_Point (np.ndarray): Five facial keypoints in the target image.
-        Source_box (list): The coordinates of the face box in the source image.
-
-    Returns:
-        np.ndarray: The output image with the face pasted.
-    """
-    Source_Five_Point = np.reshape(Source_Five_Point, [5, 2]) - np.array(Source_box[:2])
-    Target_Five_Point = np.reshape(Target_Five_Point, [5, 2])
-
-    Crop_Source_image                       = Source_image.crop(np.int32(Source_box))
-    Crop_Source_image_mask                  = Source_image_mask.crop(np.int32(Source_box))
-    Source_Five_Point, Target_Five_Point    = np.array(Source_Five_Point), np.array(Target_Five_Point)
-
-    tform = transform.SimilarityTransform()
-    tform.estimate(Source_Five_Point, Target_Five_Point)
-    M = tform.params[0:2, :]
-
-    warped      = cv2.warpAffine(np.array(Crop_Source_image), M, np.shape(Target_image)[:2][::-1], borderValue=0.0)
-    warped_mask = cv2.warpAffine(np.array(Crop_Source_image_mask), M, np.shape(Target_image)[:2][::-1], borderValue=0.0)
-
-    mask        = np.float32(warped_mask == 0)
-    output      = mask * np.float32(Target_image) + (1 - mask) * np.float32(warped)
-    return output
-
-
-def call_face_crop(retinaface_detection, image, crop_ratio, prefix="tmp"):
-    """
-    Perform face detection, mask, and keypoint extraction using RetinaFace.
-
-    Args:
-        retinaface_detection (function): The RetinaFace detection function.
-        image (Image): The input image.
-        crop_ratio (float): The crop ratio for face expansion.
-        prefix (str): Prefix for temporary files (default is "tmp").
-
-    Returns:
-        np.ndarray: Detected face bounding box.
-        np.ndarray: Detected face keypoints.
-        Image: Extracted face mask.
-    """
-    # Perform RetinaFace detection
-    retinaface_result = retinaface_detection(image)
-    
-    # Get mask and keypoints
-    retinaface_box, retinaface_keypoints, retinaface_mask_pil = safe_get_box_mask_keypoints(image, retinaface_result, crop_ratio, None, "crop")
-    
-    return retinaface_box, retinaface_keypoints, retinaface_mask_pil
+from facechain.data_process.face_process_utils import call_face_crop, crop_and_paste
 
 
 def build_pipeline_facechain(baseline_model_path, lora_model_path, cache_model_dir, from_safetensor=False):
@@ -151,7 +43,7 @@ def build_pipeline_facechain(baseline_model_path, lora_model_path, cache_model_d
         pipeline: Built pipeline.
         generator: Random number generator with manual seed.
     """
-    # Apply to FP16
+    # Apply to FP32
     weight_dtype = torch.float32
 
     # Build ControlNet
@@ -255,8 +147,8 @@ class GenPortraitInpaint:
         add_pos_prompt, add_neg_prompt = get_popular_prompts(instance_data_dir)
         input_prompt = pos_prompt + add_pos_prompt + inpaint_default_positive
         neg_prompt = add_neg_prompt + inpaint_default_negative 
+        print("input_prompt :", input_prompt)
 
-        print("debug : ", input_prompt)
         # build inpaint pipeline && some other pilot pipeline
         sd_inpaint_pipeline, generator = build_pipeline_facechain(
             base_model_path, lora_model_path, cache_model_dir, from_safetensor=lora_model_path.endswith('safetensors')
@@ -265,8 +157,9 @@ class GenPortraitInpaint:
         retinaface_detection = pipeline(Tasks.face_detection, 'damo/cv_resnet50_face-detection_retinaface')
         image_face_fusion = pipeline(Tasks.image_face_fusion, model='damo/cv_unet-image-face-fusion_damo')
         self.openpose = OpenposeDetector.from_pretrained(os.path.join(cache_model_dir, "controlnet_detector"))
-        face_id_image = Image.open(face_id_image_path) 
+        print("preprocess model loaded")
 
+        face_id_image = Image.open(face_id_image_path) 
         # generate in roop
         final_res = []
         for roop_idx, input_roop_image in enumerate(input_roop_image_list):
@@ -357,20 +250,3 @@ class GenPortraitInpaint:
         
         return final_res
 
-
-if __name__=="__main__":
-
-    import sys
-
-    input_template = sys.argv[1]
-    input_roop_image = sys.argv[2]
-
-    # all this use for DEBUG
-    cache_model_dir = '/mnt/zhoulou.wzh/AIGC/model_data/'
-    lora_model_path = './debug/zhoumo.safetensors'
-    input_prompt = f"zhoumo_face, zhoumo, 1girl,"
-    base_model_path = '/mnt/workspace/.cache/modelscope/ly261666/cv_portrait_model/realistic'
-
-    inpaiter = GenPortraitInpaint(crop_template=True, short_side_resize=512)
-    res = inpaiter(base_model_path=base_model_path, lora_model_path=lora_model_path, input_template=[input_template],
-        input_roop_image=[input_roop_image], input_prompt=input_prompt, cache_model_dir=cache_model_dir)
