@@ -111,11 +111,12 @@ def launch_pipeline(uuid,
         model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
         style_model_path = os.path.join(model_dir, matched['bin_file'])
 
-    if pose_model == None:
+    if pose_model == None or pose_model == 0:
         pose_model_path = None
+        pose_image = None
     else:
         pose_model_path = pose_models[pose_model]['pth']
-    if pose_model == 1:
+    if pose_model == 2:
         use_depth_control = True
     else:
         use_depth_control = False
@@ -322,18 +323,17 @@ def inference_input():
                 pmodels = []
                 for md in pose_models:
                     pmodels.append(md['name'])
-                pose_model = gr.Radio(choices=pmodels, value=pose_models[0]['name'],
-                                      type="index", label="姿态控制模型(Pose control model)")
 
                 with gr.Accordion("高级选项(Expert)", open=False):
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
                                         value=generate_pos_prompt(None, cloth_prompt[0]['prompt']), interactive=True)
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')
-                with gr.Box():
+                    pose_model = gr.Radio(choices=pmodels, value=pose_models[0]['name'],
+                                          type="index", label="姿态控制模型(Pose control model)")
                     pose_image = gr.Image(source='upload', type='filepath', label='姿态图片(Pose image)')
-                    # gr.Examples(pose_examples['man'], inputs=[pose_image], label='男性姿态示例')
-                    # gr.Examples(pose_examples['woman'], inputs=[pose_image], label='女性姿态示例')
+                    gr.Examples(pose_examples['man'], inputs=[pose_image], label='男性姿态示例')
+                    gr.Examples(pose_examples['woman'], inputs=[pose_image], label='女性姿态示例')
                 with gr.Box():
                     num_images = gr.Number(
                         label='生成图片数量(Number of photos)', value=6, precision=1, minimum=1, maximum=6)
