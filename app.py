@@ -437,7 +437,6 @@ def inference_input():
 #     'resources/inpaint_template/2.jpg',
 #     'resources/inpaint_template/3.jpg'
 # ]
-
 def inference_inpaint():
     """
         Inpaint Tab with Ensemble-Lora + MultiControlnet, support preset_template
@@ -458,10 +457,17 @@ def inference_inpaint():
                 )
                 
                 template_gallery_list = [(i, i) for i in preset_template]
-                gr.Gallery(template_gallery_list).style(grid=4, height=300)
-                selected_template_images = gr.CheckboxGroup(choices=preset_template, label="Select Preset Templates")
+                gallery = gr.Gallery(template_gallery_list).style(grid=4, height=300)
                 
-                # More options can be added here, e.g., selecting roop images
+                # original select version
+                # selected_template_images = gr.CheckboxGroup(choices=preset_template, label="Select Preset Templates")
+                
+                # new inplementation with gr.select callback function
+                def select_function(evt: gr.SelectData):
+                    return [preset_template[evt.index]]
+                # selected_template_images = []
+                selected_template_images = gr.Text(show_label=False, placeholder="Selected")
+                gallery.select(select_function, None, selected_template_images)
                 
                 with gr.Accordion("Advanced Options", open=False):
                     append_pos_prompt = gr.Textbox(
@@ -526,7 +532,7 @@ with gr.Blocks(css='style.css') as demo:
         with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input()
         # hide inpaint 
-        # with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
-        #     inference_inpaint()
+        with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
+            inference_inpaint()
 
 demo.queue(status_update_rate=1).launch(share=True)

@@ -232,7 +232,11 @@ class GenPortraitInpaint:
         print(f'final_fusion_ratio         :', final_fusion_ratio)
         print(f'use_fusion_before          :', use_fusion_before)
         print(f'use_fusion_after           :', use_fusion_after)
+        print(f'input_template_list        :', input_template_list)
 
+        # hack for gr.Text input
+        if isinstance(input_template_list, str):
+            input_template_list = [input_template_list[2:-2]]
 
         # setting inpaint used faceid image & roop image with preprocessed output in xx_ensemble dir, if not exists fallback to original FC traindata dir
         reference_dir = str(instance_data_dir) + '_ensemble'
