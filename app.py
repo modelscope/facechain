@@ -81,7 +81,6 @@ def concatenate_images(images):
 
 
 def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
-
     validation_prompt, _ = get_popular_prompts(output_img_dir)
     torch.cuda.empty_cache()
     os.system(

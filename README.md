@@ -9,15 +9,21 @@
 
 如果您熟悉中文，可以阅读[中文版本的README](./README_ZH.md)。
 
-FaceChain is a deep-learning toolchain for generating your Digital-Twin. With a minimum of 1 portrait-photo, you can create a Digital-Twin of your own and start generating personal portraits in different settings (multiple styles now supported!). You may train your Digital-Twin model and generate photos via FaceChain's Python scripts, or via the familiar Gradio interface. You can also experience FaceChain directly with our [ModelScope Studio](https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary).
-
+FaceChain is a deep-learning toolchain for generating your Digital-Twin. With a minimum of 1 portrait-photo, you can create a Digital-Twin of your own and start generating personal portraits in different settings (multiple styles now supported!). You may train your Digital-Twin model and generate photos via FaceChain's Python scripts, or via the familiar Gradio interface.
 FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
+
+
+<p align="center">
+        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
+</p>
+<br>
+
 
 ![image](resources/git_cover.jpg)
 
 
 # News
-- Add validate & ensemble for Lora training, and InpaintTab(hide in gradio for now). Refer to: [Features] (August 26th, 2023 UTC)
+- HuggingFace Space is available now! You can experience FaceChain directly with <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>      (August 25th, 2023 UTC)
 - Add awesome prompts! Refer to: [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)   (August 18th, 2023 UTC)
 - Support a series of new style models in a plug-and-play fashion. Refer to: [Features](#Features)   (August 16th, 2023 UTC)
 - Support customizable prompts. Refer to: [Features](#Features)    (August 16th, 2023 UTC)
@@ -30,8 +36,8 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 - Support customizable poses, with controlnet or composer
 - Support more beauty-retouch effects
 - Support latest foundation models such as SDXL
-- Provide Colab compatibility   --done
 - Provide WebUI compatibility
+- Support template images inpainting
 
 
 # Features

@@ -69,14 +69,14 @@ def get_popular_prompts(train_img_dir):
     return validation_prompt, neg_prompt
 
 
-def crop_and_resize(im, bbox, thres=0.35, thres1=0.45):
+def crop_and_resize(im, bbox):
     h, w, _ = im.shape
-    thre = np.random.rand() * (thres1 - thres) + thres
+    thre = 0.35/1.15
     maxf = max(bbox[2] - bbox[0], bbox[3] - bbox[1])
     cx = (bbox[2] + bbox[0]) / 2
     cy = (bbox[3] + bbox[1]) / 2
     lenp = int(maxf / thre)
-    yc = np.random.rand() * 0.15 + 0.35
+    yc = 0.5/1.15
     xc = 0.5
     xmin = int(cx - xc * lenp)
     xmax = xmin + lenp
@@ -138,30 +138,31 @@ def post_process_naive(result_list, score_gender, score_age):
     for result in result_list:
         result_new = []
         result_new.extend(tag_a_g)
-        for tag in result:
-            if tag == '1girl' or tag == '1boy':
-                continue
-            if tag[-4:] == '_man':
-                continue
-            if tag[-6:] == '_woman':
-                continue
-            if tag[-5:] == '_male':
-                continue
-            elif tag[-7:] == '_female':
-                continue
-            elif (
-                    tag == 'ears' or tag == 'head' or tag == 'face' or tag == 'lips' or tag == 'mouth' or tag == '3d' or tag == 'asian' or tag == 'teeth'):
-                continue
-            elif ('eye' in tag and not 'eyewear' in tag):
-                continue
-            elif ('nose' in tag or 'body' in tag):
-                continue
-            elif tag[-5:] == '_lips':
-                continue
-            else:
-                result_new.append(tag)
-            # import pdb;pdb.set_trace()
-        # result_new.append('slim body')
+        ## don't include other infos for lora training
+        #for tag in result:
+        #    if tag == '1girl' or tag == '1boy':
+        #        continue
+        #    if tag[-4:] == '_man':
+        #        continue
+        #    if tag[-6:] == '_woman':
+        #        continue
+        #    if tag[-5:] == '_male':
+        #        continue
+        #    elif tag[-7:] == '_female':
+        #        continue
+        #    elif (
+        #            tag == 'ears' or tag == 'head' or tag == 'face' or tag == 'lips' or tag == 'mouth' or tag == '3d' or tag == 'asian' or tag == 'teeth'):
+        #        continue
+        #    elif ('eye' in tag and not 'eyewear' in tag):
+        #        continue
+        #    elif ('nose' in tag or 'body' in tag):
+        #        continue
+        #    elif tag[-5:] == '_lips':
+        #        continue
+        #    else:
+        #        result_new.append(tag)
+        #    # import pdb;pdb.set_trace()
+        ## result_new.append('slim body')
         result_list_new.append(result_new)
 
     return result_list_new
@@ -311,15 +312,15 @@ def most_similar_faces_pick(imdir, face_detection, face_recognition, face_qualit
 class Blipv2():
     def __init__(self):
         self.model = DeepDanbooru()
-        self.skin_retouching = pipeline(Tasks.skin_retouching, model='damo/cv_unet_skin-retouching')
-        self.face_detection = pipeline(task=Tasks.face_detection, model='damo/cv_ddsar_face-detection_iclr23-damofd')
+        self.skin_retouching = pipeline(Tasks.skin_retouching, model='damo/cv_unet_skin-retouching', model_revision='v1.0.0')
+        self.face_detection = pipeline(task=Tasks.face_detection, model='damo/cv_ddsar_face-detection_iclr23-damofd', model_revision='v1.1')
         # self.mog_face_detection_func = pipeline(Tasks.face_detection, 'damo/cv_resnet101_face-detection_cvpr22papermogface')
         self.segmentation_pipeline = pipeline(Tasks.image_segmentation,
-                                              'damo/cv_resnet101_image-multiple-human-parsing')
+                                              'damo/cv_resnet101_image-multiple-human-parsing', model_revision='v1.0.1')
         self.fair_face_attribute_func = pipeline(Tasks.face_attribute_recognition,
-                                                 'damo/cv_resnet34_face-attribute-recognition_fairface')
+                                                 'damo/cv_resnet34_face-attribute-recognition_fairface', model_revision='v2.0.2')
         self.facial_landmark_confidence_func = pipeline(Tasks.face_2d_keypoints,
-                                                        'damo/cv_manual_facial-landmark-confidence_flcm')
+                                                        'damo/cv_manual_facial-landmark-confidence_flcm', model_revision='v2.5')
         # embedding
         self.face_recognition = pipeline(Tasks.face_recognition, model='damo/cv_ir101_facerecognition_cfglint')
         # face quality
@@ -476,7 +477,8 @@ class Blipv2():
         fo = open(out_json_name, 'w')
         for i in range(len(result_list)):
             generated_text = ", ".join(result_list[i])
-            info_dict = {"file_name": imgs_list[i], "text": "<sks>, " + generated_text}
+            print(imgs_list[i], generated_text)
+            info_dict = {"file_name": imgs_list[i], "text": "<fcsks>, " + generated_text}
             fo.write(json.dumps(info_dict) + '\n')
         fo.close()
         return out_json_name

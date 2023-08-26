@@ -42,7 +42,7 @@ def txt2img(pipe, pos_prompt, neg_prompt, num_images=10):
 def main_diffusion_inference(pos_prompt, neg_prompt,
                              input_img_dir, base_model_path, style_model_path, lora_model_path,
                              multiplier_style=0.25,
-                             multiplier_human=1.0):
+                             multiplier_human=0.85):
     if style_model_path is None:
         model_dir = snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo', revision='v1.0.0')
         style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_fromleo.safetensors')
@@ -81,10 +81,8 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
 
     attr_idx = np.argmax(cnts_trigger)
     trigger_styles = ['a boy, children, ', 'a girl, children, ', 'a handsome man, ', 'a beautiful woman, ',
-                    'a mature man, ', 'a mature woman, ']
-    trigger_style = '<sks>, ' + trigger_styles[attr_idx]
-
-
+                      'a mature man, ', 'a mature woman, ']
+    trigger_style = '<fcsks>, ' + trigger_styles[attr_idx]
     if attr_idx == 2 or attr_idx == 4:
         neg_prompt += ', children'
 
@@ -127,7 +125,7 @@ def select_high_quality_face(input_img_dir):
     quality_score_list = []
     abs_img_path_list = []
     ## TODO
-    face_quality_func = pipeline(Tasks.face_quality_assessment, 'damo/cv_manual_face-quality-assessment_fqa')
+    face_quality_func = pipeline(Tasks.face_quality_assessment, 'damo/cv_manual_face-quality-assessment_fqa', model_revision='v2.0')
 
     for img_name in os.listdir(input_img_dir):
         if img_name.endswith('jsonl') or img_name.startswith('.ipynb') or img_name.startswith('.safetensors'):
@@ -153,7 +151,7 @@ def face_swap_fn(use_face_swap, gen_results, template_face):
         ## TODO
         out_img_list = []
         image_face_fusion = pipeline(Tasks.image_face_fusion,
-                                     model='damo/cv_unet-image-face-fusion_damo')
+                                     model='damo/cv_unet-image-face-fusion_damo', model_revision='v1.1')
         for img in gen_results:
             result = image_face_fusion(dict(template=img, user=template_face))[OutputKeys.OUTPUT_IMG]
             out_img_list.append(result)
@@ -170,9 +168,8 @@ def post_process_fn(use_post_process, swap_results_ori, selected_face, num_gen_i
     if use_post_process:
         sim_list = []
         ## TODO
-        # face_recognition_func = pipeline(Tasks.face_recognition, 'damo/cv_vit_face-recognition')
-        face_recognition_func = pipeline(Tasks.face_recognition, 'damo/cv_ir_face-recognition-ood_rts')
-        face_det_func = pipeline(task=Tasks.face_detection, model='damo/cv_ddsar_face-detection_iclr23-damofd')
+        face_recognition_func = pipeline(Tasks.face_recognition, 'damo/cv_ir_face-recognition-ood_rts', model_revision='v2.5')
+        face_det_func = pipeline(task=Tasks.face_detection, model='damo/cv_ddsar_face-detection_iclr23-damofd', model_revision='v1.1')
         swap_results = []
         for img in swap_results_ori:
             result_det = face_det_func(img)
