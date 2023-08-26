@@ -256,7 +256,7 @@ class Trainer:
 
         # Check Instance Valid
         if instance_images is None:
-            raise gr.Error('请上传训练图片!(Please Upload Training Images)')
+            raise gr.Error('您需要上传训练图片(Please upload photos)！')
 
         # Limit input Image
         if len(instance_images) > 20:
@@ -265,7 +265,7 @@ class Trainer:
         # Check UUID & Studio
         if not uuid:
             if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-                return "请先登录!(Please login first)"
+                return "请登陆后使用(Please login first)! "
             else:
                 uuid = 'qw'
 
@@ -288,9 +288,9 @@ class Trainer:
         # train lora
         print("instance_data_dir", instance_data_dir)
         train_lora_fn(foundation_model_path='ly261666/cv_portrait_model',
-                    revision='v2.0',
-                    output_img_dir=instance_data_dir,
-                    work_dir=work_dir)
+                      revision='v2.0',
+                      output_img_dir=instance_data_dir,
+                      work_dir=work_dir)
 
         message = f'训练已经完成！请切换至 [形象体验] 标签体验模型效果(Training done, please switch to the inference tab to generate photos.)'
         print(message)
