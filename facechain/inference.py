@@ -11,7 +11,7 @@ from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
 from modelscope import snapshot_download
-import multiprocessing
+from torch import multiprocessing
 from facechain.merge_lora import merge_lora
 from facechain.data_process.preprocessing import Blipv2
 

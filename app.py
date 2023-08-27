@@ -4,7 +4,7 @@ import os
 import shutil
 import time
 from concurrent.futures import ThreadPoolExecutor
-
+from torch import multiprocessing
 import cv2
 import gradio as gr
 import numpy as np
@@ -346,5 +346,8 @@ with gr.Blocks(css='style.css') as demo:
         with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input()
 
-demo.queue(status_update_rate=1).launch(share=True)
+
+if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
+    demo.queue(status_update_rate=1).launch(share=True)
 
