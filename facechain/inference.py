@@ -11,20 +11,25 @@ from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
 from modelscope import snapshot_download
-
+import multiprocessing
 from facechain.merge_lora import merge_lora
 from facechain.data_process.preprocessing import Blipv2
+
+
+def _data_process_fn_process(input_img_dir):
+    Blipv2()(input_img_dir)
 
 
 def data_process_fn(input_img_dir, use_data_process):
     ## TODO add face quality filter
     if use_data_process:
         ## TODO
-        data_process_fn = Blipv2()
-        out_json_name = data_process_fn(input_img_dir)
-        return out_json_name
-    else:
-        return os.path.join(str(input_img_dir) + '_labeled', "metadata.jsonl")
+
+        process_eval = multiprocessing.Process(target=_data_process_fn_process, args=(input_img_dir,))
+        process_eval.start()
+        process_eval.join()
+
+    return os.path.join(str(input_img_dir) + '_labeled', "metadata.jsonl")
 
 
 def txt2img(pipe, pos_prompt, neg_prompt, num_images=10):
