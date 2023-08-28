@@ -86,10 +86,7 @@ def concatenate_images(images):
 
 
 def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
-<<<<<<< HEAD
 
-=======
->>>>>>> 8cb63d5d252decf266f205d95c19f0b7edc3d6a9
     validation_prompt, _ = get_popular_prompts(output_img_dir)
     torch.cuda.empty_cache()
     os.system(
@@ -128,13 +125,10 @@ def launch_pipeline(uuid,
                     user_models,
                     num_images=1,
                     style_model=None,
-<<<<<<< HEAD
                     multiplier_style=0.25,
                     pose_model=None,
-                    pose_image=None
-=======
+                    pose_image=None,
                     multiplier_style=0.25
->>>>>>> 8cb63d5d252decf266f205d95c19f0b7edc3d6a9
                     ):
     base_model = 'ly261666/cv_portrait_model'
     before_queue_size = inference_threadpool._work_queue.qsize()
