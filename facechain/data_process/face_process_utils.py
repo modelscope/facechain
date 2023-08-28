@@ -55,37 +55,37 @@ def safe_get_box_mask_keypoints(image, retinaface_result, crop_ratio, face_seg, 
     return retinaface_box, retinaface_keypoints, retinaface_mask_pil
 
 
-def crop_and_paste(Source_image, Source_image_mask, Target_image, Source_Five_Point, Target_Five_Point, Source_box):
+def crop_and_paste(source_image, source_image_mask, target_image, source_five_point, target_five_point, source_box):
     """
-    Crop and paste a face from the source image to the target image.
+    Crop and paste a face from the source image onto the target image.
 
     Args:
-        Source_image (Image): The source image.
-        Source_image_mask (Image): The mask of the face in the source image.
-        Target_image (Image): The target template image.
-        Source_Five_Point (np.ndarray): Five facial keypoints in the source image.
-        Target_Five_Point (np.ndarray): Five facial keypoints in the target image.
-        Source_box (list): The coordinates of the face box in the source image.
-
+        source_image (PIL.Image): Original image.
+        source_image_mask (PIL.Image): Mask of the face in the original image.
+        target_image (PIL.Image): Target template image.
+        source_five_point (list): List of five facial keypoints of the source image.
+        target_five_point (list): List of five facial keypoints of the target image.
+        source_box (tuple): Coordinates of the face region in the source image.
     Returns:
-        np.ndarray: The output image with the face pasted.
+        PIL.Image: Resultant image after face pasting.
     """
-    Source_Five_Point = np.reshape(Source_Five_Point, [5, 2]) - np.array(Source_box[:2])
-    Target_Five_Point = np.reshape(Target_Five_Point, [5, 2])
 
-    Crop_Source_image                       = Source_image.crop(np.int32(Source_box))
-    Crop_Source_image_mask                  = Source_image_mask.crop(np.int32(Source_box))
-    Source_Five_Point, Target_Five_Point    = np.array(Source_Five_Point), np.array(Target_Five_Point)
+    source_five_point = np.reshape(source_five_point, [5, 2]) - np.array(source_box[:2])
+    target_five_point = np.reshape(target_five_point, [5, 2])
+
+    crop_source_image = source_image.crop(np.int32(source_box))
+    crop_source_image_mask = source_image_mask.crop(np.int32(source_box))
+    source_five_point, target_five_point = np.array(source_five_point), np.array(target_five_point)
 
     tform = transform.SimilarityTransform()
-    tform.estimate(Source_Five_Point, Target_Five_Point)
+    tform.estimate(source_five_point, target_five_point)
     M = tform.params[0:2, :]
 
-    warped      = cv2.warpAffine(np.array(Crop_Source_image), M, np.shape(Target_image)[:2][::-1], borderValue=0.0)
-    warped_mask = cv2.warpAffine(np.array(Crop_Source_image_mask), M, np.shape(Target_image)[:2][::-1], borderValue=0.0)
+    warped = cv2.warpAffine(np.array(crop_source_image), M, np.shape(target_image)[:2][::-1], borderValue=0.0)
+    warped_mask = cv2.warpAffine(np.array(crop_source_image_mask), M, np.shape(target_image)[:2][::-1], borderValue=0.0)
 
-    mask        = np.float32(warped_mask == 0)
-    output      = mask * np.float32(Target_image) + (1 - mask) * np.float32(warped)
+    mask = np.float32(warped_mask == 0)
+    output = mask * np.float32(target_image) + (1 - mask) * np.float32(warped)
     return output
 
 
