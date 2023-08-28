@@ -50,7 +50,7 @@ def img_pad(pil_file, fixed_height=512, fixed_width=512):
     if h / float(fixed_height) >= w / float(fixed_width):
         factor = h / float(fixed_height)
         new_w = int(w / factor)
-        pil_file = pil_file.resize((new_w, fixed_height))
+        pil_file.thumbnail(size=(new_w, fixed_height))
         pad_w = int((fixed_width - new_w) / 2)
         pad_w1 = (fixed_width - new_w) - pad_w
         array_file = np.array(pil_file)
@@ -58,7 +58,7 @@ def img_pad(pil_file, fixed_height=512, fixed_width=512):
     else:
         factor = w / float(fixed_width)
         new_h = int(h / factor)
-        pil_file = pil_file.resize((fixed_width, new_h))
+        pil_file.thumbnail(size=(fixed_width, new_h))
         pad_h = fixed_height - new_h
         pad_h1 = 0
         array_file = np.array(pil_file)
