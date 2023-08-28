@@ -41,7 +41,8 @@ def update_cloth(style_index):
         example_prompt = generate_pos_prompt(styles[style_index]['name'],
                                              styles[style_index]['add_prompt_style'])
         prompts.append(styles[style_index]['cloth_name'])
-    return gr.Radio.update(choices=prompts, value=prompts[0]), gr.Textbox.update(value=example_prompt)
+    return gr.Radio.update(choices=prompts, 
+                           value=prompts[0], visible=True),gr.Textbox.update(value=example_prompt)
 
 
 def update_prompt(style_index, cloth_index):
@@ -144,6 +145,11 @@ def launch_pipeline(uuid,
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
 
     lora_model_path = f'/tmp/{uuid}/{output_model_name}'
+    
+    train_file = os.path.join(lora_model_path,'pytorch_lora_weights.bin')
+    
+    if not os.path.exists(train_file):
+        raise gr.Error('您还没有进行形象定制，请先进行训练。(Training is required before inference.)')
 
     gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                                use_face_swap, use_post_process,
@@ -260,10 +266,11 @@ def train_input():
                 with gr.Box():
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
-                    upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
-                                                    file_count="multiple")
+                    with gr.Row():
+                        upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
+                                                        file_count="multiple")
 
-                    clear_button = gr.Button("清空图片(Clear photos)")
+                        clear_button = gr.Button("清空图片(Clear photos)")
                     clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
 
                     upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images, queue=False)
@@ -283,9 +290,9 @@ def train_input():
 
         with gr.Box():
             gr.Markdown('''
-            请等待训练完成
+            请等待训练完成，请勿刷新或关闭页面。
             
-            Please wait for the training to complete.
+            Please wait for the training to complete, do not refresh or close the page.
             ''')
             output_message = gr.Markdown()
         with gr.Box():
@@ -319,22 +326,22 @@ def inference_input():
                 style_model_list = []
                 for style in styles:
                     style_model_list.append(style['name'])
-                style_model = gr.Dropdown(choices=style_model_list, value=styles[0]['name'], 
-                                          type="index", label="风格模型(Style model)")
+                style_model = gr.Dropdown(choices=style_model_list, type="index", label="风格模型(Style model)")
                 
                 prompts=[]
                 for prompt in cloth_prompt:
                     prompts.append(prompt['name'])
+                for style in styles[1:]:
+                    prompts.append(style['cloth_name'])
+
                 cloth_style = gr.Radio(choices=prompts, value=cloth_prompt[0]['name'],
-                                       type="index", label="服装风格(Cloth style)")
+                                       type="index", label="服装风格(Cloth style)", visible=False)
                 pmodels = []
                 for pmodel in pose_models:
                     pmodels.append(pmodel['name'])
 
-                with gr.Accordion("高级选项(Expert)", open=False):
-                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
-                                            value=generate_pos_prompt(None, cloth_prompt[0]['prompt']),
-                                            interactive=True)
+                with gr.Accordion("高级选项(Advanced Options)", open=False):
+                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, interactive=True)
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')
                     pose_image = gr.Image(source='upload', type='filepath', label='姿态图片(Pose image)')
