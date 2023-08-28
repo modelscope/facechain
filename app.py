@@ -122,7 +122,7 @@ def launch_pipeline(uuid,
         use_depth_control = False
         pose_image = None
     else:
-        model_dir = snapshot_download('damo/face_chain_control_model', revision='v1.0.0')
+        model_dir = snapshot_download('damo/face_chain_control_model', revision='v1.0.1')
         pose_model_path = os.path.join(model_dir, 'model_controlnet/control_v11p_sd15_openpose')
         if pose_model == 1:
             use_depth_control = True
