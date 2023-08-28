@@ -24,6 +24,8 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 # News
 - Add validate & ensemble for Lora training, and InpaintTab(hide in gradio for now). Refer to: [Features] (August 28th, 2023 UTC)
+- Add pose control module.   (August 27th, 2023 UTC)
+- Add robust face lora training module, enhance the performance of one pic training & style-lora blending.   (August 27th, 2023 UTC)
 - HuggingFace Space is available now! You can experience FaceChain directly with <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>      (August 25th, 2023 UTC)
 - Add awesome prompts! Refer to: [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)   (August 18th, 2023 UTC)
 - Support a series of new style models in a plug-and-play fashion. Refer to: [Features](#Features)   (August 16th, 2023 UTC)
@@ -34,7 +36,6 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 # To-Do List
 - Support existing style models (such as those on Civitai) in a plug-an-play fashion.  --on-going
 - Support customizable prompts (try on different outfits etc.)  --on-going
-- Support customizable poses, with controlnet or composer
 - Support more beauty-retouch effects
 - Support latest foundation models such as SDXL
 - Provide WebUI compatibility
@@ -107,6 +108,7 @@ os.chdir('/mnt/workspace/facechain')    # You may change to your own path
 print(os.getcwd())
 
 !pip3 install gradio
+!pip3 install controlnet_aux==0.0.6
 !python3 app.py
 
 
@@ -132,6 +134,7 @@ docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.ali
 
 # Step4: Install the gradio in the docker container:
 pip3 install gradio
+pip3 install controlnet_aux==0.0.6
 
 # Step5 clone facechain from github
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
