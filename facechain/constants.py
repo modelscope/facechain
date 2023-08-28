@@ -25,8 +25,8 @@ styles = [
 
 pose_models = [
     {'name': '无姿态控制(No pose control)'},
-    {'name': 'pose-v1.1-with-depth', 'pth': 'lllyasviel/control_v11p_sd15_openpose'},
-    {'name': 'pose-v1.1', 'pth': 'lllyasviel/control_v11p_sd15_openpose'}
+    {'name': 'pose-v1.1-with-depth'},
+    {'name': 'pose-v1.1'}
 ]
 
 pose_examples = {
