@@ -23,7 +23,10 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+<<<<<<< HEAD
 - Add validate & ensemble for Lora training, and InpaintTab(hide in gradio for now). Refer to: [Features] (August 26th, 2023 UTC)
+=======
+>>>>>>> 8cb63d5d252decf266f205d95c19f0b7edc3d6a9
 - HuggingFace Space is available now! You can experience FaceChain directly with <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>      (August 25th, 2023 UTC)
 - Add awesome prompts! Refer to: [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)   (August 18th, 2023 UTC)
 - Support a series of new style models in a plug-and-play fashion. Refer to: [Features](#Features)   (August 16th, 2023 UTC)

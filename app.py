@@ -86,7 +86,10 @@ def concatenate_images(images):
 
 
 def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8cb63d5d252decf266f205d95c19f0b7edc3d6a9
     validation_prompt, _ = get_popular_prompts(output_img_dir)
     torch.cuda.empty_cache()
     os.system(
@@ -125,9 +128,13 @@ def launch_pipeline(uuid,
                     user_models,
                     num_images=1,
                     style_model=None,
+<<<<<<< HEAD
                     multiplier_style=0.25,
                     pose_model=None,
                     pose_image=None
+=======
+                    multiplier_style=0.25
+>>>>>>> 8cb63d5d252decf266f205d95c19f0b7edc3d6a9
                     ):
     base_model = 'ly261666/cv_portrait_model'
     before_queue_size = inference_threadpool._work_queue.qsize()
@@ -170,12 +177,12 @@ def launch_pipeline(uuid,
     output_model_name = 'personalization_lora'
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
     lora_model_path = f'/tmp/{uuid}/{output_model_name}/ensemble'
-    num_images = min(6, num_images)
     
     gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
-                            use_face_swap, use_post_process,
-                            use_stylization)
+                               use_face_swap, use_post_process,
+                               use_stylization)
 
+    num_images = min(6, num_images)
     future = inference_threadpool.submit(gen_portrait, instance_data_dir,
                                          num_images, base_model, lora_model_path, 'film/film', 'v2.0')
 
@@ -275,7 +282,7 @@ class Trainer:
 
         # Check Instance Valid
         if instance_images is None:
-            raise gr.Error('请上传训练图片!(Please Upload Training Images)')
+            raise gr.Error('您需要上传训练图片(Please upload photos)！')
 
         # Limit input Image
         if len(instance_images) > 20:
@@ -284,33 +291,34 @@ class Trainer:
         # Check UUID & Studio
         if not uuid:
             if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-                return "请先登录!(Please login first)"
+                return "请登陆后使用(Please login first)! "
             else:
                 uuid = 'qw'
 
         output_model_name = 'personalization_lora'
 
-        # Mv data to Userdir
+        # mv user upload data to target dir
         instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
-        print("UUID:", uuid)
+        print("--------uuid: ", uuid)
 
         if not os.path.exists(f"/tmp/{uuid}"):
             os.makedirs(f"/tmp/{uuid}")
         work_dir = f"/tmp/{uuid}/{output_model_name}"
-        print("工作目录:", work_dir)
+        print("----------work_dir: ", work_dir)
         shutil.rmtree(work_dir, ignore_errors=True)
         shutil.rmtree(instance_data_dir, ignore_errors=True)
 
-        prepare_dataset([img['name'] for img in instance_images], \
-            output_dataset_dir=instance_data_dir)
+        prepare_dataset([img['name'] for img in instance_images], output_dataset_dir=instance_data_dir)
         data_process_fn(instance_data_dir, True)
+
+        # train lora
         print("instance_data_dir", instance_data_dir)
         train_lora_fn(foundation_model_path='ly261666/cv_portrait_model',
-                    revision='v2.0',
-                    output_img_dir=instance_data_dir,
-                    work_dir=work_dir)
+                      revision='v2.0',
+                      output_img_dir=instance_data_dir,
+                      work_dir=work_dir)
 
-        message = '训练完成！切换到 [形象体验] 标签体验模型效果。(Training complete! Switch to the [Visual Experience] tab to see the models performance.)'
+        message = f'训练已经完成！请切换至 [形象体验] 标签体验模型效果(Training done, please switch to the inference tab to generate photos.)'
         print(message)
         return message
 

@@ -16,6 +16,7 @@
 """Fine-tuning script for Stable Diffusion for text2image with support for LoRA."""
 
 import argparse
+import base64
 import itertools
 import json
 import logging
@@ -23,14 +24,15 @@ import math
 import os
 import random
 import shutil
+from glob import glob
 from pathlib import Path
 
-import PIL.Image
 import cv2
 import datasets
 import diffusers
 import numpy as np
 import onnxruntime
+import PIL.Image
 import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint
@@ -38,23 +40,25 @@ from torch import Tensor
 from typing import List, Optional, Tuple, Union
 import torchvision.transforms.functional as Ft
 import transformers
-from PIL import Image
 from accelerate import Accelerator
 from accelerate.logging import get_logger
 from accelerate.utils import ProjectConfiguration, set_seed
 from datasets import load_dataset
-from diffusers import AutoencoderKL, DDPMScheduler, DiffusionPipeline, UNet2DConditionModel, StableDiffusionInpaintPipeline, DPMSolverMultistepScheduler
+from diffusers import (AutoencoderKL, DDPMScheduler, DiffusionPipeline,
+                       DPMSolverMultistepScheduler,
+                       StableDiffusionInpaintPipeline, UNet2DConditionModel)
 from diffusers.loaders import AttnProcsLayers
-from modelscope.outputs import OutputKeys
-from modelscope.pipelines import pipeline as modelscope_pipeline
-from modelscope.utils.constant import Tasks
 from diffusers.models.attention_processor import LoRAAttnProcessor
 from diffusers.optimization import get_scheduler
 from diffusers.utils import check_min_version, is_wandb_available
 from diffusers.utils.import_utils import is_xformers_available
 from huggingface_hub import create_repo, upload_folder
 from modelscope import snapshot_download
+from modelscope.outputs import OutputKeys
+from modelscope.pipelines import pipeline as modelscope_pipeline
+from modelscope.utils.constant import Tasks
 from packaging import version
+from PIL import Image
 from torchvision import transforms
 from tqdm.auto import tqdm
 from torch import multiprocessing
@@ -264,6 +268,74 @@ def log_validation(model_dir, vae, text_encoder, tokenizer, unet, args, accelera
     del pipeline
     torch.cuda.empty_cache()
     vae.to(accelerator.device, dtype=weight_dtype)
+
+def eval_jpg_with_faceid(pivot_dir, test_img_dir, top_merge=10):
+    """
+    Evaluate images using local face identification.
+
+    Args:
+        pivot_dir (str): Directory containing reference real human images.
+        test_img_dir (str): Directory pointing to generated validation images for training.
+            Image names follow the format xxxx_{step}_{indx}.jpg.
+        top_merge (int, optional): Number of top weights to select for merging. Defaults to 10.
+
+    Returns:
+        list: List of evaluated results.
+
+    Function:
+        - Obtain faceid features locally.
+        - Calculate the average feature of real human images.
+        - Select top_merge weights for merging based on generated validation images.
+    """
+
+    # Create a face_recognition model
+
+    face_recognition    = modelscope_pipeline(Tasks.face_recognition, model='damo/cv_ir101_facerecognition_cfglint')
+    # get ID list
+    face_image_list     = glob(os.path.join(pivot_dir, '*.jpg')) + glob(os.path.join(pivot_dir, '*.JPG')) + \
+                          glob(os.path.join(pivot_dir, '*.png')) + glob(os.path.join(pivot_dir, '*.PNG'))
+    
+    #  vstack all embedding
+    embedding_list = []
+    for img in face_image_list:
+        embedding_list.append(face_recognition(img)[OutputKeys.IMG_EMBEDDING])
+    embedding_array = np.vstack(embedding_list)
+    
+    #  mean, get pivot
+    pivot_feature   = np.mean(embedding_array, axis=0)
+    pivot_feature   = np.reshape(pivot_feature, [512, 1])
+
+    # sort with cosine distance
+    embedding_list = [[np.dot(emb, pivot_feature)[0][0], emb] for emb in embedding_list]
+    embedding_list = sorted(embedding_list, key = lambda a : -a[0])
+    # for i in range(10):
+    #     print(embedding_list[i][0], embedding_list[i][1].shape)
+
+    top10_embedding         = [emb[1] for emb in embedding_list]
+    top10_embedding_array   = np.vstack(top10_embedding)
+    # [512, n]
+    top10_embedding_array   = np.swapaxes(top10_embedding_array, 0, 1)
+
+    # sort all validation image
+    result_list = []
+    if not test_img_dir.endswith('.jpg'):
+        img_list = glob(os.path.join(test_img_dir, '*.jpg')) + glob(os.path.join(test_img_dir, '*.JPG')) + \
+                   glob(os.path.join(test_img_dir, '*.png')) + glob(os.path.join(test_img_dir, '*.PNG'))
+        for img in img_list:
+            try:
+                # a average above all
+                emb1 = face_recognition(img)[OutputKeys.IMG_EMBEDDING]
+                res = np.mean(np.dot(emb1, top10_embedding_array))
+                result_list.append([res, img])
+                result_list = sorted(result_list, key = lambda a : -a[0])
+            except:
+                pass
+
+    # pick most similar using faceid
+    t_result_list = [i[1] for i in result_list][:top_merge]
+    tlist   = [i[1].split('_')[-2] for i in result_list][:top_merge]
+    scores  = [i[0] for i in result_list][:top_merge]
+    return t_result_list, tlist, scores
 
 def merge_from_name_and_index(name, index_list, output_dir='output_dir/'):
     loras_load_path = [os.path.join(output_dir, f'checkpoint-{i}/pytorch_model.bin') for i in index_list]
@@ -675,8 +747,7 @@ DATASET_NAME_MAPPING = {
 
 
 def main():
-    from utils.face_process_utils import call_face_crop
-    from utils.face_id_utils import eval_jpg_with_faceid
+    from data_process.face_process_utils import call_face_crop
 
     args = parse_args()
     logging_dir = os.path.join(args.output_dir, args.logging_dir)
