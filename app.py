@@ -15,19 +15,10 @@ from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
 from facechain.inference_inpaint import GenPortraitInpaint
-from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.data_process.preprocessing import get_popular_prompts
-from facechain.constants import (
-    neg_prompt,
-    pos_prompt_with_cloth,
-    pos_prompt_with_style,
-    styles,
-    cloth_prompt,
-)
-from modelscope.utils.logger import get_logger
+from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
+from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt, pose_models, pose_examples
 
-logger = get_logger()
-logger.setLevel(logging.ERROR)
 
 training_threadpool = ThreadPoolExecutor(max_workers=1)
 inference_threadpool = ThreadPoolExecutor(max_workers=5)
@@ -127,8 +118,7 @@ def launch_pipeline(uuid,
                     style_model=None,
                     multiplier_style=0.25,
                     pose_model=None,
-                    pose_image=None,
-                    multiplier_style=0.25
+                    pose_image=None
                     ):
     base_model = 'ly261666/cv_portrait_model'
     before_queue_size = inference_threadpool._work_queue.qsize()
@@ -172,7 +162,7 @@ def launch_pipeline(uuid,
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
     lora_model_path = f'/tmp/{uuid}/{output_model_name}/ensemble'
     
-    gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
+    gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                                use_face_swap, use_post_process,
                                use_stylization)
 
