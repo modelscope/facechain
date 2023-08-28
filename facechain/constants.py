@@ -25,3 +25,25 @@ styles = [
 
 inpaint_default_positive = 'beautiful, cool, finely detail, light smile, extremely detailed CG unity 8k wallpaper, huge filesize, best quality, realistic, photo-realistic, ultra high res, raw phot, put on makeup'
 inpaint_default_negative = 'hair, teeth, sketch, duplicate, ugly, huge eyes, text, logo, worst face, strange mouth, nsfw, NSFW, low quality, worst quality, worst quality, low quality, normal quality, lowres, watermark, lowres, monochrome, naked, nude, nsfw, bad anatomy, bad hands, normal quality, grayscale, mural,'
+
+pose_models = [
+    {'name': '无姿态控制(No pose control)'},
+    {'name': 'pose-v1.1-with-depth', 'pth': 'lllyasviel/control_v11p_sd15_openpose'},
+    {'name': 'pose-v1.1', 'pth': 'lllyasviel/control_v11p_sd15_openpose'}
+]
+
+pose_examples = {
+    'man': [
+        ['./poses/man/pose1.png'],
+        ['./poses/man/pose2.png'],
+        ['./poses/man/pose3.png'],
+        ['./poses/man/pose4.png']
+    ],
+    'woman': [
+        ['./poses/woman/pose1.png'],
+        ['./poses/woman/pose2.png'],
+        ['./poses/woman/pose3.png'],
+        ['./poses/woman/pose4.png'],
+    ]
+}
+

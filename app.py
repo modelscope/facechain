@@ -5,8 +5,7 @@ import os
 import shutil
 import time
 from concurrent.futures import ThreadPoolExecutor
-
-import json
+from torch import multiprocessing
 import cv2
 import gradio as gr
 import numpy as np
@@ -68,6 +67,12 @@ def update_prompt(style_index, cloth_index):
                                          styles[style_index]['add_prompt_style'])
     return gr.Textbox.update(value=pos_prompt)
 
+def update_pose_model(pose_image):
+    if pose_image is None:
+        return gr.Radio.update(value=pose_models[0]['name'])
+    else:
+        return gr.Radio.update(value=pose_models[1]['name'])
+
 def concatenate_images(images):
     heights = [img.shape[0] for img in images]
     max_width = sum([img.shape[1] for img in images])
@@ -121,6 +126,8 @@ def launch_pipeline(uuid,
                     num_images=1,
                     style_model=None,
                     multiplier_style=0.25,
+                    pose_model=None,
+                    pose_image=None
                     ):
     base_model = 'ly261666/cv_portrait_model'
     before_queue_size = inference_threadpool._work_queue.qsize()
@@ -136,6 +143,17 @@ def launch_pipeline(uuid,
         matched = matched[0]
         model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
         style_model_path = os.path.join(model_dir, matched['bin_file'])
+
+    if pose_image is None:
+        pose_model_path = None
+        use_depth_control = False
+    else:
+        print(pose_model)
+        pose_model_path = pose_models[pose_model]['pth']
+        if pose_model == 1:
+            use_depth_control = True
+        else:
+            use_depth_control = False
 
     print("-------user_models: ", user_models)
     if not uuid:
@@ -398,12 +416,21 @@ def inference_input():
                     prompts.append(prompt['name'])
                 cloth_style = gr.Radio(choices=prompts, value=cloth_prompt[0]['name'],
                                        type="index", label="服装风格(Cloth style)")
+                pmodels = []
+                for pmodel in pose_models:
+                    pmodels.append(pmodel['name'])
 
                 with gr.Accordion("高级选项(Expert)", open=False):
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
-                                        value=generate_pos_prompt(None, cloth_prompt[0]['prompt']), interactive=True)
+                                            value=generate_pos_prompt(None, cloth_prompt[0]['prompt']),
+                                            interactive=True)
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')
+                    pose_image = gr.Image(source='upload', type='filepath', label='姿态图片(Pose image)')
+                    gr.Examples(pose_examples['man'], inputs=[pose_image], label='男性姿态示例')
+                    gr.Examples(pose_examples['woman'], inputs=[pose_image], label='女性姿态示例')
+                    pose_model = gr.Radio(choices=pmodels, value=pose_models[0]['name'],
+                                          type="index", label="姿态控制模型(Pose control model)")
                 with gr.Box():
                     num_images = gr.Number(
                         label='生成图片数量(Number of photos)', value=6, precision=1, minimum=1, maximum=6)
@@ -422,8 +449,10 @@ def inference_input():
                                                                                
         style_model.change(update_cloth, style_model, [cloth_style, pos_prompt])
         cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt])
+        pose_image.change(update_pose_model, pose_image, [pose_model])
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style],
+                             inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style,
+                                     pose_model, pose_image],
                              outputs=[infer_progress, output_images])
 
     return demo
@@ -535,4 +564,8 @@ with gr.Blocks(css='style.css') as demo:
         # with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
         #     inference_inpaint()
 
-demo.queue(status_update_rate=1).launch(share=True)
+
+if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
+    demo.queue(status_update_rate=1).launch(share=True)
+
