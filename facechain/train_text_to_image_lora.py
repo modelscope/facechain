@@ -1192,6 +1192,7 @@ def main():
         new_size = None
         input_images = None
         input_images_shape = None
+        control_images=None
         input_masks = None
 
     for epoch in range(first_epoch, args.num_train_epochs):
@@ -1351,24 +1352,26 @@ def main():
             unet = unet.to(torch.float32)
             unet.save_attn_procs(args.output_dir, safe_serialization=False)
 
-        log_validation(
-            model_dir,
-            vae,
-            text_encoder,
-            tokenizer,
-            unet,
-            args,
-            accelerator,
-            weight_dtype,
-            epoch,
-            global_step,
-            input_images=input_images, 
-            input_images_shape=input_images_shape, 
-            control_images=control_images, 
-            input_masks=input_masks,
-            new_size=new_size
-        )
         if args.merge_best_lora_based_face_id:
+            if args.validation_prompt is not None:
+                log_validation(
+                    model_dir,
+                    vae,
+                    text_encoder,
+                    tokenizer,
+                    unet,
+                    args,
+                    accelerator,
+                    weight_dtype,
+                    epoch,
+                    global_step,
+                    input_images=input_images, 
+                    input_images_shape=input_images_shape, 
+                    control_images=control_images, 
+                    input_masks=input_masks,
+                    new_size=new_size
+                )
+
             pivot_dir = args.output_dataset_name
             t_result_list, tlist, scores = eval_jpg_with_faceid(pivot_dir, os.path.join(args.output_dir, "validation"))
 

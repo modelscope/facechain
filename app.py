@@ -76,28 +76,43 @@ def concatenate_images(images):
     return concatenated_image
 
 
-def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
-
+def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None, ensemble=True, enhance_lora=False, photo_num=0):
     validation_prompt, _ = get_popular_prompts(output_img_dir)
     torch.cuda.empty_cache()
-    os.system(
-        f'''
-            PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py \
-            --pretrained_model_name_or_path="{foundation_model_path}" \
-            --output_dataset_name="{output_img_dir}" \
-            --caption_column="text" --resolution=512 \
-            --random_flip --train_batch_size=1 --gradient_accumulation_steps=4 --max_train_steps=800 --checkpointing_steps=100 \
-            --learning_rate=1e-04 --lr_scheduler="constant" --lr_warmup_steps=0 --seed=42 --output_dir="{work_dir}" \
-            --lora_r=128 --lora_alpha=64 \
-            --validation_prompt="{validation_prompt}" \
-            --validation_steps=100 \
-            --template_dir="resources/inpaint_template" \
-            --template_mask \
-            --merge_best_lora_based_face_id \
-            --revision="{revision}" \
-            --sub_path="film/film" \
-        '''
-    )
+    
+    lora_r = 32 if not enhance_lora else 128
+    lora_alpha = 32 if not enhance_lora else 64
+    max_train_steps = min(photo_num * 200, 800)
+    if ensemble:
+        os.system(
+            f'''
+                PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py \
+                --pretrained_model_name_or_path="{foundation_model_path}" \
+                --output_dataset_name="{output_img_dir}" \
+                --caption_column="text" --resolution=512 \
+                --random_flip --train_batch_size=1 --gradient_accumulation_steps=4 --max_train_steps={max_train_steps} --checkpointing_steps=100 \
+                --learning_rate=1e-04 --lr_scheduler="constant" --lr_warmup_steps=0 --seed=42 --output_dir="{work_dir}" \
+                --lora_r={lora_r} --lora_alpha={lora_alpha} \
+                --validation_prompt="{validation_prompt}" \
+                --validation_steps=100 \
+                --template_dir="resources/inpaint_template" \
+                --template_mask \
+                --merge_best_lora_based_face_id \
+                --revision="{revision}" \
+                --sub_path="film/film" \
+            '''
+        )
+    else:
+        os.system(
+            f'''
+                PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py \
+                --pretrained_model_name_or_path="{foundation_model_path}" \
+                --output_dataset_name="{output_img_dir}" --caption_column="text" --resolution=512 \
+                --random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=3000 \
+                --learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir="{work_dir}" \
+                --lora_r={lora_r} --lora_alpha={lora_alpha} --revision="{revision}" --sub_path="film/film" \
+            '''
+        )
 
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model == styles[0]['name'] or style_model is None:
@@ -161,7 +176,8 @@ def launch_pipeline(uuid,
     output_model_name = 'personalization_lora'
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
     lora_model_path = f'/tmp/{uuid}/{output_model_name}/ensemble'
-    
+    if not os.path.exists(lora_model_path):
+        lora_model_path = f'/tmp/{uuid}/{output_model_name}/'
     gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                                use_face_swap, use_post_process,
                                use_stylization)
@@ -258,6 +274,8 @@ class Trainer:
     def run(
             self,
             uuid: str,
+            ensemble: bool, 
+            enhance_lora: bool,
             instance_images: list,
     ) -> str:
         # Check Cuda
@@ -300,7 +318,10 @@ class Trainer:
         train_lora_fn(foundation_model_path='ly261666/cv_portrait_model',
                       revision='v2.0',
                       output_img_dir=instance_data_dir,
-                      work_dir=work_dir)
+                      work_dir=work_dir,
+                      ensemble=ensemble,
+                      enhance_lora=enhance_lora,
+                      photo_num=len(instance_images))
 
         message = f'训练已经完成！请切换至 [形象体验] 标签体验模型效果(Training done, please switch to the inference tab to generate photos.)'
         print(message)
@@ -360,6 +381,19 @@ def train_input():
                         - Step 3. Switch to [Inference] Tab to generate stylized photos.
                         ''')
 
+        with gr.Box():
+            with gr.Row():
+                ensemble = gr.Checkbox(label='ensemble', value=True)
+                enhance_lora = gr.Checkbox(label='enhance_lora', value=False)
+            gr.Markdown(
+                '''
+                - ensemble: Whether to enable Lora ensemble. True is recommended when using inpaint.
+                - enhance_lora: Whether to enable Lora enhancement. This option will enhance the feature length of Lora to 128. True is recommended when using inpaint.
+                - ensemble: 是否启用Lora的融合，使用 艺术照重绘 时建议为True。
+                - enhance_lora: 是否启用lora增强，此选项将使Lora的特征长度增加到128，此时Lora会有更强的表征能力。使用 艺术照重绘 时建议为True。
+                '''
+            )
+
         run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）'
                                'Start training (please wait until photo(s) fully uploaded, otherwise it may result in training failure)')
 
@@ -384,6 +418,8 @@ def train_input():
         run_button.click(fn=trainer.run,
                          inputs=[
                              uuid,
+                             ensemble,
+                             enhance_lora,
                              instance_images,
                          ],
                          outputs=[output_message])
@@ -552,9 +588,8 @@ with gr.Blocks(css='style.css') as demo:
             train_input()
         with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input()
-        # hide inpaint 
-        # with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
-        #     inference_inpaint()
+        with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
+            inference_inpaint()
 
 
 if __name__ == "__main__":
