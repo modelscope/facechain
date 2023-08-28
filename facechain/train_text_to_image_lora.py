@@ -54,6 +54,7 @@ from modelscope import snapshot_download
 from packaging import version
 from torchvision import transforms
 from tqdm.auto import tqdm
+from torch import multiprocessing
 from transformers import CLIPTextModel, CLIPTokenizer
 
 from facechain.inference import data_process_fn
@@ -1147,4 +1148,5 @@ def main():
 
 
 if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
     main()
