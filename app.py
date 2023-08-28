@@ -387,8 +387,8 @@ def train_input():
                 enhance_lora = gr.Checkbox(label='enhance_lora', value=False)
             gr.Markdown(
                 '''
-                - 人物LoRA融合（LoRA-Ensemble）：选择训练中几个与用户最相似的Lora融合，艺术照生成模式建议勾选 - Allow fusion of multiple LoRAs during training. Recommended for enhance similarity or Inpaint mode.
-                - 人物LoRA增强（LoRA-Enhancement）：扩大LoRA规模，生成图片更贴近用户，至少5张以上多图训练或者艺术照生成模式建议勾选 - Boost scale of LoRA to enhance resenblance of generated image agaist user image. Recommended for training above 5 pics or Inpaint mode. 
+                - 人物LoRA融合（Ensemble）：选择训练中几个最佳人物LoRA融合。提升相似度或在艺术照生成模式下建议勾选 - Allow fusion of multiple LoRAs during training. Recommended for enhanced-similarity or using with Inpaint mode.
+                - LoRA增强（LoRA-Enhancement）：扩大LoRA规模，生成图片更贴近用户，至少5张以上多图训练或者艺术照生成模式建议勾选 - Boost scale of LoRA to enhance output resemblance with input. Recommended for training with more than 5 pics or using with Inpaint mode. 
                 '''
             )
 
