@@ -340,7 +340,7 @@ def inference_input():
                 for pmodel in pose_models:
                     pmodels.append(pmodel['name'])
 
-                with gr.Accordion("高级选项(Expert)", open=False):
+                with gr.Accordion("高级选项(Advanced Options)", open=False):
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, interactive=True)
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')
