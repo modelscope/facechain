@@ -387,10 +387,8 @@ def train_input():
                 enhance_lora = gr.Checkbox(label='enhance_lora', value=False)
             gr.Markdown(
                 '''
-                - ensemble: Whether to enable Lora ensemble. True is recommended when using inpaint.
-                - enhance_lora: Whether to enable Lora enhancement. This option will enhance the feature length of Lora to 128. True is recommended when using inpaint.
-                - ensemble: 是否启用Lora的融合，使用 艺术照重绘 时建议为True。
-                - enhance_lora: 是否启用lora增强，此选项将使Lora的特征长度增加到128，此时Lora会有更强的表征能力。使用 艺术照重绘 时建议为True。
+                - 多LoRA风格融合（Ensemble）：选择训练中几个最佳LoRA风格融合，艺术照生成模式建议勾选 - Allow fusion of multiple LoRAs during training. Recommended for Inpaint mode.
+                - LoRA增强（LoRA-Enhancement）：扩大LoRA规模，生成图片更贴近用户，艺术照生成模式建议勾选 - Boost scale of LoRA to enhance resemblance of generated image agaist user image. Recommended for Inpaint mode. 
                 '''
             )
 
