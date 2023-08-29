@@ -187,7 +187,8 @@ def main_diffusion_inference_pose(pose_model_path, pose_image,
     pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
     pose_im = Image.open(pose_image)
     pose_im = img_pad(pose_im)
-    openpose = OpenposeDetector.from_pretrained('lllyasviel/ControlNet')
+    model_dir = snapshot_download('damo/face_chain_control_model',revision='v1.0.1')
+    openpose = OpenposeDetector.from_pretrained(os.path.join(model_dir, 'model_controlnet/ControlNet'))
     pose_im = openpose(pose_im, include_hand=True)
 
     lora_style_path = style_model_path
@@ -254,15 +255,16 @@ def main_diffusion_inference_multi(pose_model_path, pose_image,
         model_dir = snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo', revision='v1.0.0')
         style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_fromleo.safetensors')
 
+    model_dir = snapshot_download('damo/face_chain_control_model', revision='v1.0.1')
     controlnet = [
         ControlNetModel.from_pretrained(pose_model_path, torch_dtype=torch.float32),
-        ControlNetModel.from_pretrained('lllyasviel/control_v11p_sd15_depth', torch_dtype=torch.float32)
+        ControlNetModel.from_pretrained(os.path.join(model_dir, 'model_controlnet/control_v11p_sd15_depth'), torch_dtype=torch.float32)
     ]
     pipe = StableDiffusionControlNetPipeline.from_pretrained(base_model_path, controlnet=controlnet, torch_dtype=torch.float32)
     pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
     pose_image = Image.open(pose_image)
     pose_image = img_pad(pose_image)
-    openpose = OpenposeDetector.from_pretrained('lllyasviel/ControlNet')
+    openpose = OpenposeDetector.from_pretrained(os.path.join(model_dir, 'model_controlnet/ControlNet'))
     pose_im = openpose(pose_image, include_hand=True)
     segmentation_pipeline = pipeline(Tasks.image_segmentation,
                                      'damo/cv_resnet101_image-multiple-human-parsing')
@@ -271,7 +273,7 @@ def main_diffusion_inference_multi(pose_model_path, pose_image,
     pose_image = np.array(pose_image)
     pose_image = (pose_image * mask_rst).astype(np.uint8)
     pose_image = Image.fromarray(pose_image)
-    depth_estimator = tpipeline('depth-estimation')
+    depth_estimator = tpipeline('depth-estimation', os.path.join(model_dir, 'model_controlnet/dpt-large'))
     depth_im = depth_estimator(pose_image)['depth']
     depth_im = np.array(depth_im)
     depth_im = depth_im[:, :, None]
