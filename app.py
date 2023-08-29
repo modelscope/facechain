@@ -118,12 +118,13 @@ def launch_pipeline(uuid,
         model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
         style_model_path = os.path.join(model_dir, matched['bin_file'])
 
-    if pose_image is None:
+    if pose_image is None or pose_model == 0:
         pose_model_path = None
         use_depth_control = False
+        pose_image = None
     else:
-        print(pose_model)
-        pose_model_path = pose_models[pose_model]['pth']
+        model_dir = snapshot_download('damo/face_chain_control_model', revision='v1.0.1')
+        pose_model_path = os.path.join(model_dir, 'model_controlnet/control_v11p_sd15_openpose')
         if pose_model == 1:
             use_depth_control = True
         else:
