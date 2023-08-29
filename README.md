@@ -43,7 +43,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # Features
-- Support a series of new tricks to stablize Lora training
+- Introduce beta version of Inpaint, with techniques such as in-trianing validation and post-training ensemble to stablize LoRA.
   - Description
     - Add faceid evaluate in train_text_to_image_lora, which will generate validation image during training
     - Add ensemble after Lora training according to faceid scores with training datasets
