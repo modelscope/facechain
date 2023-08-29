@@ -80,7 +80,7 @@ def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None
     validation_prompt, _ = get_popular_prompts(output_img_dir)
     torch.cuda.empty_cache()
     
-    lora_r = 32 if not enhance_lora else 128
+    lora_r = 4 if not enhance_lora else 128
     lora_alpha = 32 if not enhance_lora else 64
     max_train_steps = min(photo_num * 200, 800)
     if ensemble:
@@ -104,15 +104,23 @@ def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None
         )
     else:
         os.system(
-            f'''
-                PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py \
-                --pretrained_model_name_or_path="{foundation_model_path}" \
-                --output_dataset_name="{output_img_dir}" --caption_column="text" --resolution=512 \
-                --random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=3000 \
-                --learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir="{work_dir}" \
-                --lora_r={lora_r} --lora_alpha={lora_alpha} --revision="{revision}" --sub_path="film/film" \
-            '''
-        )
+            f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
+            f'--revision={revision} --sub_path="film/film" '
+            f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
+            f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
+            f'--learning_rate=1.5e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
+            f'--lora_r={lora_r} --lora_alpha={lora_alpha} --lora_text_encoder_r=32 --lora_text_encoder_alpha=32 --resume_from_checkpoint="fromfacecommon"')
+
+        # os.system(
+        #     f'''
+        #         PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py \
+        #         --pretrained_model_name_or_path="{foundation_model_path}" \
+        #         --output_dataset_name="{output_img_dir}" --caption_column="text" --resolution=512 \
+        #         --random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=3000 \
+        #         --learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir="{work_dir}" \
+        #         --lora_r={lora_r} --lora_alpha={lora_alpha} --revision="{revision}" --sub_path="film/film" \
+        #     '''
+        # )
 
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model == styles[0]['name'] or style_model is None:
@@ -226,6 +234,10 @@ def launch_pipeline_inpaint(uuid,
             return "请登陆后使用! (Please login first)"
         else:
             uuid = 'qw'
+
+    if isinstance(selected_template_images, str):
+        if len(selected_template_images) == 0:
+            raise gr.Error('请选择一张模板(Please select 1 template)')
 
     base_model = 'ly261666/cv_portrait_model'
     output_model_name = 'personalization_lora'
@@ -503,7 +515,7 @@ def inference_inpaint():
                     value=HOT_MODELS[0]
                 )
                 
-                template_gallery_list = [(i, i) for i in preset_template]
+                template_gallery_list = [(i, f"模板{idx+1}") for idx,i in enumerate(preset_template)]
                 gallery = gr.Gallery(template_gallery_list).style(grid=4, height=300)
 
                 # new inplementation with gr.select callback function, only pick 1image at once
@@ -559,9 +571,9 @@ def inference_inpaint():
                 label='输出(Output)',
                 show_label=False
             ).style(columns=3, rows=2, height=600, object_fit="contain")
-            
+        
         display_button.click(
-            fn=inference_inpaint,
+            fn=launch_pipeline_inpaint,
             inputs=[uuid, selected_template_images, append_pos_prompt, select_face_num, first_control_weight, second_control_weight,
                     final_fusion_ratio, use_fusion_before, use_fusion_after],
             outputs=[infer_progress, output_images]
