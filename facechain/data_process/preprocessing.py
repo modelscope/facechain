@@ -299,8 +299,8 @@ def most_similar_faces_pick(imdir, face_detection, face_recognition, face_qualit
             quality_scores.append(score)
             face_angles.append(angle)
             selected_paths.append(jpg)
-        except:
-            print(jpg, "is error skip")
+        except Exception as e:
+            print(f'skipping {jpg} due to processing error {e}')
 
     # sort all scores with muliply
     face_id_scores      = compare_jpg_with_face_id(face_id_scores)
@@ -322,9 +322,9 @@ class Blipv2():
         self.facial_landmark_confidence_func = pipeline(Tasks.face_2d_keypoints,
                                                         'damo/cv_manual_facial-landmark-confidence_flcm', model_revision='v2.5')
         # embedding
-        self.face_recognition = pipeline(Tasks.face_recognition, model='damo/cv_ir101_facerecognition_cfglint')
+        self.face_recognition = pipeline(Tasks.face_recognition, model='damo/cv_ir101_facerecognition_cfglint', model_revision='v1.0.0')
         # face quality
-        self.face_quality_func = pipeline(Tasks.face_quality_assessment, 'damo/cv_manual_face-quality-assessment_fqa')
+        self.face_quality_func = pipeline(Tasks.face_quality_assessment, 'damo/cv_manual_face-quality-assessment_fqa',  model_revision='v2.0')
 
     def __call__(self, imdir):
         self.model.start()

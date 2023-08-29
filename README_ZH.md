@@ -21,7 +21,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # News
-- 为Lora训练添加验证和根据face_id的融合，并添加InpaintTab（目前隐藏在gradio中）. (2023-08-28)
+- 为Lora训练添加验证和根据face_id的融合，并添加InpaintTab（目前在Gradio界面上暂时默认隐藏）. (2023-08-28)
 - 增加姿势控制模块，可一键体验模版pose复刻.   (2023-08-27)
 - 增加鲁棒性人脸lora训练，提升单图训练&风格lora融合的效果.   (2023-08-27)
 - 支持在HuggingFace Space中体验FaceChain ！ <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>      (2023-08-25)

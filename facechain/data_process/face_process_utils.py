@@ -37,7 +37,6 @@ def safe_get_box_mask_keypoints(image, retinaface_result, crop_ratio, face_seg, 
         retinaface_keypoints = np.array(retinaface_keypoints, np.float32)
 
         # Mask part
-        # retinaface_crop = Image.fromarray(image).crop(tuple(np.int32(retinaface_box)))
         retinaface_crop = image.crop(tuple(np.int32(retinaface_box)))
         retinaface_mask = np.zeros_like(np.array(image, np.uint8))
         if mask_type == "skin":

@@ -205,9 +205,9 @@ def launch_pipeline(uuid,
         result = concatenate_images(outputs)
         cv2.imwrite(image_path, result)
 
-        yield ["生成完毕(Generating done)！", outputs_RGB]
+        yield ["生成完毕(Generation done)！", outputs_RGB]
     else:
-        yield ["生成失败，请重试(Generating failed, please retry)！", outputs_RGB]
+        yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
 
 def launch_pipeline_inpaint(uuid,
                           selected_template_images,
@@ -238,7 +238,7 @@ def launch_pipeline_inpaint(uuid,
 
     gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
     
-    cache_model_dir = snapshot_download("bubbliiiing/controlnet_helper", revision="v2.2") # '/mnt/zhoulou.wzh/AIGC/model_data/'
+    cache_model_dir = snapshot_download("bubbliiiing/controlnet_helper", revision="v2.2")
     future = inference_threadpool.submit(gen_portrait_inpaint, base_model, lora_model_path, instance_data_dir,\
                                         selected_template_images, cache_model_dir, select_face_num, first_control_weight, \
                                         second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after, sub_path='film/film', revision='v2.0')
@@ -262,9 +262,9 @@ def launch_pipeline_inpaint(uuid,
         result = concatenate_images(outputs)
         cv2.imwrite(image_path, result)
 
-        yield ["生成完毕(Generating done)！", outputs_RGB]
+        yield ["生成完毕(Generation done)！", outputs_RGB]
     else:
-        yield ["生成失败，请重试(Generating failed, please retry)！", outputs_RGB]
+        yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
 
 
 class Trainer:
@@ -288,7 +288,7 @@ class Trainer:
 
         # Limit input Image
         if len(instance_images) > 20:
-            raise gr.Error('请最多上传20张训练图片(20 images most!)')
+            raise gr.Error('请最多上传20张训练图片(20 images at most!)')
 
         # Check UUID & Studio
         if not uuid:
@@ -484,14 +484,6 @@ def inference_input():
     return demo
 
 
-# Define preset template paths
-# preset_template = [
-#     # photos will be add to here when inpaint is ready
-#     'resources/inpaint_template/0.jpg',
-#     'resources/inpaint_template/1.jpg',
-#     'resources/inpaint_template/2.jpg',
-#     'resources/inpaint_template/3.jpg'
-# ]
 def inference_inpaint():
     """
         Inpaint Tab with Ensemble-Lora + MultiControlnet, support preset_template
@@ -513,14 +505,11 @@ def inference_inpaint():
                 
                 template_gallery_list = [(i, i) for i in preset_template]
                 gallery = gr.Gallery(template_gallery_list).style(grid=4, height=300)
-                
-                # original select version
-                # selected_template_images = gr.CheckboxGroup(choices=preset_template, label="Select Preset Templates")
-                
-                # new inplementation with gr.select callback function
+
+                # new inplementation with gr.select callback function, only pick 1image at once
                 def select_function(evt: gr.SelectData):
                     return [preset_template[evt.index]]
-                # selected_template_images = []
+
                 selected_template_images = gr.Text(show_label=False, placeholder="Selected")
                 gallery.select(select_function, None, selected_template_images)
                 

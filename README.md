@@ -43,11 +43,11 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # Features
-- Support a series of new tricks to stableize Lora training
+- Support a series of new tricks to stablize Lora training
   - Description
     - Add faceid evaluate in train_text_to_image_lora, which will generate validation image during training
     - Add ensemble after Lora training according to faceid scores with training datasets
-    - Add InpaintTab, which not display in gradio,  Use Lora and template to generate artistic photo
+    - Add Inpaint Tab (currently in beta and not displayed by default) in Gradio, which generates artistic template-based images.
 - Support a series of new style models in a plug-and-play fashion
   - Description
     - Allow users to select different style models for training distinct types of Digital-Twins.
