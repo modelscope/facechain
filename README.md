@@ -153,6 +153,13 @@ python3 app.py
 
 **Note**: After the app service is successfully launched, go to the URL in the log, enter the "Image Customization" tab, click "Select Image to Upload", and choose at least one image with a face. Then, click "Start Training" to begin model training. After the training is completed, there will be corresponding displays in the log. Afterwards, switch to the "Image Experience" tab and click "Start Inference" to generate your own digital image.
 
+*Note* For windows user, you should pay attention to following steps:
+```shell
+1. reinstall  package pytorch and numpy compatible with tensorflow
+2. install mmcv-full by pip: pip install mmcv-full
+3. modify app.py to apply to windows
+```
+
 
 ### 4. Colab notebook
 
