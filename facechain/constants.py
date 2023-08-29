@@ -23,4 +23,24 @@ styles = [
      'add_prompt_style': 'red, hanfu, tiara, crown, '},
 ]
 
+pose_models = [
+    {'name': '无姿态控制(No pose control)'},
+    {'name': 'pose-v1.1-with-depth'},
+    {'name': 'pose-v1.1'}
+]
+
+pose_examples = {
+    'man': [
+        ['./poses/man/pose1.png'],
+        ['./poses/man/pose2.png'],
+        ['./poses/man/pose3.png'],
+        ['./poses/man/pose4.png']
+    ],
+    'woman': [
+        ['./poses/woman/pose1.png'],
+        ['./poses/woman/pose2.png'],
+        ['./poses/woman/pose3.png'],
+        ['./poses/woman/pose4.png'],
+    ]
+}
 

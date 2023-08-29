@@ -4,7 +4,7 @@ import os
 import shutil
 import time
 from concurrent.futures import ThreadPoolExecutor
-
+from torch import multiprocessing
 import cv2
 import gradio as gr
 import numpy as np
@@ -13,7 +13,7 @@ from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
-from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt
+from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt, pose_models, pose_examples
 
 training_threadpool = ThreadPoolExecutor(max_workers=1)
 inference_threadpool = ThreadPoolExecutor(max_workers=5)
@@ -41,7 +41,8 @@ def update_cloth(style_index):
         example_prompt = generate_pos_prompt(styles[style_index]['name'],
                                              styles[style_index]['add_prompt_style'])
         prompts.append(styles[style_index]['cloth_name'])
-    return gr.Radio.update(choices=prompts, value=prompts[0]), gr.Textbox.update(value=example_prompt)
+    return gr.Radio.update(choices=prompts, 
+                           value=prompts[0], visible=True),gr.Textbox.update(value=example_prompt)
 
 
 def update_prompt(style_index, cloth_index):
@@ -52,6 +53,12 @@ def update_prompt(style_index, cloth_index):
         pos_prompt = generate_pos_prompt(styles[style_index]['name'],
                                          styles[style_index]['add_prompt_style'])
     return gr.Textbox.update(value=pos_prompt)
+
+def update_pose_model(pose_image):
+    if pose_image is None:
+        return gr.Radio.update(value=pose_models[0]['name'])
+    else:
+        return gr.Radio.update(value=pose_models[1]['name'])
 
 def concatenate_images(images):
     heights = [img.shape[0] for img in images]
@@ -71,8 +78,8 @@ def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None
         f'--revision={revision} --sub_path="film/film" '
         f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
         f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
-        f'--learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
-        f'--lora_r=32 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32')
+        f'--learning_rate=1.5e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
+        f'--lora_r=4 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32 --resume_from_checkpoint="fromfacecommon"')
 
 
 def generate_pos_prompt(style_model, prompt_cloth):
@@ -92,7 +99,9 @@ def launch_pipeline(uuid,
                     user_models,
                     num_images=1,
                     style_model=None,
-                    multiplier_style=0.25
+                    multiplier_style=0.25,
+                    pose_model=None,
+                    pose_image=None
                     ):
     base_model = 'ly261666/cv_portrait_model'
     before_queue_size = inference_threadpool._work_queue.qsize()
@@ -108,6 +117,18 @@ def launch_pipeline(uuid,
         matched = matched[0]
         model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
         style_model_path = os.path.join(model_dir, matched['bin_file'])
+
+    if pose_image is None or pose_model == 0:
+        pose_model_path = None
+        use_depth_control = False
+        pose_image = None
+    else:
+        model_dir = snapshot_download('damo/face_chain_control_model', revision='v1.0.1')
+        pose_model_path = os.path.join(model_dir, 'model_controlnet/control_v11p_sd15_openpose')
+        if pose_model == 1:
+            use_depth_control = True
+        else:
+            use_depth_control = False
 
     print("-------user_models: ", user_models)
     if not uuid:
@@ -125,8 +146,13 @@ def launch_pipeline(uuid,
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
 
     lora_model_path = f'/tmp/{uuid}/{output_model_name}'
+    
+    train_file = os.path.join(lora_model_path,'pytorch_lora_weights.bin')
+    
+    if not os.path.exists(train_file):
+        raise gr.Error('您还没有进行形象定制，请先进行训练。(Training is required before inference.)')
 
-    gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
+    gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
                                use_face_swap, use_post_process,
                                use_stylization)
 
@@ -241,10 +267,11 @@ def train_input():
                 with gr.Box():
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
-                    upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
-                                                    file_count="multiple")
+                    with gr.Row():
+                        upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
+                                                        file_count="multiple")
 
-                    clear_button = gr.Button("清空图片(Clear photos)")
+                        clear_button = gr.Button("清空图片(Clear photos)")
                     clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
 
                     upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images, queue=False)
@@ -264,9 +291,9 @@ def train_input():
 
         with gr.Box():
             gr.Markdown('''
-            请等待训练完成
+            请等待训练完成，请勿刷新或关闭页面。
             
-            Please wait for the training to complete.
+            Please wait for the training to complete, do not refresh or close the page.
             ''')
             output_message = gr.Markdown()
         with gr.Box():
@@ -300,20 +327,29 @@ def inference_input():
                 style_model_list = []
                 for style in styles:
                     style_model_list.append(style['name'])
-                style_model = gr.Dropdown(choices=style_model_list, value=styles[0]['name'], 
-                                          type="index", label="风格模型(Style model)")
+                style_model = gr.Dropdown(choices=style_model_list, type="index", label="风格模型(Style model)")
                 
                 prompts=[]
                 for prompt in cloth_prompt:
                     prompts.append(prompt['name'])
-                cloth_style = gr.Radio(choices=prompts, value=cloth_prompt[0]['name'],
-                                       type="index", label="服装风格(Cloth style)")
+                for style in styles[1:]:
+                    prompts.append(style['cloth_name'])
 
-                with gr.Accordion("高级选项(Expert)", open=False):
-                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
-                                        value=generate_pos_prompt(None, cloth_prompt[0]['prompt']), interactive=True)
+                cloth_style = gr.Radio(choices=prompts, value=cloth_prompt[0]['name'],
+                                       type="index", label="服装风格(Cloth style)", visible=False)
+                pmodels = []
+                for pmodel in pose_models:
+                    pmodels.append(pmodel['name'])
+
+                with gr.Accordion("高级选项(Advanced Options)", open=False):
+                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, interactive=True)
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')
+                    pose_image = gr.Image(source='upload', type='filepath', label='姿态图片(Pose image)')
+                    gr.Examples(pose_examples['man'], inputs=[pose_image], label='男性姿态示例')
+                    gr.Examples(pose_examples['woman'], inputs=[pose_image], label='女性姿态示例')
+                    pose_model = gr.Radio(choices=pmodels, value=pose_models[0]['name'],
+                                          type="index", label="姿态控制模型(Pose control model)")
                 with gr.Box():
                     num_images = gr.Number(
                         label='生成图片数量(Number of photos)', value=6, precision=1, minimum=1, maximum=6)
@@ -332,8 +368,10 @@ def inference_input():
                                                                                
         style_model.change(update_cloth, style_model, [cloth_style, pos_prompt])
         cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt])
+        pose_image.change(update_pose_model, pose_image, [pose_model])
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style],
+                             inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style,
+                                     pose_model, pose_image],
                              outputs=[infer_progress, output_images])
 
     return demo
@@ -346,5 +384,8 @@ with gr.Blocks(css='style.css') as demo:
         with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input()
 
-demo.queue(status_update_rate=1).launch(share=True)
+
+if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
+    demo.queue(status_update_rate=1).launch(share=True)
 

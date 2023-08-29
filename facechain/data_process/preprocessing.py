@@ -16,14 +16,14 @@ from modelscope.outputs import OutputKeys
 from modelscope.utils.constant import Tasks
 
 
-def crop_and_resize(im, bbox, thres=0.35, thres1=0.45):
+def crop_and_resize(im, bbox):
     h, w, _ = im.shape
-    thre = np.random.rand() * (thres1 - thres) + thres
+    thre = 0.35/1.15
     maxf = max(bbox[2] - bbox[0], bbox[3] - bbox[1])
     cx = (bbox[2] + bbox[0]) / 2
     cy = (bbox[3] + bbox[1]) / 2
     lenp = int(maxf / thre)
-    yc = np.random.rand() * 0.15 + 0.35
+    yc = 0.5/1.15
     xc = 0.5
     xmin = int(cx - xc * lenp)
     xmax = xmin + lenp
@@ -85,30 +85,31 @@ def post_process_naive(result_list, score_gender, score_age):
     for result in result_list:
         result_new = []
         result_new.extend(tag_a_g)
-        for tag in result:
-            if tag == '1girl' or tag == '1boy':
-                continue
-            if tag[-4:] == '_man':
-                continue
-            if tag[-6:] == '_woman':
-                continue
-            if tag[-5:] == '_male':
-                continue
-            elif tag[-7:] == '_female':
-                continue
-            elif (
-                    tag == 'ears' or tag == 'head' or tag == 'face' or tag == 'lips' or tag == 'mouth' or tag == '3d' or tag == 'asian' or tag == 'teeth'):
-                continue
-            elif ('eye' in tag and not 'eyewear' in tag):
-                continue
-            elif ('nose' in tag or 'body' in tag):
-                continue
-            elif tag[-5:] == '_lips':
-                continue
-            else:
-                result_new.append(tag)
-            # import pdb;pdb.set_trace()
-        # result_new.append('slim body')
+        ## don't include other infos for lora training
+        #for tag in result:
+        #    if tag == '1girl' or tag == '1boy':
+        #        continue
+        #    if tag[-4:] == '_man':
+        #        continue
+        #    if tag[-6:] == '_woman':
+        #        continue
+        #    if tag[-5:] == '_male':
+        #        continue
+        #    elif tag[-7:] == '_female':
+        #        continue
+        #    elif (
+        #            tag == 'ears' or tag == 'head' or tag == 'face' or tag == 'lips' or tag == 'mouth' or tag == '3d' or tag == 'asian' or tag == 'teeth'):
+        #        continue
+        #    elif ('eye' in tag and not 'eyewear' in tag):
+        #        continue
+        #    elif ('nose' in tag or 'body' in tag):
+        #        continue
+        #    elif tag[-5:] == '_lips':
+        #        continue
+        #    else:
+        #        result_new.append(tag)
+        #    # import pdb;pdb.set_trace()
+        ## result_new.append('slim body')
         result_list_new.append(result_new)
 
     return result_list_new
@@ -347,7 +348,7 @@ class Blipv2():
         for i in range(len(result_list)):
             generated_text = ", ".join(result_list[i])
             print(imgs_list[i], generated_text)
-            info_dict = {"file_name": imgs_list[i], "text": "<sks>, " + generated_text}
+            info_dict = {"file_name": imgs_list[i], "text": "<fcsks>, " + generated_text}
             fo.write(json.dumps(info_dict) + '\n')
         fo.close()
         return out_json_name

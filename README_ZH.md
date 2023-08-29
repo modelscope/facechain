@@ -21,11 +21,13 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # News
+- 增加姿势控制模块，可一键体验模版pose复刻.   (2023-08-27)
+- 增加鲁棒性人脸lora训练，提升单图训练&风格lora融合的效果.   (2023-08-27)
 - 支持在HuggingFace Space中体验FaceChain ！ <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>      (2023-08-25)
 - 新增高质量提示词模板，欢迎大家一起贡献！ 参考 [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)    (2023-08-18)
 - 支持即插即用的风格LoRA模型！ 参考 [功能特性](#功能特性)    (2023-08-16)
 - 新增个性化prompt模块！    参考 [功能特性](#功能特性)    (2023-08-16)
-- Colab notebook安装已支持，您可以直接打开链接体验FaceChain： [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing)   (2023-08-15)
+- Colab notebook安装已支持，您可以直接打开链接体验FaceChain： [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/modelscope/facechain/blob/main/facechain_demo.ipynb)   (2023-08-15)
 
 
 # 待办事项
@@ -99,6 +101,7 @@ os.chdir('/mnt/workspace/facechain')    # 注意替换成上述clone后的代码
 print(os.getcwd())
 
 !pip3 install gradio
+!pip3 install controlnet_aux==0.0.6
 !python3 app.py
 
 # Step4: 点击生成的URL即可访问web页面，上传照片开始训练和预测
@@ -125,6 +128,7 @@ docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.ali
 
 # Step4: 在容器中安装gradio
 pip3 install gradio
+pip3 install controlnet_aux==0.0.6
 
 # Step5: 获取facechain源代码
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
