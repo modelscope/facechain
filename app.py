@@ -384,7 +384,7 @@ def train_input():
 
         with gr.Box():
             with gr.Row():
-                ensemble = gr.Checkbox(label='人物LoRA融合（Ensemble）', value=True)
+                ensemble = gr.Checkbox(label='人物LoRA融合（Ensemble）', value=False)
                 enhance_lora = gr.Checkbox(label='LoRA增强（LoRA-Enhancement）', value=False)
             gr.Markdown(
                 '''
