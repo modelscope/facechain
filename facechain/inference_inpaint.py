@@ -136,7 +136,8 @@ class GenPortraitInpaint:
 
         # setting inpaint used faceid image & roop image with preprocessed output in xx_ensemble dir, if not exists fallback to original FC traindata dir
         reference_dir = str(instance_data_dir) + '_ensemble'
-        if os.path.exists(reference_dir):
+        reference_dir_faceid = os.path.join(reference_dir, 'face_id.jpg')
+        if os.path.exists(reference_dir) and os.path.exists(reference_dir_faceid):
             face_id_image_path = glob(os.path.join(lora_model_path, 'face_id.jpg'))[0]
             input_roop_image_list = glob(os.path.join(reference_dir, 'best_roop_image_*.jpg'))[:select_face_num] # debug for 2
         # not exists means no PR104 training ensemble
