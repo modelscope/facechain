@@ -6,17 +6,18 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image
-from diffusers import StableDiffusionPipeline, StableDiffusionControlNetPipeline, ControlNetModel, UniPCMultistepScheduler
 from controlnet_aux import OpenposeDetector
-from diffusers.utils import load_image
-from transformers import pipeline as tpipeline
+from diffusers import StableDiffusionPipeline, StableDiffusionControlNetPipeline, ControlNetModel, \
+    UniPCMultistepScheduler
+from modelscope import snapshot_download
 from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
-from modelscope import snapshot_download
 from torch import multiprocessing
-from facechain.merge_lora import merge_lora
+from transformers import pipeline as tpipeline
+
 from facechain.data_process.preprocessing import Blipv2
+from facechain.merge_lora import merge_lora
 
 
 def _data_process_fn_process(input_img_dir):
@@ -28,9 +29,9 @@ def data_process_fn(input_img_dir, use_data_process):
     if use_data_process:
         ## TODO
 
-        process_eval = multiprocessing.Process(target=_data_process_fn_process, args=(input_img_dir,))
-        process_eval.start()
-        process_eval.join()
+        _process = multiprocessing.Process(target=_data_process_fn_process, args=(input_img_dir,))
+        _process.start()
+        _process.join()
 
     return os.path.join(str(input_img_dir) + '_labeled', "metadata.jsonl")
 
