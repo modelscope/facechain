@@ -1,5 +1,6 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import enum
+import logging
 import os
 import shutil
 import time
@@ -9,11 +10,15 @@ import cv2
 import gradio as gr
 import numpy as np
 import torch
+from glob import glob 
 from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
+from facechain.inference_inpaint import GenPortraitInpaint
+from facechain.data_process.preprocessing import get_popular_prompts
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt, pose_models, pose_examples
+
 
 training_threadpool = ThreadPoolExecutor(max_workers=1)
 inference_threadpool = ThreadPoolExecutor(max_workers=5)
@@ -72,15 +77,40 @@ def concatenate_images(images):
     return concatenated_image
 
 
-def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None):
-    os.system(
-        f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
-        f'--revision={revision} --sub_path="film/film" '
-        f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
-        f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
-        f'--learning_rate=1.5e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
-        f'--lora_r=4 --lora_alpha=32 --lora_text_encoder_r=32 --lora_text_encoder_alpha=32 --resume_from_checkpoint="fromfacecommon"')
-
+def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None, ensemble=True, enhance_lora=False, photo_num=0):
+    validation_prompt, _ = get_popular_prompts(output_img_dir)
+    torch.cuda.empty_cache()
+    
+    lora_r = 4 if not enhance_lora else 128
+    lora_alpha = 32 if not enhance_lora else 64
+    max_train_steps = min(photo_num * 200, 800)
+    if ensemble:
+        os.system(
+            f'''
+                PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py \
+                --pretrained_model_name_or_path="{foundation_model_path}" \
+                --output_dataset_name="{output_img_dir}" \
+                --caption_column="text" --resolution=512 \
+                --random_flip --train_batch_size=1 --gradient_accumulation_steps=4 --max_train_steps={max_train_steps} --checkpointing_steps=100 \
+                --learning_rate=1e-04 --lr_scheduler="constant" --lr_warmup_steps=0 --seed=42 --output_dir="{work_dir}" \
+                --lora_r={lora_r} --lora_alpha={lora_alpha} \
+                --validation_prompt="{validation_prompt}" \
+                --validation_steps=100 \
+                --template_dir="resources/inpaint_template" \
+                --template_mask \
+                --merge_best_lora_based_face_id \
+                --revision="{revision}" \
+                --sub_path="film/film" \
+            '''
+        )
+    else:
+        os.system(
+            f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
+            f'--revision={revision} --sub_path="film/film" '
+            f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
+            f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
+            f'--learning_rate=1.5e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
+            f'--lora_r={lora_r} --lora_alpha={lora_alpha} --lora_text_encoder_r=32 --lora_text_encoder_alpha=32 --resume_from_checkpoint="fromfacecommon"')
 
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model == styles[0]['name'] or style_model is None:
@@ -142,13 +172,13 @@ def launch_pipeline(uuid,
     use_post_process = True
     use_stylization = False
 
-    output_model_name = 'personalizaition_lora'
+    output_model_name = 'personalization_lora'
     instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
+    lora_model_path = f'/tmp/{uuid}/{output_model_name}/ensemble'
+    if not os.path.exists(lora_model_path):
+        lora_model_path = f'/tmp/{uuid}/{output_model_name}/'
 
-    lora_model_path = f'/tmp/{uuid}/{output_model_name}'
-    
     train_file = os.path.join(lora_model_path,'pytorch_lora_weights.bin')
-    
     if not os.path.exists(train_file):
         raise gr.Error('您还没有进行形象定制，请先进行训练。(Training is required before inference.)')
 
@@ -179,9 +209,70 @@ def launch_pipeline(uuid,
         result = concatenate_images(outputs)
         cv2.imwrite(image_path, result)
 
-        yield ["生成完毕(Generating done)！", outputs_RGB]
+        yield ["生成完毕(Generation done)！", outputs_RGB]
     else:
-        yield ["生成失败，请重试(Generating failed, please retry)！", outputs_RGB]
+        yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
+
+def launch_pipeline_inpaint(uuid,
+                          selected_template_images,
+                          append_pos_prompt,
+                          select_face_num=1,
+                          first_control_weight=0.5,
+                          second_control_weight=0.1,
+                          final_fusion_ratio=0.5,
+                          use_fusion_before=True,
+                          use_fusion_after=True):
+    before_queue_size = inference_threadpool._work_queue.qsize()
+    before_done_count = inference_done_count
+
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            return "请登陆后使用! (Please login first)"
+        else:
+            uuid = 'qw'
+
+    if isinstance(selected_template_images, str):
+        if len(selected_template_images) == 0:
+            raise gr.Error('请选择一张模板(Please select 1 template)')
+
+    base_model = 'ly261666/cv_portrait_model'
+    output_model_name = 'personalization_lora'
+    instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
+
+    # we use ensemble model, if not exists fallback to original lora
+    lora_model_path = f'/tmp/{uuid}/{output_model_name}/ensemble/'
+    if not os.path.exists(lora_model_path):
+        lora_model_path = f'/tmp/{uuid}/{output_model_name}/'
+
+    gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
+    
+    cache_model_dir = snapshot_download("bubbliiiing/controlnet_helper", revision="v2.2")
+    future = inference_threadpool.submit(gen_portrait_inpaint, base_model, lora_model_path, instance_data_dir,\
+                                        selected_template_images, cache_model_dir, select_face_num, first_control_weight, \
+                                        second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after, sub_path='film/film', revision='v2.0')
+
+    while not future.done():
+        is_processing = future.running()
+        if not is_processing:
+            cur_done_count = inference_done_count
+            to_wait = before_queue_size - (cur_done_count - before_done_count)
+            yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5), None]
+        else:
+            yield ["生成中, 请耐心等待(Generating)...", None]
+        time.sleep(1)
+
+    outputs = future.result()
+    outputs_RGB = []
+    for out_tmp in outputs:
+        outputs_RGB.append(cv2.cvtColor(out_tmp, cv2.COLOR_BGR2RGB))
+    image_path = './lora_result.png'
+    if len(outputs) > 0:
+        result = concatenate_images(outputs)
+        cv2.imwrite(image_path, result)
+
+        yield ["生成完毕(Generation done)！", outputs_RGB]
+    else:
+        yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
 
 
 class Trainer:
@@ -191,22 +282,30 @@ class Trainer:
     def run(
             self,
             uuid: str,
+            ensemble: bool, 
+            enhance_lora: bool,
             instance_images: list,
     ) -> str:
-
+        # Check Cuda
         if not torch.cuda.is_available():
-            raise gr.Error('CUDA is not available.')
+            raise gr.Error('CUDA不可用(CUDA not available)')
+
+        # Check Instance Valid
         if instance_images is None:
             raise gr.Error('您需要上传训练图片(Please upload photos)！')
-        if len(instance_images) > 10:
-            raise gr.Error('您需要上传小于10张训练图片(Please upload at most 10 photos)！')
+
+        # Limit input Image
+        if len(instance_images) > 20:
+            raise gr.Error('请最多上传20张训练图片(20 images at most!)')
+
+        # Check UUID & Studio
         if not uuid:
             if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
                 return "请登陆后使用(Please login first)! "
             else:
                 uuid = 'qw'
 
-        output_model_name = 'personalizaition_lora'
+        output_model_name = 'personalization_lora'
 
         # mv user upload data to target dir
         instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
@@ -223,10 +322,14 @@ class Trainer:
         data_process_fn(instance_data_dir, True)
 
         # train lora
+        print("instance_data_dir", instance_data_dir)
         train_lora_fn(foundation_model_path='ly261666/cv_portrait_model',
                       revision='v2.0',
                       output_img_dir=instance_data_dir,
-                      work_dir=work_dir)
+                      work_dir=work_dir,
+                      ensemble=ensemble,
+                      enhance_lora=enhance_lora,
+                      photo_num=len(instance_images))
 
         message = f'训练已经完成！请切换至 [形象体验] 标签体验模型效果(Training done, please switch to the inference tab to generate photos.)'
         print(message)
@@ -275,6 +378,7 @@ def train_input():
                     clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
 
                     upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images, queue=False)
+                    
                     gr.Markdown('''
                         - Step 1. 上传计划训练的图片，3~10张头肩照（注意：请避免图片中出现多人脸、脸部遮挡等情况，否则可能导致效果异常）
                         - Step 2. 点击 [开始训练] ，启动形象定制化训练，约需15分钟，请耐心等待～
@@ -285,6 +389,17 @@ def train_input():
                         - Step 2. Click [Train] to start training for customizing your Digital-Twin, this may take up-to 15 mins.
                         - Step 3. Switch to [Inference] Tab to generate stylized photos.
                         ''')
+
+        with gr.Box():
+            with gr.Row():
+                ensemble = gr.Checkbox(label='人物LoRA融合（Ensemble）', value=False)
+                enhance_lora = gr.Checkbox(label='LoRA增强（LoRA-Enhancement）', value=False)
+            gr.Markdown(
+                '''
+                - 人物LoRA融合（Ensemble）：选择训练中几个最佳人物LoRA融合。提升相似度或在艺术照生成模式下建议勾选 - Allow fusion of multiple LoRAs during training. Recommended for enhanced-similarity or using with Inpaint mode.
+                - LoRA增强（LoRA-Enhancement）：扩大LoRA规模，生成图片更贴近用户，至少5张以上多图训练或者艺术照生成模式建议勾选 - Boost scale of LoRA to enhance output resemblance with input. Recommended for training with more than 5 pics or using with Inpaint mode. 
+                '''
+            )
 
         run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）'
                                'Start training (please wait until photo(s) fully uploaded, otherwise it may result in training failure)')
@@ -310,12 +425,13 @@ def train_input():
         run_button.click(fn=trainer.run,
                          inputs=[
                              uuid,
+                             ensemble,
+                             enhance_lora,
                              instance_images,
                          ],
                          outputs=[output_message])
 
     return demo
-
 
 def inference_input():
     with gr.Blocks() as demo:
@@ -377,12 +493,99 @@ def inference_input():
     return demo
 
 
+def inference_inpaint():
+    """
+        Inpaint Tab with Ensemble-Lora + MultiControlnet, support preset_template
+        #TODO: Support user upload template && template check logits
+    """
+    preset_template=glob(os.path.join('resources/inpaint_template/*.jpg'))
+    with gr.Blocks() as demo:
+        uuid = gr.Text(label="modelscope_uuid", visible=False)
+        # Initialize the GUI
+        
+        with gr.Row():
+            with gr.Column():
+                user_models = gr.Radio(
+                    label="Model Selection",
+                    choices=HOT_MODELS,
+                    type="value",
+                    value=HOT_MODELS[0]
+                )
+                
+                template_gallery_list = [(i, f"模板{idx+1}") for idx,i in enumerate(preset_template)]
+                gallery = gr.Gallery(template_gallery_list).style(grid=4, height=300)
+
+                # new inplementation with gr.select callback function, only pick 1image at once
+                def select_function(evt: gr.SelectData):
+                    return [preset_template[evt.index]]
+
+                selected_template_images = gr.Text(show_label=False, placeholder="Selected")
+                gallery.select(select_function, None, selected_template_images)
+                
+                with gr.Accordion("Advanced Options", open=False):
+                    append_pos_prompt = gr.Textbox(
+                        label="Prompt",
+                        lines=3,
+                        value='masterpiece, smile, beauty',
+                        interactive=True
+                    )
+                    first_control_weight = gr.Slider(
+                        minimum=0.35, maximum=0.6, value=0.45,
+                        step=0.02, label='初始权重(Initial Control Weight)'
+                    )
+
+                    second_control_weight = gr.Slider(
+                        minimum=0.04, maximum=0.2, value=0.1,
+                        step=0.02, label='二次权重(Secondary Control Weight)'
+                    )
+                    final_fusion_ratio = gr.Slider(
+                        minimum=0.2, maximum=0.8, value=0.5,
+                        step=0.1, label='融合系数(Final Fusion Ratio)'
+                    )
+                    select_face_num = gr.Slider(
+                        minimum=1, maximum=4, value=1,
+                        step=1, label='生成数目(Number of Reference Faces)'
+                    )
+                    use_fusion_before = gr.Radio(
+                        label="前融合(Apply Fusion Before)", type="value", choices=[True, False],
+                        value=True
+                    )
+                    use_fusion_after = gr.Radio(
+                        label="后融合(Apply Fusion After)", type="value", choices=[True, False],
+                        value=True
+                    )
+                
+        display_button = gr.Button('Start Generation')
+        with gr.Box():
+            infer_progress = gr.Textbox(
+                label="生成(Generation Progress)",
+                value="No task currently",
+                interactive=False
+            )
+        with gr.Box():
+            gr.Markdown('Generated Results')
+            output_images = gr.Gallery(
+                label='输出(Output)',
+                show_label=False
+            ).style(columns=3, rows=2, height=600, object_fit="contain")
+        
+        display_button.click(
+            fn=launch_pipeline_inpaint,
+            inputs=[uuid, selected_template_images, append_pos_prompt, select_face_num, first_control_weight, second_control_weight,
+                    final_fusion_ratio, use_fusion_before, use_fusion_after],
+            outputs=[infer_progress, output_images]
+        )
+        
+    return demo
+
 with gr.Blocks(css='style.css') as demo:
     with gr.Tabs():
         with gr.TabItem('\N{rocket}形象定制(Train)'):
             train_input()
         with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input()
+        with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
+            inference_inpaint()
 
 
 if __name__ == "__main__":

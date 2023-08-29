@@ -23,6 +23,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+- Add validate & ensemble for Lora training, and InpaintTab(hide in gradio for now). Refer to: [Features] (August 28th, 2023 UTC)
 - Add pose control module.   (August 27th, 2023 UTC)
 - Add robust face lora training module, enhance the performance of one pic training & style-lora blending.   (August 27th, 2023 UTC)
 - HuggingFace Space is available now! You can experience FaceChain directly with <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>      (August 25th, 2023 UTC)
@@ -42,6 +43,11 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # Features
+- Introduce beta version of Inpaint, with techniques such as in-trianing validation and post-training ensemble to stablize LoRA.
+  - Description
+    - Add faceid evaluate in train_text_to_image_lora, which will generate validation image during training
+    - Add ensemble after Lora training according to faceid scores with training datasets
+    - Add Inpaint Tab (currently in beta and not displayed by default) in Gradio, which generates artistic template-based images.
 - Support a series of new style models in a plug-and-play fashion
   - Description
     - Allow users to select different style models for training distinct types of Digital-Twins.

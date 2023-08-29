@@ -121,7 +121,8 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
     lora_style_path = style_model_path
     lora_human_path = lora_model_path
     pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
-    pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=False)
+    pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=lora_human_path.endswith('safetensors'))
+    
     train_dir = str(input_img_dir) + '_labeled'
     add_prompt_style = []
     f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')
@@ -161,14 +162,14 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
                 if not tag in add_prompt_style:
                     add_prompt_style.append(tag)
 
+
+    
     if len(add_prompt_style) > 0:
         add_prompt_style = ", ".join(add_prompt_style) + ', '
     else:
         add_prompt_style = ''
-    # trigger_style = trigger_style + 'with <input_id> face, '
-    # pos_prompt = 'Generate a standard ID photo of a chinese {}, solo, wearing high-class business/working suit, beautiful smooth face, with high-class/simple pure color background, looking straight into the camera with shoulders parallel to the frame, smile, high detail face, best quality, photorealistic'.format(gender)
+
     pipe = pipe.to("cuda")
-    # print(trigger_style + add_prompt_style + pos_prompt)
     images_style = txt2img(pipe, trigger_style + add_prompt_style + pos_prompt, neg_prompt, num_images=10)
     return images_style
 
@@ -370,15 +371,17 @@ def select_high_quality_face(input_img_dir):
     face_quality_func = pipeline(Tasks.face_quality_assessment, 'damo/cv_manual_face-quality-assessment_fqa', model_revision='v2.0')
 
     for img_name in os.listdir(input_img_dir):
-        if img_name.endswith('jsonl') or img_name.startswith('.ipynb'):
+        if img_name.endswith('jsonl') or img_name.startswith('.ipynb') or img_name.startswith('.safetensors'):
             continue
-        abs_img_name = os.path.join(input_img_dir, img_name)
-        face_quality_score = face_quality_func(abs_img_name)[OutputKeys.SCORES]
-        if face_quality_score is None:
-            quality_score_list.append(0)
-        else:
-            quality_score_list.append(face_quality_score[0])
-        abs_img_path_list.append(abs_img_name)
+        
+        if img_name.endswith('jpg') or img_name.endswith('png'):
+            abs_img_name = os.path.join(input_img_dir, img_name)
+            face_quality_score = face_quality_func(abs_img_name)[OutputKeys.SCORES]
+            if face_quality_score is None:
+                quality_score_list.append(0)
+            else:
+                quality_score_list.append(face_quality_score[0])
+            abs_img_path_list.append(abs_img_name)
 
     sort_idx = np.argsort(quality_score_list)[::-1]
     print('Selected face: ' + abs_img_path_list[sort_idx[0]])
@@ -464,6 +467,7 @@ class GenPortrait:
                                            self.style_model_path, self.multiplier_style,
                                            self.use_main_model, input_img_dir=input_img_dir,
                                            lora_model_path=lora_model_path, base_model_path=base_model_path)
+
         # select_high_quality_face PIL
         selected_face = select_high_quality_face(input_img_dir)
         # face_swap cv2
@@ -473,6 +477,7 @@ class GenPortrait:
                                        num_gen_images=num_gen_images)
         # stylization
         final_gen_results = stylization_fn(self.use_stylization, rank_results)
+
 
         return final_gen_results
 
