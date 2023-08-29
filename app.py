@@ -383,8 +383,8 @@ def train_input():
 
         with gr.Box():
             with gr.Row():
-                ensemble = gr.Checkbox(label='ensemble', value=True)
-                enhance_lora = gr.Checkbox(label='enhance_lora', value=False)
+                ensemble = gr.Checkbox(label='人物LoRA融合（Ensemble）', value=True)
+                enhance_lora = gr.Checkbox(label='LoRA增强（LoRA-Enhancement）', value=False)
             gr.Markdown(
                 '''
                 - 人物LoRA融合（Ensemble）：选择训练中几个最佳人物LoRA融合。提升相似度或在艺术照生成模式下建议勾选 - Allow fusion of multiple LoRAs during training. Recommended for enhanced-similarity or using with Inpaint mode.
@@ -561,7 +561,7 @@ def inference_inpaint():
             ).style(columns=3, rows=2, height=600, object_fit="contain")
             
         display_button.click(
-            fn=launch_pipeline_inpaint,
+            fn=inference_inpaint,
             inputs=[uuid, selected_template_images, append_pos_prompt, select_face_num, first_control_weight, second_control_weight,
                     final_fusion_ratio, use_fusion_before, use_fusion_after],
             outputs=[infer_progress, output_images]
