@@ -1,10 +1,9 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import enum
-import logging
 import os
 import shutil
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 from torch import multiprocessing
 import cv2
 import gradio as gr
@@ -19,9 +18,6 @@ from facechain.data_process.preprocessing import get_popular_prompts
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt, pose_models, pose_examples
 
-
-training_threadpool = ThreadPoolExecutor(max_workers=1)
-inference_threadpool = ThreadPoolExecutor(max_workers=5)
 
 training_done_count = 0
 inference_done_count = 0
@@ -134,7 +130,7 @@ def launch_pipeline(uuid,
                     pose_image=None
                     ):
     base_model = 'ly261666/cv_portrait_model'
-    before_queue_size = inference_threadpool._work_queue.qsize()
+    before_queue_size = 0
     before_done_count = inference_done_count
     style_model = styles[style_model]['name']
 
@@ -187,18 +183,20 @@ def launch_pipeline(uuid,
                                use_stylization)
 
     num_images = min(6, num_images)
-    future = inference_threadpool.submit(gen_portrait, instance_data_dir,
-                                         num_images, base_model, lora_model_path, 'film/film', 'v2.0')
 
-    while not future.done():
-        is_processing = future.running()
-        if not is_processing:
-            cur_done_count = inference_done_count
-            to_wait = before_queue_size - (cur_done_count - before_done_count)
-            yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5), None]
-        else:
-            yield ["生成中, 请耐心等待(Generating)...", None]
-        time.sleep(1)
+    with ProcessPoolExecutor(max_workers=5) as executor:
+        future = executor.submit(gen_portrait, instance_data_dir,
+                                 num_images, base_model, lora_model_path, 'film/film', 'v2.0')
+        while not future.done():
+            is_processing = future.running()
+            if not is_processing:
+                cur_done_count = inference_done_count
+                to_wait = before_queue_size - (cur_done_count - before_done_count)
+                yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5),
+                       None]
+            else:
+                yield ["生成中, 请耐心等待(Generating)...", None]
+            time.sleep(1)
 
     outputs = future.result()
     outputs_RGB = []
@@ -222,7 +220,7 @@ def launch_pipeline_inpaint(uuid,
                           final_fusion_ratio=0.5,
                           use_fusion_before=True,
                           use_fusion_after=True):
-    before_queue_size = inference_threadpool._work_queue.qsize()
+    before_queue_size = 0
     before_done_count = inference_done_count
 
     if not uuid:
@@ -247,19 +245,21 @@ def launch_pipeline_inpaint(uuid,
     gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
     
     cache_model_dir = snapshot_download("bubbliiiing/controlnet_helper", revision="v2.2")
-    future = inference_threadpool.submit(gen_portrait_inpaint, base_model, lora_model_path, instance_data_dir,\
+
+    with ProcessPoolExecutor(max_workers=5) as executor:
+        future = executor.submit(gen_portrait_inpaint, base_model, lora_model_path, instance_data_dir,\
                                         selected_template_images, cache_model_dir, select_face_num, first_control_weight, \
                                         second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after, sub_path='film/film', revision='v2.0')
-
-    while not future.done():
-        is_processing = future.running()
-        if not is_processing:
-            cur_done_count = inference_done_count
-            to_wait = before_queue_size - (cur_done_count - before_done_count)
-            yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5), None]
-        else:
-            yield ["生成中, 请耐心等待(Generating)...", None]
-        time.sleep(1)
+        while not future.done():
+            is_processing = future.running()
+            if not is_processing:
+                cur_done_count = inference_done_count
+                to_wait = before_queue_size - (cur_done_count - before_done_count)
+                yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5),
+                       None]
+            else:
+                yield ["生成中, 请耐心等待(Generating)...", None]
+            time.sleep(1)
 
     outputs = future.result()
     outputs_RGB = []
