@@ -2,6 +2,7 @@
 import enum
 import os
 import shutil
+import slugify
 import time
 from concurrent.futures import ProcessPoolExecutor
 from torch import multiprocessing
@@ -9,7 +10,7 @@ import cv2
 import gradio as gr
 import numpy as np
 import torch
-from glob import glob
+from glob import glob 
 from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
@@ -17,15 +18,10 @@ from facechain.inference_inpaint import GenPortraitInpaint
 from facechain.data_process.preprocessing import get_popular_prompts
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt, \
-    pose_models, pose_examples
+    pose_models, pose_examples, base_models
 
 training_done_count = 0
 inference_done_count = 0
-
-HOT_MODELS = [
-    "\N{fire}数字身份(Digital Identity)",
-]
-
 
 class UploadTarget(enum.Enum):
     PERSONAL_PROFILE = 'Personal Profile'
@@ -33,29 +29,32 @@ class UploadTarget(enum.Enum):
 
 
 def update_cloth(style_index):
+    style = styles[style_index]
     prompts = []
     if style_index == 0:
-        example_prompt = generate_pos_prompt(styles[style_index]['name'],
+        example_prompt = generate_pos_prompt(style['name'],
                                              cloth_prompt[0]['prompt'])
         for prompt in cloth_prompt:
             prompts.append(prompt['name'])
     else:
-        example_prompt = generate_pos_prompt(styles[style_index]['name'],
-                                             styles[style_index]['add_prompt_style'])
-        prompts.append(styles[style_index]['cloth_name'])
+        example_prompt = generate_pos_prompt(style['name'],
+                                             style['add_prompt_style'])
+        prompts.append(style['cloth_name'])
     return gr.Radio.update(choices=prompts,
                            value=prompts[0], visible=True), gr.Textbox.update(value=example_prompt)
 
 
 def update_prompt(style_index, cloth_index):
+    style = styles[style_index]
     if style_index == 0:
-        pos_prompt = generate_pos_prompt(styles[style_index]['name'],
+        pos_prompt = generate_pos_prompt(style['name'],
                                          cloth_prompt[cloth_index]['prompt'])
+        multiplier_style = 0.25
     else:
-        pos_prompt = generate_pos_prompt(styles[style_index]['name'],
-                                         styles[style_index]['add_prompt_style'])
-    return gr.Textbox.update(value=pos_prompt)
-
+        pos_prompt = generate_pos_prompt(style['name'],
+                                         style['add_prompt_style'])
+        multiplier_style = style['multiplier_style']
+    return gr.Textbox.update(value=pos_prompt), gr.Slider.update(value=multiplier_style)
 
 def update_pose_model(pose_image):
     if pose_image is None:
@@ -63,6 +62,10 @@ def update_pose_model(pose_image):
     else:
         return gr.Radio.update(value=pose_models[1]['name'])
 
+def update_optional_styles(base_model_index):
+    style_list = base_models[base_model_index]['style_list']
+    optional_styles = '\n'.join(style_list)
+    return gr.Textbox.update(value=optional_styles)
 
 def concatenate_images(images):
     heights = [img.shape[0] for img in images]
@@ -76,11 +79,10 @@ def concatenate_images(images):
     return concatenated_image
 
 
-def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None, ensemble=True,
-                  enhance_lora=False, photo_num=0):
+def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img_dir=None, work_dir=None, ensemble=True, enhance_lora=False, photo_num=0):
     validation_prompt, _ = get_popular_prompts(output_img_dir)
     torch.cuda.empty_cache()
-
+    
     lora_r = 4 if not enhance_lora else 128
     lora_alpha = 32 if not enhance_lora else 64
     max_train_steps = min(photo_num * 200, 800)
@@ -88,7 +90,7 @@ def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None
         os.system(
             f'''
                 PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py \
-                --pretrained_model_name_or_path="{foundation_model_path}" \
+                --pretrained_model_name_or_path="{base_model_path}" \
                 --output_dataset_name="{output_img_dir}" \
                 --caption_column="text" --resolution=512 \
                 --random_flip --train_batch_size=1 --gradient_accumulation_steps=4 --max_train_steps={max_train_steps} --checkpointing_steps=100 \
@@ -100,18 +102,17 @@ def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None
                 --template_mask \
                 --merge_best_lora_based_face_id \
                 --revision="{revision}" \
-                --sub_path="film/film" \
+                --sub_path="{sub_path}" \
             '''
         )
     else:
         os.system(
-            f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={foundation_model_path} '
-            f'--revision={revision} --sub_path="film/film" '
+            f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={base_model_path} '
+            f'--revision={revision} --sub_path={sub_path} '
             f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
             f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
             f'--learning_rate=1.5e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
             f'--lora_r={lora_r} --lora_alpha={lora_alpha} --lora_text_encoder_r=32 --lora_text_encoder_alpha=32 --resume_from_checkpoint="fromfacecommon"')
-
 
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model == styles[0]['name'] or style_model is None:
@@ -127,7 +128,8 @@ def generate_pos_prompt(style_model, prompt_cloth):
 
 def launch_pipeline(uuid,
                     pos_prompt,
-                    user_models,
+                    base_model_index=None,
+                    user_model=None,
                     num_images=1,
                     style_model=None,
                     multiplier_style=0.25,
@@ -135,7 +137,22 @@ def launch_pipeline(uuid,
                     pose_model=None,
                     pose_image=None
                     ):
-    base_model = 'ly261666/cv_portrait_model'
+    # Check base model
+    if base_model_index == None:
+        raise gr.Error('请选择基模型(Please select the base model)！')
+    
+    # Check output model
+    if not user_model:
+        raise gr.Error('请选择产出模型(Please select the output model)！')
+    
+    # Check style model
+    if style_model == None:
+        raise gr.Error('请选择风格模型(Please select the style model)！')
+
+    base_model = base_models[base_model_index]['model_id']
+    revision = base_models[base_model_index]['revision']
+    sub_path = base_models[base_model_index]['sub_path']
+    
     before_queue_size = 0
     before_done_count = inference_done_count
     style_model = styles[style_model]['name']
@@ -162,7 +179,7 @@ def launch_pipeline(uuid,
         else:
             use_depth_control = False
 
-    print("-------user_models: ", user_models)
+    print("-------user_model: ", user_model)
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
             return "请登陆后使用! (Please login first)"
@@ -174,11 +191,10 @@ def launch_pipeline(uuid,
     use_post_process = True
     use_stylization = False
 
-    output_model_name = 'personalization_lora'
-    instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
-    lora_model_path = f'/tmp/{uuid}/{output_model_name}/ensemble'
+    instance_data_dir = os.path.join('/tmp', uuid, 'training_data', base_model, user_model)
+    lora_model_path = f'/tmp/{uuid}/{base_model}/{user_model}/ensemble'
     if not os.path.exists(lora_model_path):
-        lora_model_path = f'/tmp/{uuid}/{output_model_name}/'
+        lora_model_path = f'/tmp/{uuid}/{base_model}/{user_model}/'
 
     train_file = os.path.join(lora_model_path, 'pytorch_lora_weights.bin')
     if not os.path.exists(train_file):
@@ -194,14 +210,14 @@ def launch_pipeline(uuid,
 
     with ProcessPoolExecutor(max_workers=5) as executor:
         future = executor.submit(gen_portrait, instance_data_dir,
-                                 num_images, base_model, lora_model_path, 'film/film', 'v2.0')
+                                            num_images, base_model, lora_model_path, sub_path, revision)
         while not future.done():
             is_processing = future.running()
             if not is_processing:
                 cur_done_count = inference_done_count
                 to_wait = before_queue_size - (cur_done_count - before_done_count)
                 yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5),
-                       None]
+                        None]
             else:
                 yield ["生成中, 请耐心等待(Generating)...", None]
             time.sleep(1)
@@ -221,16 +237,26 @@ def launch_pipeline(uuid,
 
 
 def launch_pipeline_inpaint(uuid,
-                            selected_template_images,
-                            append_pos_prompt,
-                            select_face_num=1,
-                            first_control_weight=0.5,
-                            second_control_weight=0.1,
-                            final_fusion_ratio=0.5,
-                            use_fusion_before=True,
-                            use_fusion_after=True):
+                          base_model_index=None,
+                          user_model=None, 
+                          selected_template_images=None,
+                          append_pos_prompt=None,
+                          select_face_num=1,
+                          first_control_weight=0.5,
+                          second_control_weight=0.1,
+                          final_fusion_ratio=0.5,
+                          use_fusion_before=True,
+                          use_fusion_after=True):
     before_queue_size = 0
     before_done_count = inference_done_count
+
+    # Check base model
+    if base_model_index == None:
+        raise gr.Error('请选择基模型(Please select the base model)！')
+    
+    # Check output model
+    if not user_model:
+        raise gr.Error('请选择产出模型(Please select the output model)！')
 
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -242,24 +268,27 @@ def launch_pipeline_inpaint(uuid,
         if len(selected_template_images) == 0:
             raise gr.Error('请选择一张模板(Please select 1 template)')
 
-    base_model = 'ly261666/cv_portrait_model'
+    base_model = base_models[base_model_index]['model_id']
+    revision = base_models[base_model_index]['revision']
+    sub_path = base_models[base_model_index]['sub_path']
     output_model_name = 'personalization_lora'
-    instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
+    instance_data_dir = os.path.join('/tmp', uuid, 'training_data', base_model, user_model)
 
     # we use ensemble model, if not exists fallback to original lora
-    lora_model_path = f'/tmp/{uuid}/{output_model_name}/ensemble/'
+    lora_model_path = f'/tmp/{uuid}/{base_model}/{user_model}/ensemble/'
     if not os.path.exists(lora_model_path):
-        lora_model_path = f'/tmp/{uuid}/{output_model_name}/'
+        lora_model_path = f'/tmp/{uuid}/{base_model}/{user_model}/'
 
     gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
-
+    
     cache_model_dir = snapshot_download("bubbliiiing/controlnet_helper", revision="v2.2")
 
     with ProcessPoolExecutor(max_workers=5) as executor:
         future = executor.submit(gen_portrait_inpaint, base_model, lora_model_path, instance_data_dir, \
                                  selected_template_images, cache_model_dir, select_face_num, first_control_weight, \
-                                 second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after,
-                                 sub_path='film/film', revision='v2.0')
+                                 second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after, \
+                                 sub_path=sub_path, revision=revision)
+
         while not future.done():
             is_processing = future.running()
             if not is_processing:
@@ -292,9 +321,11 @@ class Trainer:
     def run(
             self,
             uuid: str,
-            ensemble: bool,
+            ensemble: bool, 
             enhance_lora: bool,
             instance_images: list,
+            base_model_index: int,
+            output_model_name: str,
     ) -> str:
         # Check Cuda
         if not torch.cuda.is_available():
@@ -303,7 +334,11 @@ class Trainer:
         # Check Instance Valid
         if instance_images is None:
             raise gr.Error('您需要上传训练图片(Please upload photos)！')
-
+        
+        # Check output model name
+        if not output_model_name:
+            raise gr.Error('请指定产出模型的名称(Please specify the output model name)！')
+        
         # Limit input Image
         if len(instance_images) > 20:
             raise gr.Error('请最多上传20张训练图片(20 images at most!)')
@@ -315,15 +350,22 @@ class Trainer:
             else:
                 uuid = 'qw'
 
-        output_model_name = 'personalization_lora'
+        base_model_path = base_models[base_model_index]['model_id']
+        revision = base_models[base_model_index]['revision']
+        sub_path = base_models[base_model_index]['sub_path']
+        output_model_name = slugify.slugify(output_model_name)
 
         # mv user upload data to target dir
-        instance_data_dir = os.path.join('/tmp', uuid, 'training_data', output_model_name)
+        instance_data_dir = os.path.join('/tmp', uuid, 'training_data', base_model_path, output_model_name)
         print("--------uuid: ", uuid)
 
         if not os.path.exists(f"/tmp/{uuid}"):
             os.makedirs(f"/tmp/{uuid}")
-        work_dir = f"/tmp/{uuid}/{output_model_name}"
+        work_dir = f"/tmp/{uuid}/{base_model_path}/{output_model_name}"
+
+        if os.path.exists(work_dir):
+            raise gr.Error("产出模型名称已存在。")
+
         print("----------work_dir: ", work_dir)
         shutil.rmtree(work_dir, ignore_errors=True)
         shutil.rmtree(instance_data_dir, ignore_errors=True)
@@ -333,8 +375,9 @@ class Trainer:
 
         # train lora
         print("instance_data_dir", instance_data_dir)
-        train_lora_fn(foundation_model_path='ly261666/cv_portrait_model',
-                      revision='v2.0',
+        train_lora_fn(base_model_path=base_model_path,
+                      revision=revision,
+                      sub_path=sub_path,
                       output_img_dir=instance_data_dir,
                       work_dir=work_dir,
                       ensemble=ensemble,
@@ -346,23 +389,54 @@ class Trainer:
         return message
 
 
-def flash_model_list(uuid):
-    folder_path = f"/tmp/{uuid}"
+def flash_model_list(uuid, base_model_index):
+    base_model_path = base_models[base_model_index]['model_id']
+    style_list = base_models[base_model_index]['style_list']
+
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            return "请登陆后使用! (Please login first)"
+        else:
+            uuid = 'qw'
+
+    folder_path = f"/tmp/{uuid}/{base_model_path}"
     folder_list = []
-    print("------flash_model_list folder_path: ", folder_path)
     if not os.path.exists(folder_path):
-        print('--------The folder_path is missing.')
+        return gr.Radio.update(choices=[]),gr.Dropdown.update(choices=style_list)
     else:
         files = os.listdir(folder_path)
         for file in files:
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
-                file_lora_path = f"{file_path}/output/pytorch_lora_weights.bin"
+                file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
                 if os.path.exists(file_lora_path):
                     folder_list.append(file)
 
-    print("-------folder_list + HOT_MODELS: ", folder_list + HOT_MODELS)
-    return gr.Radio.update(choices=HOT_MODELS + folder_list)
+    return gr.Radio.update(choices=folder_list),gr.Dropdown.update(choices=style_list, value=style_list[0], visible=True)
+
+def flash_model_list_inpaint(uuid, base_model_index):
+    base_model_path = base_models[base_model_index]['model_id']
+
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            return "请登陆后使用! (Please login first)"
+        else:
+            uuid = 'qw'
+
+    folder_path = f"/tmp/{uuid}/{base_model_path}"
+    folder_list = []
+    if not os.path.exists(folder_path):
+        return gr.Radio.update(choices=[]),gr.Dropdown.update(choices=style_list)
+    else:
+        files = os.listdir(folder_path)
+        for file in files:
+            file_path = os.path.join(folder_path, file)
+            if os.path.isdir(folder_path):
+                file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
+                if os.path.exists(file_lora_path):
+                    folder_list.append(file)
+
+    return gr.Radio.update(choices=folder_list)
 
 
 def upload_file(files, current_files):
@@ -378,6 +452,22 @@ def train_input():
         with gr.Row():
             with gr.Column():
                 with gr.Box():
+                    gr.Markdown('模型选择(Model list)')
+
+                    base_model_list = []
+                    for base_model in base_models:
+                        base_model_list.append(base_model['name'])
+
+                    base_model_index = gr.Radio(label="基模型选择(Base model list)", choices=base_model_list, type="index",
+                                       value=base_model_list[0])
+                    
+                    optional_style = '\n'.join(base_models[0]['style_list'])
+                    
+                    optional_styles = gr.Textbox(label="该基模型支持的风格(Styles supported by this base model.)", lines=3,
+                                        value=optional_style, interactive=False)
+                    
+                    output_model_name = gr.Textbox(label="产出模型名称(Output model name)", lines=1)
+ 
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
                     with gr.Row():
@@ -389,7 +479,7 @@ def train_input():
 
                     upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images,
                                          queue=False)
-
+                    
                     gr.Markdown('''
                         - Step 1. 上传计划训练的图片，3~10张头肩照（注意：请避免图片中出现多人脸、脸部遮挡等情况，否则可能导致效果异常）
                         - Step 2. 点击 [开始训练] ，启动形象定制化训练，约需15分钟，请耐心等待～
@@ -432,6 +522,10 @@ def train_input():
                         
             You may refer to: https://github.com/modelscope/facechain for installation instruction.
             ''')
+        base_model_index.change(fn=update_optional_styles,
+                                inputs=[base_model_index],
+                                outputs=[optional_styles],
+                                queue=False)
 
         run_button.click(fn=trainer.run,
                          inputs=[
@@ -439,24 +533,31 @@ def train_input():
                              ensemble,
                              enhance_lora,
                              instance_images,
+                             base_model_index,
+                             output_model_name,
                          ],
                          outputs=[output_message])
 
     return demo
-
 
 def inference_input():
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         with gr.Row():
             with gr.Column():
-                user_models = gr.Radio(label="模型选择(Model list)", choices=HOT_MODELS, type="value",
-                                       value=HOT_MODELS[0])
+                base_model_list = []
+                for base_model in base_models:
+                    base_model_list.append(base_model['name'])
+
+                base_model_index = gr.Radio(label="基模型选择(Base model list)", choices=base_model_list, type="index")
+                
+                user_model = gr.Radio(label="产出模型(Output Model list)", choices=[], type="value")
+
                 style_model_list = []
                 for style in styles:
                     style_model_list.append(style['name'])
-                style_model = gr.Dropdown(choices=style_model_list, type="index", label="风格模型(Style model)")
-
+                style_model = gr.Dropdown(choices=style_model_list, type="index", label="风格模型(Style model)", visible=False)
+                
                 prompts = []
                 for prompt in cloth_prompt:
                     prompts.append(prompt['name'])
@@ -495,12 +596,16 @@ def inference_input():
             gr.Markdown('生成结果(Result)')
             output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
                                                                                object_fit="contain")
-
-        style_model.change(update_cloth, style_model, [cloth_style, pos_prompt])
-        cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt])
+                                                                               
+        style_model.change(update_cloth, style_model, [cloth_style, pos_prompt], queue=False)
+        cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt, multiplier_style], queue=False)
         pose_image.change(update_pose_model, pose_image, [pose_model])
+        base_model_index.change(fn=flash_model_list,
+                                inputs=[uuid, base_model_index],
+                                outputs=[user_model,style_model],
+                                queue=False)
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style, multiplier_human, 
+                             inputs=[uuid, pos_prompt, base_model_index, user_model, num_images, style_model, multiplier_style, multiplier_human,
                                      pose_model, pose_image],
                              outputs=[infer_progress, output_images])
 
@@ -516,16 +621,21 @@ def inference_inpaint():
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         # Initialize the GUI
-
+        
         with gr.Row():
             with gr.Column():
-                user_models = gr.Radio(
-                    label="Model Selection",
-                    choices=HOT_MODELS,
-                    type="value",
-                    value=HOT_MODELS[0]
+                base_model_list = []
+                for base_model in base_models:
+                    base_model_list.append(base_model['name'])
+
+                base_model_index = gr.Radio(
+                    label="基模型选择(Base model list)",
+                    choices=base_model_list,
+                    type="index"
                 )
 
+                user_model = gr.Radio(label="产出模型(Output Model list)", choices=[], type="value")
+                
                 template_gallery_list = [(i, f"模板{idx + 1}") for idx, i in enumerate(preset_template)]
                 gallery = gr.Gallery(template_gallery_list).style(grid=4, height=300)
 
@@ -535,10 +645,10 @@ def inference_inpaint():
 
                 selected_template_images = gr.Text(show_label=False, placeholder="Selected")
                 gallery.select(select_function, None, selected_template_images)
-
-                with gr.Accordion("Advanced Options", open=False):
+                
+                with gr.Accordion("高级选项(Advanced Options)", open=False):
                     append_pos_prompt = gr.Textbox(
-                        label="Prompt",
+                        label="提示语(Prompt)",
                         lines=3,
                         value='masterpiece, smile, beauty',
                         interactive=True
@@ -568,8 +678,8 @@ def inference_inpaint():
                         label="后融合(Apply Fusion After)", type="value", choices=[True, False],
                         value=True
                     )
-
-        display_button = gr.Button('Start Generation')
+                
+        display_button = gr.Button('开始生成(Start Generation)')
         with gr.Box():
             infer_progress = gr.Textbox(
                 label="生成(Generation Progress)",
@@ -577,20 +687,25 @@ def inference_inpaint():
                 interactive=False
             )
         with gr.Box():
-            gr.Markdown('Generated Results')
+            gr.Markdown('生成结果(Generated Results)')
             output_images = gr.Gallery(
                 label='输出(Output)',
                 show_label=False
             ).style(columns=3, rows=2, height=600, object_fit="contain")
 
+        base_model_index.change(fn=flash_model_list_inpaint,
+                                inputs=[uuid, base_model_index],
+                                outputs=[user_model],
+                                queue=False)
+                        
         display_button.click(
             fn=launch_pipeline_inpaint,
-            inputs=[uuid, selected_template_images, append_pos_prompt, select_face_num, first_control_weight,
+            inputs=[uuid, base_model_index, user_model, selected_template_images, append_pos_prompt, select_face_num, first_control_weight,
                     second_control_weight,
                     final_fusion_ratio, use_fusion_before, use_fusion_after],
             outputs=[infer_progress, output_images]
         )
-
+        
     return demo
 
 
