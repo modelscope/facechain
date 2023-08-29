@@ -10,7 +10,7 @@ import cv2
 import gradio as gr
 import numpy as np
 import torch
-from glob import glob 
+from glob import glob
 from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
