@@ -9,15 +9,15 @@ import cv2
 import gradio as gr
 import numpy as np
 import torch
-from glob import glob 
+from glob import glob
 from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
 from facechain.inference_inpaint import GenPortraitInpaint
 from facechain.data_process.preprocessing import get_popular_prompts
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
-from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt, pose_models, pose_examples
-
+from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt, \
+    pose_models, pose_examples
 
 training_done_count = 0
 inference_done_count = 0
@@ -31,6 +31,7 @@ class UploadTarget(enum.Enum):
     PERSONAL_PROFILE = 'Personal Profile'
     LORA_LIaBRARY = 'LoRA Library'
 
+
 def update_cloth(style_index):
     prompts = []
     if style_index == 0:
@@ -42,8 +43,8 @@ def update_cloth(style_index):
         example_prompt = generate_pos_prompt(styles[style_index]['name'],
                                              styles[style_index]['add_prompt_style'])
         prompts.append(styles[style_index]['cloth_name'])
-    return gr.Radio.update(choices=prompts, 
-                           value=prompts[0], visible=True),gr.Textbox.update(value=example_prompt)
+    return gr.Radio.update(choices=prompts,
+                           value=prompts[0], visible=True), gr.Textbox.update(value=example_prompt)
 
 
 def update_prompt(style_index, cloth_index):
@@ -55,11 +56,13 @@ def update_prompt(style_index, cloth_index):
                                          styles[style_index]['add_prompt_style'])
     return gr.Textbox.update(value=pos_prompt)
 
+
 def update_pose_model(pose_image):
     if pose_image is None:
         return gr.Radio.update(value=pose_models[0]['name'])
     else:
         return gr.Radio.update(value=pose_models[1]['name'])
+
 
 def concatenate_images(images):
     heights = [img.shape[0] for img in images]
@@ -73,10 +76,11 @@ def concatenate_images(images):
     return concatenated_image
 
 
-def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None, ensemble=True, enhance_lora=False, photo_num=0):
+def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None, work_dir=None, ensemble=True,
+                  enhance_lora=False, photo_num=0):
     validation_prompt, _ = get_popular_prompts(output_img_dir)
     torch.cuda.empty_cache()
-    
+
     lora_r = 4 if not enhance_lora else 128
     lora_alpha = 32 if not enhance_lora else 64
     max_train_steps = min(photo_num * 200, 800)
@@ -107,6 +111,7 @@ def train_lora_fn(foundation_model_path=None, revision=None, output_img_dir=None
             f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
             f'--learning_rate=1.5e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
             f'--lora_r={lora_r} --lora_alpha={lora_alpha} --lora_text_encoder_r=32 --lora_text_encoder_alpha=32 --resume_from_checkpoint="fromfacecommon"')
+
 
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model == styles[0]['name'] or style_model is None:
@@ -174,11 +179,12 @@ def launch_pipeline(uuid,
     if not os.path.exists(lora_model_path):
         lora_model_path = f'/tmp/{uuid}/{output_model_name}/'
 
-    train_file = os.path.join(lora_model_path,'pytorch_lora_weights.bin')
+    train_file = os.path.join(lora_model_path, 'pytorch_lora_weights.bin')
     if not os.path.exists(train_file):
         raise gr.Error('您还没有进行形象定制，请先进行训练。(Training is required before inference.)')
 
-    gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
+    gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path,
+                               multiplier_style, use_main_model,
                                use_face_swap, use_post_process,
                                use_stylization)
 
@@ -211,15 +217,16 @@ def launch_pipeline(uuid,
     else:
         yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
 
+
 def launch_pipeline_inpaint(uuid,
-                          selected_template_images,
-                          append_pos_prompt,
-                          select_face_num=1,
-                          first_control_weight=0.5,
-                          second_control_weight=0.1,
-                          final_fusion_ratio=0.5,
-                          use_fusion_before=True,
-                          use_fusion_after=True):
+                            selected_template_images,
+                            append_pos_prompt,
+                            select_face_num=1,
+                            first_control_weight=0.5,
+                            second_control_weight=0.1,
+                            final_fusion_ratio=0.5,
+                            use_fusion_before=True,
+                            use_fusion_after=True):
     before_queue_size = 0
     before_done_count = inference_done_count
 
@@ -243,13 +250,14 @@ def launch_pipeline_inpaint(uuid,
         lora_model_path = f'/tmp/{uuid}/{output_model_name}/'
 
     gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
-    
+
     cache_model_dir = snapshot_download("bubbliiiing/controlnet_helper", revision="v2.2")
 
     with ProcessPoolExecutor(max_workers=5) as executor:
-        future = executor.submit(gen_portrait_inpaint, base_model, lora_model_path, instance_data_dir,\
-                                        selected_template_images, cache_model_dir, select_face_num, first_control_weight, \
-                                        second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after, sub_path='film/film', revision='v2.0')
+        future = executor.submit(gen_portrait_inpaint, base_model, lora_model_path, instance_data_dir, \
+                                 selected_template_images, cache_model_dir, select_face_num, first_control_weight, \
+                                 second_control_weight, final_fusion_ratio, use_fusion_before, use_fusion_after,
+                                 sub_path='film/film', revision='v2.0')
         while not future.done():
             is_processing = future.running()
             if not is_processing:
@@ -282,7 +290,7 @@ class Trainer:
     def run(
             self,
             uuid: str,
-            ensemble: bool, 
+            ensemble: bool,
             enhance_lora: bool,
             instance_images: list,
     ) -> str:
@@ -377,8 +385,9 @@ def train_input():
                         clear_button = gr.Button("清空图片(Clear photos)")
                     clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
 
-                    upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images, queue=False)
-                    
+                    upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images,
+                                         queue=False)
+
                     gr.Markdown('''
                         - Step 1. 上传计划训练的图片，3~10张头肩照（注意：请避免图片中出现多人脸、脸部遮挡等情况，否则可能导致效果异常）
                         - Step 2. 点击 [开始训练] ，启动形象定制化训练，约需15分钟，请耐心等待～
@@ -433,6 +442,7 @@ def train_input():
 
     return demo
 
+
 def inference_input():
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
@@ -444,8 +454,8 @@ def inference_input():
                 for style in styles:
                     style_model_list.append(style['name'])
                 style_model = gr.Dropdown(choices=style_model_list, type="index", label="风格模型(Style model)")
-                
-                prompts=[]
+
+                prompts = []
                 for prompt in cloth_prompt:
                     prompts.append(prompt['name'])
                 for style in styles[1:]:
@@ -481,7 +491,7 @@ def inference_input():
             gr.Markdown('生成结果(Result)')
             output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
                                                                                object_fit="contain")
-                                                                               
+
         style_model.change(update_cloth, style_model, [cloth_style, pos_prompt])
         cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt])
         pose_image.change(update_pose_model, pose_image, [pose_model])
@@ -498,11 +508,11 @@ def inference_inpaint():
         Inpaint Tab with Ensemble-Lora + MultiControlnet, support preset_template
         #TODO: Support user upload template && template check logits
     """
-    preset_template=glob(os.path.join('resources/inpaint_template/*.jpg'))
+    preset_template = glob(os.path.join('resources/inpaint_template/*.jpg'))
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         # Initialize the GUI
-        
+
         with gr.Row():
             with gr.Column():
                 user_models = gr.Radio(
@@ -511,8 +521,8 @@ def inference_inpaint():
                     type="value",
                     value=HOT_MODELS[0]
                 )
-                
-                template_gallery_list = [(i, f"模板{idx+1}") for idx,i in enumerate(preset_template)]
+
+                template_gallery_list = [(i, f"模板{idx + 1}") for idx, i in enumerate(preset_template)]
                 gallery = gr.Gallery(template_gallery_list).style(grid=4, height=300)
 
                 # new inplementation with gr.select callback function, only pick 1image at once
@@ -521,7 +531,7 @@ def inference_inpaint():
 
                 selected_template_images = gr.Text(show_label=False, placeholder="Selected")
                 gallery.select(select_function, None, selected_template_images)
-                
+
                 with gr.Accordion("Advanced Options", open=False):
                     append_pos_prompt = gr.Textbox(
                         label="Prompt",
@@ -554,7 +564,7 @@ def inference_inpaint():
                         label="后融合(Apply Fusion After)", type="value", choices=[True, False],
                         value=True
                     )
-                
+
         display_button = gr.Button('Start Generation')
         with gr.Box():
             infer_progress = gr.Textbox(
@@ -568,15 +578,17 @@ def inference_inpaint():
                 label='输出(Output)',
                 show_label=False
             ).style(columns=3, rows=2, height=600, object_fit="contain")
-        
+
         display_button.click(
             fn=launch_pipeline_inpaint,
-            inputs=[uuid, selected_template_images, append_pos_prompt, select_face_num, first_control_weight, second_control_weight,
+            inputs=[uuid, selected_template_images, append_pos_prompt, select_face_num, first_control_weight,
+                    second_control_weight,
                     final_fusion_ratio, use_fusion_before, use_fusion_after],
             outputs=[infer_progress, output_images]
         )
-        
+
     return demo
+
 
 with gr.Blocks(css='style.css') as demo:
     with gr.Tabs():
@@ -587,8 +599,6 @@ with gr.Blocks(css='style.css') as demo:
         with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
             inference_inpaint()
 
-
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')
     demo.queue(status_update_rate=1).launch(share=True)
-
