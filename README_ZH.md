@@ -147,26 +147,20 @@ cd facechain
 pip3 install -r requirements.txt
 pip3 install -U openmim 
 mim install mmcv-full==1.7.0
-#### 如果是windows环境还需要注意以下4个步骤：1.重新安装pytorch;2.重新安装tensorflow匹配的numpy；3.pip方式安装mmcv-full；4.修改app.py适应windows。
-1. 默认的requirements.txt中的torch版本是cpu版本，如果你用显卡，需要重新安装GPU版本。安装N卡pytorch可以查阅其他文档
-pip3 uninstall torch
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-2. numpy的问题是会报 UserWarning: Failed to initialize NumPy:的信息。把numpy卸载，然后重新安装tensorflow,会自动安装匹配的numpy，并且不报错。
-pip uninstall numpy
-pip install tensorflow
-3.不用通过mim安装mmcv-full,而是通过pip方式
-mim uninstall mmcv-full
-pip install mmcv-full
-4.现在版本，需要修改代码app.py里的train_lora_fn方法匹配windows环境，已经提了pr，后续版本app.py可以直接在windows运行
-
-另外如果想让其他人访问你的环境，可以修改app.py最后一行代码中的server_name和server_port
-demo.queue(status_update_rate=1).launch(server_name="0.0.0.0",server_port=7870,share=True)
 
 # 进入facechain文件夹，执行：
 python3 app.py
 
 # 最后点击log中生成的URL即可访问页面。
 ```
+
+备注：如果是windows环境还需要注意以下步骤：
+```shell
+1. 重新安装pytorch、与tensorflow匹配的numpy
+2. pip方式安装mmcv-full: pip3 install mmcv-full
+3. 修改app.py适应windows
+```
+
 ### 4. colab运行
 
 | Colab | Info
