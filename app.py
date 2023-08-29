@@ -130,6 +130,7 @@ def launch_pipeline(uuid,
                     num_images=1,
                     style_model=None,
                     multiplier_style=0.25,
+                    multiplier_human=0.85,
                     pose_model=None,
                     pose_image=None
                     ):
@@ -182,7 +183,7 @@ def launch_pipeline(uuid,
     if not os.path.exists(train_file):
         raise gr.Error('您还没有进行形象定制，请先进行训练。(Training is required before inference.)')
 
-    gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
+    gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, multiplier_style, multiplier_human, use_main_model,
                                use_face_swap, use_post_process,
                                use_stylization)
 
@@ -461,6 +462,8 @@ def inference_input():
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, interactive=True)
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')
+                    multiplier_human = gr.Slider(minimum=0, maximum=1.2, value=0.85,
+                                                 step=0.05, label='形象权重(Multiplier human)')
                     pose_image = gr.Image(source='upload', type='filepath', label='姿态图片(Pose image)')
                     gr.Examples(pose_examples['man'], inputs=[pose_image], label='男性姿态示例')
                     gr.Examples(pose_examples['woman'], inputs=[pose_image], label='女性姿态示例')
@@ -486,7 +489,7 @@ def inference_input():
         cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt])
         pose_image.change(update_pose_model, pose_image, [pose_model])
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style,
+                             inputs=[uuid, pos_prompt, user_models, num_images, style_model, multiplier_style, multiplier_human, 
                                      pose_model, pose_image],
                              outputs=[infer_progress, output_images])
 
