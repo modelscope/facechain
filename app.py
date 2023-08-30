@@ -10,7 +10,7 @@ import cv2
 import gradio as gr
 import numpy as np
 import torch
-from glob import glob 
+from glob import glob
 from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
@@ -238,7 +238,7 @@ def launch_pipeline(uuid,
 
 def launch_pipeline_inpaint(uuid,
                           base_model_index=None,
-                          user_model=None, 
+                          user_model=None,
                           selected_template_images=None,
                           append_pos_prompt=None,
                           select_face_num=1,
@@ -321,7 +321,7 @@ class Trainer:
     def run(
             self,
             uuid: str,
-            ensemble: bool, 
+            ensemble: bool,
             enhance_lora: bool,
             instance_images: list,
             base_model_index: int,
