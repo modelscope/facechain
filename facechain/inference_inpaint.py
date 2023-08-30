@@ -55,6 +55,7 @@ def build_pipeline_facechain(baseline_model_path, lora_model_path, cache_model_d
     # Build SDInpaint Pipeline
     pipeline = StableDiffusionControlNetInpaintPipeline.from_pretrained(
         baseline_model_path,
+        safety_checker=None,
         controlnet=controlnet,
         torch_dtype=weight_dtype,
     ).to("cuda")

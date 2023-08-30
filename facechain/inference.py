@@ -185,7 +185,7 @@ def main_diffusion_inference_pose(pose_model_path, pose_image,
         style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_fromleo.safetensors')
 
     controlnet = ControlNetModel.from_pretrained(pose_model_path, torch_dtype=torch.float32)
-    pipe = StableDiffusionControlNetPipeline.from_pretrained(base_model_path, controlnet=controlnet, torch_dtype=torch.float32)
+    pipe = StableDiffusionControlNetPipeline.from_pretrained(base_model_path, safety_checker=None, controlnet=controlnet, torch_dtype=torch.float32)
     pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
     pose_im = Image.open(pose_image)
     pose_im = img_pad(pose_im)
