@@ -9,31 +9,45 @@
 
 如果您熟悉中文，可以阅读[中文版本的README](./README_ZH.md)。
 
-FaceChain is a deep-learning toolchain for generating your Digital-Twin. With a minimum of 1 portrait-photo, you can create a Digital-Twin of your own and start generating personal portraits in different settings (multiple styles now supported!). You may train your Digital-Twin model and generate photos via FaceChain's Python scripts, or via the familiar Gradio interface. You can also experience FaceChain directly with our [ModelScope Studio](https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary).
-
+FaceChain is a deep-learning toolchain for generating your Digital-Twin. With a minimum of 1 portrait-photo, you can create a Digital-Twin of your own and start generating personal portraits in different settings (multiple styles now supported!). You may train your Digital-Twin model and generate photos via FaceChain's Python scripts, or via the familiar Gradio interface.
 FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
+
+
+<p align="center">
+        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
+</p>
+<br>
+
 
 ![image](resources/git_cover.jpg)
 
 
 # News
+- Add validate & ensemble for Lora training, and InpaintTab(hide in gradio for now). Refer to: [Features] (August 28th, 2023 UTC)
+- Add pose control module.   (August 27th, 2023 UTC)
+- Add robust face lora training module, enhance the performance of one pic training & style-lora blending.   (August 27th, 2023 UTC)
+- HuggingFace Space is available now! You can experience FaceChain directly with <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>      (August 25th, 2023 UTC)
 - Add awesome prompts! Refer to: [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)   (August 18th, 2023 UTC)
 - Support a series of new style models in a plug-and-play fashion. Refer to: [Features](#Features)   (August 16th, 2023 UTC)
 - Support customizable prompts. Refer to: [Features](#Features)    (August 16th, 2023 UTC)
-- Colab notebook is available now! You can experience FaceChain directly with  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).   (August 15th, 2023 UTC)
+- Colab notebook is available now! You can experience FaceChain directly with  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/modelscope/facechain/blob/main/facechain_demo.ipynb).   (August 15th, 2023 UTC)
 
 
 # To-Do List
 - Support existing style models (such as those on Civitai) in a plug-an-play fashion.  --on-going
 - Support customizable prompts (try on different outfits etc.)  --on-going
-- Support customizable poses, with controlnet or composer
 - Support more beauty-retouch effects
 - Support latest foundation models such as SDXL
-- Provide Colab compatibility   --done
 - Provide WebUI compatibility
+- Support template images inpainting
 
 
 # Features
+- Introduce beta version of Inpaint, with techniques such as in-trianing validation and post-training ensemble to stablize LoRA.
+  - Description
+    - Add faceid evaluate in train_text_to_image_lora, which will generate validation image during training
+    - Add ensemble after Lora training according to faceid scores with training datasets
+    - Add Inpaint Tab (currently in beta and not displayed by default) in Gradio, which generates artistic template-based images.
 - Support a series of new style models in a plug-and-play fashion
   - Description
     - Allow users to select different style models for training distinct types of Digital-Twins.
@@ -94,6 +108,7 @@ os.chdir('/mnt/workspace/facechain')    # You may change to your own path
 print(os.getcwd())
 
 !pip3 install gradio
+!pip3 install controlnet_aux==0.0.6
 !python3 app.py
 
 
@@ -119,6 +134,7 @@ docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.ali
 
 # Step4: Install the gradio in the docker container:
 pip3 install gradio
+pip3 install controlnet_aux==0.0.6
 
 # Step5 clone facechain from github
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
@@ -162,7 +178,7 @@ python3 app.py
 
 | Colab | Info
 | --- | --- |
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing) | FaceChain Installation on Colab
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/modelscope/facechain/blob/main/facechain_demo.ipynb) | FaceChain Installation on Colab
 
 
 
@@ -250,7 +266,7 @@ The models used in FaceChain:
 
 [3]  Human parsing model M2FP：https://modelscope.cn/models/damo/cv_resnet101_image-multiple-human-parsing
 
-[4]  Skin retouching model ABPN：https://modelscope.cn/models/damo/cv_unet_skin-retouching
+[4]  Skin retouching model ABPN：https://www.modelscope.cn/models/damo/cv_unet_skin_retouching_torch/summary
 
 [5]  Face attribute recognition model FairFace：https://modelscope.cn/models/damo/cv_resnet34_face-attribute-recognition_fairface
 

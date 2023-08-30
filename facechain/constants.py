@@ -1,15 +1,15 @@
 neg_prompt = 'nsfw, paintings, sketches, (worst quality:2), (low quality:2) ' \
              'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character'
-pos_prompt_with_cloth = 'raw photo, masterpiece, chinese, simple background, wearing {}, high-class pure color background, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
-pos_prompt_with_style = '{} upper_body, raw photo, masterpiece, chinese, solo, medium shot, high detail face, slim body, photorealistic, best quality'
-
+pos_prompt_with_cloth = 'raw photo, masterpiece, chinese, {}, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
+pos_prompt_with_style = '{}, upper_body, raw photo, masterpiece, chinese, solo, medium shot, high detail face, slim body, photorealistic, best quality'
 
 cloth_prompt = [
-    {'name': '工作服(working suit)', 'prompt': 'high-class business/working suit'},  # male and female
-    {'name': '盔甲风(armor)', 'prompt': 'silver armor'},  # male
-    {'name': 'T恤衫(T-shirt)', 'prompt': 'T-shirt'},  # male and female
-    {'name': '汉服风(hanfu)', 'prompt': 'beautiful traditional hanfu, upper_body'},  # female
-    {'name': '女士晚礼服(gown)', 'prompt': 'an elegant evening gown'},  # female
+    {'name': '工作服(working suit)', 'prompt': 'wearing high-class business/working suit, simple background, high-class pure color background'},  # male and female
+    {'name': '盔甲风(armor)', 'prompt': 'wearing silver armor, simple background, high-class pure color background'},  # male
+    {'name': 'T恤衫(T-shirt)', 'prompt': 'wearing T-shirt, simple background, high-class pure color background'},  # male and female
+    {'name': '汉服风(hanfu)', 'prompt': 'wearing beautiful traditional hanfu, upper_body, simple background, high-class pure color background'},  # female
+    {'name': '女士晚礼服(gown)', 'prompt': 'wearing an elegant evening gown, simple background, high-class pure color background'},  # female
+    {'name': '赛博朋克(cybernetics punk)', 'prompt': 'white hair, neon glowing glasses, cybernetics, punks, robotic, AI, NFT art, Fluorescent color, ustration'}, # male and female
 ]
 
 styles = [
@@ -23,4 +23,27 @@ styles = [
      'add_prompt_style': 'red, hanfu, tiara, crown, '},
 ]
 
+inpaint_default_positive = 'beautiful, cool, finely detail, light smile, extremely detailed CG unity 8k wallpaper, huge filesize, best quality, realistic, photo-realistic, ultra high res, raw phot, put on makeup'
+inpaint_default_negative = 'hair, teeth, sketch, duplicate, ugly, huge eyes, text, logo, worst face, strange mouth, nsfw, NSFW, low quality, worst quality, worst quality, low quality, normal quality, lowres, watermark, lowres, monochrome, naked, nude, nsfw, bad anatomy, bad hands, normal quality, grayscale, mural,'
+
+pose_models = [
+    {'name': '无姿态控制(No pose control)'},
+    {'name': 'pose-v1.1-with-depth'},
+    {'name': 'pose-v1.1'}
+]
+
+pose_examples = {
+    'man': [
+        ['./poses/man/pose1.png'],
+        ['./poses/man/pose2.png'],
+        ['./poses/man/pose3.png'],
+        ['./poses/man/pose4.png']
+    ],
+    'woman': [
+        ['./poses/woman/pose1.png'],
+        ['./poses/woman/pose2.png'],
+        ['./poses/woman/pose3.png'],
+        ['./poses/woman/pose4.png'],
+    ]
+}
 
