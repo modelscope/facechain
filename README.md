@@ -30,7 +30,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 - Add awesome prompts! Refer to: [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)   (August 18th, 2023 UTC)
 - Support a series of new style models in a plug-and-play fashion. Refer to: [Features](#Features)   (August 16th, 2023 UTC)
 - Support customizable prompts. Refer to: [Features](#Features)    (August 16th, 2023 UTC)
-- Colab notebook is available now! You can experience FaceChain directly with  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cUhnVXseqD2EJiotZk3k7GsfQK9_yJu_?usp=sharing).   (August 15th, 2023 UTC)
+- Colab notebook is available now! You can experience FaceChain directly with  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/modelscope/facechain/blob/main/facechain_demo.ipynb).   (August 15th, 2023 UTC)
 
 
 # To-Do List
