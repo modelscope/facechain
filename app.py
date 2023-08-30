@@ -34,14 +34,16 @@ def update_cloth(style_index):
     if style_index == 0:
         example_prompt = generate_pos_prompt(style['name'],
                                              cloth_prompt[0]['prompt'])
+        multiplier_human = 0.95
         for prompt in cloth_prompt:
             prompts.append(prompt['name'])
     else:
         example_prompt = generate_pos_prompt(style['name'],
                                              style['add_prompt_style'])
+        multiplier_human = style['multiplier_human']
         prompts.append(style['cloth_name'])
     return gr.Radio.update(choices=prompts,
-                           value=prompts[0], visible=True), gr.Textbox.update(value=example_prompt)
+                           value=prompts[0], visible=True), gr.Textbox.update(value=example_prompt),  gr.Slider.update(value=multiplier_human)
 
 
 def update_prompt(style_index, cloth_index):
@@ -412,9 +414,14 @@ def flash_model_list(uuid, base_model_index):
                 if os.path.exists(file_lora_path):
                     folder_list.append(file)
 
-    return gr.Radio.update(choices=folder_list),gr.Dropdown.update(choices=style_list, value=style_list[0], visible=True)
+    return gr.Radio.update(choices=folder_list), gr.Dropdown.update(choices=style_list, value=style_list[0], visible=True)
 
-def flash_model_list_inpaint(uuid, base_model_index):
+def update_output_model(uuid, base_model_index):
+
+    # Check base model
+    if base_model_index == None:
+        raise gr.Error('请选择基模型(Please select the base model)！')
+
     base_model_path = base_models[base_model_index]['model_id']
 
     if not uuid:
@@ -551,12 +558,17 @@ def inference_input():
 
                 base_model_index = gr.Radio(label="基模型选择(Base model list)", choices=base_model_list, type="index")
                 
-                user_model = gr.Radio(label="产出模型(Output Model list)", choices=[], type="value")
+                with gr.Row():
+                    with gr.Column(scale=3):
+                        user_model = gr.Radio(label="产出模型(Output Model list)", choices=[], type="value")
+                    with gr.Column(scale=1):
+                        update_button = gr.Button('刷新产出模型(Update output model list)')
 
                 style_model_list = []
                 for style in styles:
                     style_model_list.append(style['name'])
-                style_model = gr.Dropdown(choices=style_model_list, type="index", label="风格模型(Style model)", visible=False)
+                style_model = gr.Dropdown(choices=style_model_list, type="index", value=style_model_list[0], 
+                                          label="风格模型(Style model)", visible=False)
                 
                 prompts = []
                 for prompt in cloth_prompt:
@@ -571,10 +583,12 @@ def inference_input():
                     pmodels.append(pmodel['name'])
 
                 with gr.Accordion("高级选项(Advanced Options)", open=False):
-                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, interactive=True)
+                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, 
+                                            value=generate_pos_prompt(None, cloth_prompt[0]['prompt']),
+                                            interactive=True)
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')
-                    multiplier_human = gr.Slider(minimum=0, maximum=1.2, value=0.85,
+                    multiplier_human = gr.Slider(minimum=0, maximum=1.2, value=0.95,
                                                  step=0.05, label='形象权重(Multiplier human)')
                     pose_image = gr.Image(source='upload', type='filepath', label='姿态图片(Pose image)')
                     gr.Examples(pose_examples['man'], inputs=[pose_image], label='男性姿态示例')
@@ -597,13 +611,17 @@ def inference_input():
             output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
                                                                                object_fit="contain")
                                                                                
-        style_model.change(update_cloth, style_model, [cloth_style, pos_prompt], queue=False)
+        style_model.change(update_cloth, style_model, [cloth_style, pos_prompt, multiplier_human], queue=False)
         cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt, multiplier_style], queue=False)
         pose_image.change(update_pose_model, pose_image, [pose_model])
         base_model_index.change(fn=flash_model_list,
                                 inputs=[uuid, base_model_index],
-                                outputs=[user_model,style_model],
+                                outputs=[user_model, style_model],
                                 queue=False)
+        update_button.click(fn=update_output_model,
+                      inputs=[uuid, base_model_index],
+                      outputs=[user_model],
+                      queue=False)
         display_button.click(fn=launch_pipeline,
                              inputs=[uuid, pos_prompt, base_model_index, user_model, num_images, style_model, multiplier_style, multiplier_human,
                                      pose_model, pose_image],
@@ -693,7 +711,7 @@ def inference_inpaint():
                 show_label=False
             ).style(columns=3, rows=2, height=600, object_fit="contain")
 
-        base_model_index.change(fn=flash_model_list_inpaint,
+        base_model_index.change(fn=update_output_model,
                                 inputs=[uuid, base_model_index],
                                 outputs=[user_model],
                                 queue=False)
