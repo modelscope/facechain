@@ -14,5 +14,7 @@ timm
 scikit-image
 gradio
 controlnet_aux==0.0.6
+tensorflow==2.8.0
+#tensorflow-cpu  # slower but no cuda conflicts
 
 # mmcv-full (need mim install)
