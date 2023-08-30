@@ -359,6 +359,7 @@ def main_model_inference(pose_model_path, pose_image, use_depth_control, pos_pro
                                             style_model_path, lora_model_path,
                                             **multiplier_style_kwargs, **multiplier_human_kwargs)
         else:
+            pose_image = compress_image(pose_image, 1024 * 1024)
             if use_depth_control:
                 return main_diffusion_inference_multi(pose_model_path, pose_image, pos_prompt,
                                                       neg_prompt, input_img_dir, base_model_path, style_model_path,
@@ -489,3 +490,28 @@ class GenPortrait:
 
         return final_gen_results
 
+def compress_image(input_path, target_size):
+    output_path = change_extension_to_jpg(input_path)
+
+    image = cv2.imread(input_path)
+
+    quality = 95
+    while cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, quality])[1].size > target_size:
+        quality -= 5
+
+    compressed_image = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, quality])[1].tostring()
+
+    with open(output_path, 'wb') as f:
+        f.write(compressed_image)
+    return output_path
+
+
+def change_extension_to_jpg(image_path):
+
+    base_name = os.path.basename(image_path)
+    new_base_name = os.path.splitext(base_name)[0] + ".jpg"
+
+    directory = os.path.dirname(image_path)
+
+    new_image_path = os.path.join(directory, new_base_name)
+    return new_image_path
