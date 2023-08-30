@@ -266,7 +266,7 @@ The models used in FaceChain:
 
 [3]  Human parsing model M2FP：https://modelscope.cn/models/damo/cv_resnet101_image-multiple-human-parsing
 
-[4]  Skin retouching model ABPN：https://modelscope.cn/models/damo/cv_unet_skin-retouching
+[4]  Skin retouching model ABPN：https://www.modelscope.cn/models/damo/cv_unet_skin_retouching_torch/summary
 
 [5]  Face attribute recognition model FairFace：https://modelscope.cn/models/damo/cv_resnet34_face-attribute-recognition_fairface
 
