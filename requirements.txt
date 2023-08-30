@@ -8,8 +8,6 @@ opencv-python
 torchvision
 mmdet==2.26.0
 mmengine
-tensorflow==2.8.0
-#tensorflow-cpu  # slower but no cuda conflicts
 numpy==1.22.0
 protobuf==3.20.1
 timm
