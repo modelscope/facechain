@@ -16,5 +16,7 @@ timm
 scikit-image
 gradio
 controlnet_aux==0.0.6
+mediapipe
+python-slugify
 
 # mmcv-full (need mim install)
