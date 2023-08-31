@@ -141,8 +141,7 @@ def softmax(x):
 
 def get_rot(image):
     model_dir = snapshot_download('Cherrytest/rot_bgr',
-                                  revision='v1.0.0',
-                                  user_agent={'invoked_by': 'trainer', 'third_party': 'facechain'})
+                                  revision='v1.0.0')
     model_path = os.path.join(model_dir, 'rot_bgr.onnx')
     ort_session = onnxruntime.InferenceSession(model_path)
 
@@ -365,6 +364,7 @@ def merge_different_loras(loras_load_path, lora_save_path, ratios=None):
 
         torch.save(state_dict, lora_save_path)
     return 
+
 
 def prepare_dataset(instance_images: list, output_dataset_dir):
     if not os.path.exists(output_dataset_dir):
@@ -1133,7 +1133,9 @@ def main():
     # Potentially load in the weights and states from a previous save
     if args.resume_from_checkpoint:
         if args.resume_from_checkpoint == 'fromfacecommon':
-            weight_model_dir = snapshot_download('damo/face_frombase_c4', revision='v1.0.0')
+            weight_model_dir = snapshot_download('damo/face_frombase_c4',
+                                                 revision='v1.0.0',
+                                                 user_agent={'invoked_by': 'trainer', 'third_party': 'facechain'})
             path = os.path.join(weight_model_dir, 'face_frombase_c4.bin')
         elif args.resume_from_checkpoint != "latest":
             path = os.path.basename(args.resume_from_checkpoint)
