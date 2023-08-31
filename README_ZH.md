@@ -260,7 +260,7 @@ python run_inference.py
 
 [3]  人体解析模型M2FP：https://modelscope.cn/models/damo/cv_resnet101_image-multiple-human-parsing
 
-[4]  人像美肤模型ABPN：https://www.modelscope.cn/models/damo/cv_unet_skin_retouching_torch/summary
+[4]  人像美肤模型ABPN：https://www.modelscope.cn/models/damo/cv_unet_skin_retouching_torch
 
 [5]  人脸属性模型FairFace：https://modelscope.cn/models/damo/cv_resnet34_face-attribute-recognition_fairface
 
@@ -268,7 +268,7 @@ python run_inference.py
 
 [7]  模板脸筛选模型FQA：https://modelscope.cn/models/damo/cv_manual_face-quality-assessment_fqa
 
-[8]  人脸融合模型：https://modelscope.cn/models/damo/cv_unet-image-face-fusion_damo
+[8]  人脸融合模型：https://www.modelscope.cn/models/damo/cv_unet_face_fusion_torch
 
 [9]  人脸识别模型RTS：https://modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts                                  
 
