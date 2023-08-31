@@ -48,10 +48,12 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 ```
 @article{liu2023facechain,
   title={FaceChain: A Playground for Identity-Preserving Portrait Generation},
-  author={Liu, Yang and Yu, Cheng and Shang, Lei and Wu, Ziheng and Wang, Xingjun and Zhao, Yuze and Zhu, Lin and Cheng, Chen and Chen, Weitao and Xu, Chao and Xie, Haoyu and Yao, Yuan and Zhou,  Wenmeng and Chen Yingda and Xie, Xuansong and Sun, Baigui},
+  author={Liu, Yang and Yu, Cheng and Shang, Lei and Wu, Ziheng and 
+          Wang, Xingjun and Zhao, Yuze and Zhu, Lin and Cheng, Chen and 
+          Chen, Weitao and Xu, Chao and Xie, Haoyu and Yao, Yuan and 
+          Zhou,  Wenmeng and Chen Yingda and Xie, Xuansong and Sun, Baigui},
   journal={arXiv preprint arXiv:2308.14256},
   year={2023}
-}
 ```
 
 # 环境准备
