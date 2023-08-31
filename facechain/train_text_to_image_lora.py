@@ -342,7 +342,6 @@ def merge_from_name_and_index(name, index_list, output_dir='output_dir/'):
     os.mkdir(os.path.join(output_dir, 'ensemble'))
     lora_save_path  = os.path.join(output_dir, 'ensemble', f'{name}.bin')
     for l in loras_load_path:
-        # print('fuck : ', l)
         assert os.path.exists(l)==True
     merge_different_loras(loras_load_path, lora_save_path)
     return lora_save_path
