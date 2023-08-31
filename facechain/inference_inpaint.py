@@ -127,10 +127,6 @@ class GenPortraitInpaint:
         print(f'use_fusion_after           :', use_fusion_after)
         print(f'input_template_list        :', input_template_list)
 
-
-        # debug
-        # print("fuck : ", input_template_list, type(input_template_list), len(input_template_list))
-
         # hack for gr.Text input
         if isinstance(input_template_list, str):
             input_template_list = [input_template_list[2:-2]]

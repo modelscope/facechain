@@ -43,7 +43,7 @@ def update_cloth(style_index):
         multiplier_human = style['multiplier_human']
         prompts.append(style['cloth_name'])
     return gr.Radio.update(choices=prompts,
-                           value=prompts[0], visible=True), gr.Textbox.update(value=example_prompt),  gr.Slider.update(value=multiplier_human)
+                           value=prompts[0], visible=True), gr.Textbox.update(value=example_prompt), gr.Slider.update(value=multiplier_human)
 
 
 def update_prompt(style_index, cloth_index):
@@ -473,7 +473,7 @@ def train_input():
                     optional_styles = gr.Textbox(label="该基模型支持的风格(Styles supported by this base model.)", lines=3,
                                         value=optional_style, interactive=False)
                     
-                    output_model_name = gr.Textbox(label="产出模型名称(Output model name)", lines=1)
+                    output_model_name = gr.Textbox(label="产出模型名称(Output model name)", value='test', lines=1)
  
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
@@ -728,6 +728,7 @@ def inference_inpaint():
 
 
 with gr.Blocks(css='style.css') as demo:
+    gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale}, [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
     with gr.Tabs():
         with gr.TabItem('\N{rocket}形象定制(Train)'):
             train_input()

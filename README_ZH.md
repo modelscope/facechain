@@ -18,48 +18,43 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 <br>
 
 ![image](resources/git_cover_CH.jpg)
+![image](resources/git_cover_1.png)
 
 
 # News
+- 更多技术细节可以在 [论文](https://arxiv.org/abs/2308.14256) 里查看. (2023-08-30)
 - 为Lora训练添加验证和根据face_id的融合，并添加InpaintTab（目前在Gradio界面上暂时默认隐藏）. (2023-08-28)
-- 增加姿势控制模块，可一键体验模版pose复刻.   (2023-08-27)
-- 增加鲁棒性人脸lora训练，提升单图训练&风格lora融合的效果.   (2023-08-27)
+- 增加姿势控制模块，可一键体验模版pose复刻. (2023-08-27)
+- 增加鲁棒性人脸lora训练，提升单图训练&风格lora融合的效果. (2023-08-27)
 - 支持在HuggingFace Space中体验FaceChain ！ <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>      (2023-08-25)
 - 新增高质量提示词模板，欢迎大家一起贡献！ 参考 [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)    (2023-08-18)
-- 支持即插即用的风格LoRA模型！ 参考 [功能特性](#功能特性)    (2023-08-16)
-- 新增个性化prompt模块！    参考 [功能特性](#功能特性)    (2023-08-16)
+- 支持即插即用的风格LoRA模型！ (2023-08-16)
+- 新增个性化prompt模块！ (2023-08-16)
 - Colab notebook安装已支持，您可以直接打开链接体验FaceChain： [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/modelscope/facechain/blob/main/facechain_demo.ipynb)   (2023-08-15)
 
 
 # 待办事项
 - 现成风格模型即插即用（以C站风格模型为例）   --迭代中
-- 增加个性化prompt模块（试穿不同的衣服等）   --迭代中
-- 基于ControlNet或Composer等方式，支持指定poses
-- 增加个性化美颜特效模块
-- 基模升级，SD 1.5升级为SDXL
-- 兼容WebUI使用
-- 增加模版图inpainting功能
+- 增加更多美肤功能
+- 适配更多的基模，例如SDXL
+- 增加超分模块
+- 支持多人保id照片生成
+- 开发更多好玩的app
 
 
-# 功能特性
-- 现成风格模型即插即用
-  - 描述：支持用户在训练时选择不同的风格模型，以生成不同风格的个人数字形象
-  - 安装：参考 [安装指南](#安装指南)
-  - 用法：在“形象体验”页面选择“凤冠霞帔”风格
-  - 效果
-  ![image](resources/style_lora_xiapei.jpg)
-  - 相关资源
-    - 凤冠霞帔： [xiapei lora model](https://www.liblibai.com/modelinfo/f746450340a3a932c99be55c1a82d20c)
-    - 更多优质风格lora模型，可以参考 [Civitai](https://civitai.com/)
-  
-- 增加个性化prompt模块
-  - 描述：支持用户增加个性化的prompt，实现变装等效果
-  - 安装：参考 [安装指南](#安装指南)
-  - 用法：在“形象体验”页面直接修改prompt
-  - 效果
-    - （服饰选择提示词：The lord of the rings, ELF, Arwen Undomiel, beautiful, upper_body, best quality, Professional）
-      ![image](resources/prompt_elf_lord_of_rings.jpg)
+# Citation
 
+如果FaceChain对您的研究有所帮助，请在您的出版物中引用FaceChain
+```
+@article{liu2023facechain,
+  title={FaceChain: A Playground for Identity-Preserving Portrait Generation},
+  author={Liu, Yang and Yu, Cheng and Shang, Lei and Wu, Ziheng and 
+          Wang, Xingjun and Zhao, Yuze and Zhu, Lin and Cheng, Chen and 
+          Chen, Weitao and Xu, Chao and Xie, Haoyu and Yao, Yuan and 
+          Zhou,  Wenmeng and Chen Yingda and Xie, Xuansong and Sun, Baigui},
+  journal={arXiv preprint arXiv:2308.14256},
+  year={2023}
+```
 
 # 环境准备
 
@@ -200,6 +195,12 @@ film/film: 该基模型包含了多个不同风格的子目录，其中使用了
 进行推理时，请编辑run_inference.py中的代码:
 
 ```python
+# 使用深度控制，默认False，仅在使用姿态控制时生效
+use_depth_control = False
+# 使用姿态控制，默认False
+use_pose_model = False
+# 姿态控制图片路径，仅在使用姿态控制时生效
+pose_image = 'poses/man/pose1.png'
 # 填入上述的预处理之后的图片文件夹，需要和训练时相同
 processed_dir = './processed'
 # 推理生成的图片数量
