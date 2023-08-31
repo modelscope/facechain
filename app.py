@@ -595,6 +595,7 @@ def inference_inpaint():
 
 
 with gr.Blocks(css='style.css') as demo:
+    gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github  star it here](https://website-name.com) \N{whale}, [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
     with gr.Tabs():
         with gr.TabItem('\N{rocket}形象定制(Train)'):
             train_input()
