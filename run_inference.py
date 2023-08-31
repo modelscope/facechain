@@ -23,11 +23,15 @@ use_main_model = True
 use_face_swap = True
 use_post_process = True
 use_stylization = False
+use_depth_control = False
+use_pose_model = False
+pose_image = 'poses/man/pose1.png'
 processed_dir = './processed'
 num_generate = 5
 base_model = 'ly261666/cv_portrait_model'
 revision = 'v2.0'
 multiplier_style = 0.25
+multiplier_human = 0.85
 base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 output_dir = './generated'
@@ -46,7 +50,16 @@ else:
     style_model_path = os.path.join(model_dir, style['bin_file'])
     pos_prompt = generate_pos_prompt(style['name'], style['add_prompt_style'])  # style has its own prompt
 
-gen_portrait = GenPortrait(pos_prompt, neg_prompt, style_model_path, multiplier_style, use_main_model,
+if not use_pose_model:
+    pose_model_path = None
+    use_depth_control = False
+    pose_image = None
+else:
+    model_dir = snapshot_download('damo/face_chain_control_model', revision='v1.0.1')
+    pose_model_path = os.path.join(model_dir, 'model_controlnet/control_v11p_sd15_openpose')
+
+gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path,
+                           multiplier_style, multiplier_human, use_main_model,
                            use_face_swap, use_post_process,
                            use_stylization)
 

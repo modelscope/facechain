@@ -193,6 +193,12 @@ film/film: 该基模型包含了多个不同风格的子目录，其中使用了
 进行推理时，请编辑run_inference.py中的代码:
 
 ```python
+# 使用深度控制，默认False，仅在使用姿态控制时生效
+use_depth_control = False
+# 使用姿态控制，默认False
+use_pose_model = False
+# 姿态控制图片路径，仅在使用姿态控制时生效
+pose_image = 'poses/man/pose1.png'
 # 填入上述的预处理之后的图片文件夹，需要和训练时相同
 processed_dir = './processed'
 # 推理生成的图片数量
