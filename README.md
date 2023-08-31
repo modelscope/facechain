@@ -206,6 +206,12 @@ Wait for 5-20 minutes to complete the training. Users can also adjust other trai
 When inferring, please edit the code in run_inference.py:
 
 ```python
+# Use depth control, default False, only effective when using pose control
+use_depth_control = False
+# Use pose control, default False
+use_pose_model = False
+# The path of the image for pose control, only effective when using pose control
+pose_image = 'poses/man/pose1.png'
 # Fill in the folder of the images after preprocessing above, it should be the same as during training
 processed_dir = './processed'
 # The number of images to generate in inference
