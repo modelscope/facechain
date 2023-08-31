@@ -55,6 +55,7 @@ def build_pipeline_facechain(baseline_model_path, lora_model_path, cache_model_d
     # Build SDInpaint Pipeline
     pipeline = StableDiffusionControlNetInpaintPipeline.from_pretrained(
         baseline_model_path,
+        safety_checker=None,
         controlnet=controlnet,
         torch_dtype=weight_dtype,
     ).to("cuda")
@@ -160,7 +161,7 @@ class GenPortraitInpaint:
         )    
         print("inpaint pipeline load end")
         retinaface_detection = pipeline(Tasks.face_detection, 'damo/cv_resnet50_face-detection_retinaface')
-        image_face_fusion = pipeline(Tasks.image_face_fusion, model='damo/cv_unet-image-face-fusion_damo')
+        image_face_fusion = pipeline('face_fusion_torch', model='damo/cv_unet_face_fusion_torch', model_revision='v1.0.3')
         self.openpose = OpenposeDetector.from_pretrained(os.path.join(cache_model_dir, "controlnet_detector"))
         print("preprocess model loaded")
 

@@ -20,56 +20,41 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 ![image](resources/git_cover.jpg)
+![image](resources/git_cover_1.png)
 
 
 # News
-- Add validate & ensemble for Lora training, and InpaintTab(hide in gradio for now). Refer to: [Features] (August 28th, 2023 UTC)
+- More Technology Details can be seen in [Paper](https://arxiv.org/abs/2308.14256). (August 30th, 2023 UTC)
+- Add validate & ensemble for Lora training, and InpaintTab(hide in gradio for now).  (August 28th, 2023 UTC)
 - Add pose control module.   (August 27th, 2023 UTC)
 - Add robust face lora training module, enhance the performance of one pic training & style-lora blending.   (August 27th, 2023 UTC)
 - HuggingFace Space is available now! You can experience FaceChain directly with <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>      (August 25th, 2023 UTC)
 - Add awesome prompts! Refer to: [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)   (August 18th, 2023 UTC)
-- Support a series of new style models in a plug-and-play fashion. Refer to: [Features](#Features)   (August 16th, 2023 UTC)
-- Support customizable prompts. Refer to: [Features](#Features)    (August 16th, 2023 UTC)
+- Support a series of new style models in a plug-and-play fashion.  (August 16th, 2023 UTC)
+- Support customizable prompts. (August 16th, 2023 UTC)
 - Colab notebook is available now! You can experience FaceChain directly with  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/modelscope/facechain/blob/main/facechain_demo.ipynb).   (August 15th, 2023 UTC)
 
 
 # To-Do List
-- Support existing style models (such as those on Civitai) in a plug-an-play fashion.  --on-going
-- Support customizable prompts (try on different outfits etc.)  --on-going
+- Support more style models (such as those on Civitai). --on-going, hot
 - Support more beauty-retouch effects
 - Support latest foundation models such as SDXL
-- Provide WebUI compatibility
-- Support template images inpainting
+- Support high resolution
+- Support group photo scenario, e.g, multi-person
+- Provide more funny apps
 
 
-# Features
-- Introduce beta version of Inpaint, with techniques such as in-trianing validation and post-training ensemble to stablize LoRA.
-  - Description
-    - Add faceid evaluate in train_text_to_image_lora, which will generate validation image during training
-    - Add ensemble after Lora training according to faceid scores with training datasets
-    - Add Inpaint Tab (currently in beta and not displayed by default) in Gradio, which generates artistic template-based images.
-- Support a series of new style models in a plug-and-play fashion
-  - Description
-    - Allow users to select different style models for training distinct types of Digital-Twins.
-  - Installation
-    - Refer to [Installation Guide](#installation-guide)
-  - Usage
-    - Select  "凤冠霞帔(Chinese traditional gorgeous suit)" on the `inference` tab and change the prompt as you want.
-  - Exampled outcomes
-  ![image](resources/style_lora_xiapei.jpg)
-  - Reference
-    - [xiapei lora model](https://www.liblibai.com/modelinfo/f746450340a3a932c99be55c1a82d20c)
-    - For more LoRA styles, refer to [Civitai](https://civitai.com/)
-- Support customizable prompts
-  - Description
-    - Allow users to achieve various portrait styles with customized prompts.
-  - Installation
-    - Refer to [Installation Guide](#installation-guide)
-  - Usage
-    - Edit the prompt on the `inference` tab as you want.
-  - Exampled outcomes
-    - (prompt: The lord of the rings, ELF, Arwen Undomiel, beautiful, upper_body, best quality, Professional)
-      ![image](resources/prompt_elf_lord_of_rings.jpg)
+# Citation
+
+Please cite FaceChain in your publications if it helps your research
+```
+@article{liu2023facechain,
+  title={FaceChain: A Playground for Identity-Preserving Portrait Generation},
+  author={Liu, Yang and Yu, Cheng and Shang, Lei and Wu, Ziheng and Wang, Xingjun and Zhao, Yuze and Zhu, Lin and Cheng, Chen and Chen, Weitao and Xu, Chao and Xie, Haoyu and Yao, Yuan and Zhou,  Wenmeng and Chen Yingda and Xie, Xuansong and Sun, Baigui},
+  journal={arXiv preprint arXiv:2308.14256},
+  year={2023}
+}
+```
 
 
 # Installation
@@ -206,6 +191,12 @@ Wait for 5-20 minutes to complete the training. Users can also adjust other trai
 When inferring, please edit the code in run_inference.py:
 
 ```python
+# Use depth control, default False, only effective when using pose control
+use_depth_control = False
+# Use pose control, default False
+use_pose_model = False
+# The path of the image for pose control, only effective when using pose control
+pose_image = 'poses/man/pose1.png'
 # Fill in the folder of the images after preprocessing above, it should be the same as during training
 processed_dir = './processed'
 # The number of images to generate in inference
@@ -266,7 +257,7 @@ The models used in FaceChain:
 
 [3]  Human parsing model M2FP：https://modelscope.cn/models/damo/cv_resnet101_image-multiple-human-parsing
 
-[4]  Skin retouching model ABPN：https://modelscope.cn/models/damo/cv_unet_skin-retouching
+[4]  Skin retouching model ABPN：https://www.modelscope.cn/models/damo/cv_unet_skin_retouching_torch
 
 [5]  Face attribute recognition model FairFace：https://modelscope.cn/models/damo/cv_resnet34_face-attribute-recognition_fairface
 
@@ -274,7 +265,7 @@ The models used in FaceChain:
 
 [7]  Face quality assessment FQA：https://modelscope.cn/models/damo/cv_manual_face-quality-assessment_fqa
 
-[8]  Face fusion model：https://modelscope.cn/models/damo/cv_unet-image-face-fusion_damo
+[8]  Face fusion model：https://www.modelscope.cn/models/damo/cv_unet_face_fusion_torch
 
 [9]  Face recognition model RTS：https://modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts          
 
