@@ -24,29 +24,29 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
-- :
+- More Technology Details can be seen in [Paper](https://arxiv.org/abs/2308.14256). (August 30th, 2023 UTC)
 - Add validate & ensemble for Lora training, and InpaintTab(hide in gradio for now).  (August 28th, 2023 UTC)
 - Add pose control module.   (August 27th, 2023 UTC)
 - Add robust face lora training module, enhance the performance of one pic training & style-lora blending.   (August 27th, 2023 UTC)
 - HuggingFace Space is available now! You can experience FaceChain directly with <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>      (August 25th, 2023 UTC)
 - Add awesome prompts! Refer to: [awesome-prompts-facechain](resources/awesome-prompts-facechain.txt)   (August 18th, 2023 UTC)
 - Support a series of new style models in a plug-and-play fashion.  (August 16th, 2023 UTC)
-- Support customizable prompts. Refer to: [Features](#Features)    (August 16th, 2023 UTC)
+- Support customizable prompts. (August 16th, 2023 UTC)
 - Colab notebook is available now! You can experience FaceChain directly with  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/modelscope/facechain/blob/main/facechain_demo.ipynb).   (August 15th, 2023 UTC)
 
 
 # To-Do List
-- Support existing style models (such as those on Civitai) in a plug-an-play fashion.  --on-going
-- Support customizable prompts (try on different outfits etc.)  --on-going
+- Support more style models (such as those on Civitai). --on-going, hot
 - Support more beauty-retouch effects
 - Support latest foundation models such as SDXL
-- Provide WebUI compatibility
-- Support template images inpainting
+- Support high resolution
+- Support group photo scenario, e.g, multi-person
+- Provide more funny apps
 
 
 # Citation
 
-If you use FaceChain in your research, please cite this project.
+Please cite FaceChain in your publications if it helps your research
 ```
 @article{liu2023facechain,
   title={FaceChain: A Playground for Identity-Preserving Portrait Generation},
