@@ -12,6 +12,7 @@ import numpy as np
 import torch
 from glob import glob
 import platform
+import subprocess
 from modelscope import snapshot_download
 
 from facechain.inference import GenPortrait
@@ -112,7 +113,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
         if platform.system() == 'Windows':
             command = [
                 'accelerate', 'launch', 'facechain/train_text_to_image_lora.py',
-                f'--pretrained_model_name_or_path={foundation_model_path}',
+                f'--pretrained_model_name_or_path={base_model_path}',
                 f'--revision={revision}',
                 f'--sub_path={sub_path}',
                 f'--output_dataset_name={output_img_dir}',
@@ -140,12 +141,27 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
                 print(f"Error executing the command: {e}")
         else:
             os.system(
-                f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py --pretrained_model_name_or_path={base_model_path} '
-                f'--revision={revision} --sub_path={sub_path} '
-                f'--output_dataset_name={output_img_dir} --caption_column="text" --resolution=512 '
-                f'--random_flip --train_batch_size=1 --num_train_epochs=200 --checkpointing_steps=5000 '
-                f'--learning_rate=1.5e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 --seed=42 --output_dir={work_dir} '
-                f'--lora_r={lora_r} --lora_alpha={lora_alpha} --lora_text_encoder_r=32 --lora_text_encoder_alpha=32 --resume_from_checkpoint="fromfacecommon"')
+                f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py '
+                f'--pretrained_model_name_or_path={base_model_path} '
+                f'--revision={revision} '
+                f'--sub_path={sub_path} '
+                f'--output_dataset_name={output_img_dir} '
+                f'--caption_column="text" '
+                f'--resolution=512 '
+                f'--random_flip '
+                f'--train_batch_size=1 '
+                f'--num_train_epochs=200 '
+                f'--checkpointing_steps=5000 '
+                f'--learning_rate=1.5e-04 '
+                f'--lr_scheduler="cosine" '
+                f'--lr_warmup_steps=0 '
+                f'--seed=42 '
+                f'--output_dir={work_dir} '
+                f'--lora_r={lora_r} '
+                f'--lora_alpha={lora_alpha} '
+                f'--lora_text_encoder_r=32 '
+                f'--lora_text_encoder_alpha=32 '
+                f'--resume_from_checkpoint="fromfacecommon"')
 
 
 def generate_pos_prompt(style_model, prompt_cloth):
