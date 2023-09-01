@@ -267,10 +267,7 @@ def launch_pipeline_inpaint(uuid,
         raise gr.Error('请选择产出模型(Please select the output model)！')
 
     if not uuid:
-        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-            return "请登陆后使用! (Please login first)"
-        else:
-            uuid = 'qw'
+        uuid = UUID.uuid4().hex
 
     if isinstance(selected_template_images, str):
         if len(selected_template_images) == 0:
@@ -302,10 +299,10 @@ def launch_pipeline_inpaint(uuid,
             if not is_processing:
                 cur_done_count = inference_done_count
                 to_wait = before_queue_size - (cur_done_count - before_done_count)
-                yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5),
+                yield [uuid, "排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5),
                        None]
             else:
-                yield ["生成中, 请耐心等待(Generating)...", None]
+                yield [uuid, "生成中, 请耐心等待(Generating)...", None]
             time.sleep(1)
 
     outputs = future.result()
@@ -317,9 +314,9 @@ def launch_pipeline_inpaint(uuid,
         result = concatenate_images(outputs)
         cv2.imwrite(image_path, result)
 
-        yield ["生成完毕(Generation done)！", outputs_RGB]
+        yield [uuid, "生成完毕(Generation done)！", outputs_RGB]
     else:
-        yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
+        yield [uuid, "生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
 
 
 class Trainer:
@@ -400,15 +397,12 @@ def flash_model_list(uuid, base_model_index):
     style_list = base_models[base_model_index]['style_list']
 
     if not uuid:
-        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-            return "请登陆后使用! (Please login first)"
-        else:
-            uuid = 'qw'
+        uuid = UUID.uuid4().hex
 
     folder_path = f"/tmp/{uuid}/{base_model_path}"
     folder_list = []
     if not os.path.exists(folder_path):
-        return gr.Radio.update(choices=[]),gr.Dropdown.update(choices=style_list)
+        return uuid, gr.Radio.update(choices=[]),gr.Dropdown.update(choices=style_list)
     else:
         files = os.listdir(folder_path)
         for file in files:
@@ -418,7 +412,7 @@ def flash_model_list(uuid, base_model_index):
                 if os.path.exists(file_lora_path):
                     folder_list.append(file)
 
-    return gr.Radio.update(choices=folder_list), gr.Dropdown.update(choices=style_list, value=style_list[0], visible=True)
+    return uuid, gr.Radio.update(choices=folder_list), gr.Dropdown.update(choices=style_list, value=style_list[0], visible=True)
 
 def update_output_model(uuid, base_model_index):
 
@@ -429,15 +423,12 @@ def update_output_model(uuid, base_model_index):
     base_model_path = base_models[base_model_index]['model_id']
 
     if not uuid:
-        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-            return "请登陆后使用! (Please login first)"
-        else:
-            uuid = 'qw'
+        uuid = UUID.uuid4().hex
 
     folder_path = f"/tmp/{uuid}/{base_model_path}"
     folder_list = []
     if not os.path.exists(folder_path):
-        return gr.Radio.update(choices=[]),gr.Dropdown.update(choices=style_list)
+        return uuid, gr.Radio.update(choices=[]),gr.Dropdown.update(choices=style_list)
     else:
         files = os.listdir(folder_path)
         for file in files:
@@ -447,7 +438,7 @@ def update_output_model(uuid, base_model_index):
                 if os.path.exists(file_lora_path):
                     folder_list.append(file)
 
-    return gr.Radio.update(choices=folder_list)
+    return uuid, gr.Radio.update(choices=folder_list)
 
 
 def upload_file(files, current_files):
@@ -617,11 +608,11 @@ def inference_input(uuid):
         pose_image.change(update_pose_model, pose_image, [pose_model])
         base_model_index.change(fn=flash_model_list,
                                 inputs=[uuid, base_model_index],
-                                outputs=[user_model, style_model],
+                                outputs=[uuid, user_model, style_model],
                                 queue=False)
         update_button.click(fn=update_output_model,
                       inputs=[uuid, base_model_index],
-                      outputs=[user_model],
+                      outputs=[uuid, user_model],
                       queue=False)
         display_button.click(fn=launch_pipeline,
                              inputs=[uuid, pos_prompt, base_model_index, user_model, num_images, style_model, multiplier_style, multiplier_human,
@@ -631,14 +622,13 @@ def inference_input(uuid):
     return demo
 
 
-def inference_inpaint():
+def inference_inpaint(uuid):
     """
         Inpaint Tab with Ensemble-Lora + MultiControlnet, support preset_template
         #TODO: Support user upload template && template check logits
     """
     preset_template = glob(os.path.join('resources/inpaint_template/*.jpg'))
     with gr.Blocks() as demo:
-        uuid = gr.Text(label="modelscope_uuid", visible=False)
         # Initialize the GUI
         
         with gr.Row():
@@ -714,7 +704,7 @@ def inference_inpaint():
 
         base_model_index.change(fn=update_output_model,
                                 inputs=[uuid, base_model_index],
-                                outputs=[user_model],
+                                outputs=[uuid, user_model],
                                 queue=False)
                         
         display_button.click(
@@ -722,14 +712,14 @@ def inference_inpaint():
             inputs=[uuid, base_model_index, user_model, selected_template_images, append_pos_prompt, select_face_num, first_control_weight,
                     second_control_weight,
                     final_fusion_ratio, use_fusion_before, use_fusion_after],
-            outputs=[infer_progress, output_images]
+            outputs=[uuid, infer_progress, output_images]
         )
         
     return demo
 
 
 with gr.Blocks(css='style.css') as demo:
-	gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale}, [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
+    gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale}, [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
     with gr.Box():
         if is_shared_ui:
             top_description = gr.HTML(f'''
