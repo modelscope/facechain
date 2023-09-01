@@ -161,6 +161,13 @@ python3 app.py
 # 最后点击log中生成的URL即可访问页面。
 ```
 
+备注：如果是windows环境还需要注意以下步骤：
+```shell
+1. 重新安装pytorch、与tensorflow匹配的numpy
+2. pip方式安装mmcv-full: pip3 install mmcv-full
+3. 修改app.py适应windows
+```
+
 ### 4. colab运行
 
 | Colab | Info
