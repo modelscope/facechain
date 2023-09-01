@@ -164,8 +164,7 @@ python3 app.py
 *Note* For windows user, you should pay attention to following steps:
 ```shell
 1. reinstall  package pytorch and numpy compatible with tensorflow
-2. install mmcv-full by pip: pip install mmcv-full
-3. modify app.py to apply to windows
+2. install mmcv-full by pip: pip3 install mmcv-full
 ```
 
 

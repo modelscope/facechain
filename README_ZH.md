@@ -120,7 +120,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu2
 
 # Step3: 拉起镜像运行
 docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0 /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
-(注意： 如果提示无法使用宿主机GPU的错误，可能需要安装nvidia-container-runtime, 参考：https://github.com/NVIDIA/nvidia-container-runtime)
+# (注意： 如果提示无法使用宿主机GPU的错误，可能需要安装nvidia-container-runtime, 参考：https://github.com/NVIDIA/nvidia-container-runtime)
 
 # Step4: 在容器中安装gradio
 pip3 install gradio
@@ -161,11 +161,10 @@ python3 app.py
 # 最后点击log中生成的URL即可访问页面。
 ```
 
-备注：如果是windows环境还需要注意以下步骤：
+备注：如果是Windows环境还需要注意以下步骤：
 ```shell
-1. 重新安装pytorch、与tensorflow匹配的numpy
-2. pip方式安装mmcv-full: pip3 install mmcv-full
-3. 修改app.py适应windows
+# 1. 重新安装pytorch、与tensorflow匹配的numpy
+# 2. pip方式安装mmcv-full: pip3 install mmcv-full
 ```
 
 ### 4. colab运行
