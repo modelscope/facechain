@@ -8,12 +8,15 @@ opencv-python
 torchvision
 mmdet==2.26.0
 mmengine
-tensorflow==2.8.0
-#tensorflow-cpu  # slower but no cuda conflicts
 numpy==1.22.0
 protobuf==3.20.1
 timm
 scikit-image
 gradio
+controlnet_aux==0.0.6
+mediapipe
+python-slugify
+#tensorflow==2.8.0
+#tensorflow-cpu  # slower but no cuda conflicts
 
 # mmcv-full (need mim install)

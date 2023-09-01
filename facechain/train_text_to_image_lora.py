@@ -16,6 +16,7 @@
 """Fine-tuning script for Stable Diffusion for text2image with support for LoRA."""
 
 import argparse
+import base64
 import itertools
 import json
 import logging
@@ -23,24 +24,29 @@ import math
 import os
 import random
 import shutil
+from glob import glob
 from pathlib import Path
 
-import PIL.Image
 import cv2
 import datasets
 import diffusers
 import numpy as np
 import onnxruntime
+import PIL.Image
 import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint
+from torch import Tensor
+from typing import List, Optional, Tuple, Union
+import torchvision.transforms.functional as Ft
 import transformers
-from PIL import Image
 from accelerate import Accelerator
 from accelerate.logging import get_logger
 from accelerate.utils import ProjectConfiguration, set_seed
 from datasets import load_dataset
-from diffusers import AutoencoderKL, DDPMScheduler, DiffusionPipeline, UNet2DConditionModel
+from diffusers import (AutoencoderKL, DDPMScheduler, DiffusionPipeline,
+                       DPMSolverMultistepScheduler,
+                       StableDiffusionInpaintPipeline, UNet2DConditionModel)
 from diffusers.loaders import AttnProcsLayers
 from diffusers.models.attention_processor import LoRAAttnProcessor
 from diffusers.optimization import get_scheduler
@@ -48,9 +54,14 @@ from diffusers.utils import check_min_version, is_wandb_available
 from diffusers.utils.import_utils import is_xformers_available
 from huggingface_hub import create_repo, upload_folder
 from modelscope import snapshot_download
+from modelscope.outputs import OutputKeys
+from modelscope.pipelines import pipeline as modelscope_pipeline
+from modelscope.utils.constant import Tasks
 from packaging import version
+from PIL import Image
 from torchvision import transforms
 from tqdm.auto import tqdm
+from torch import multiprocessing
 from transformers import CLIPTextModel, CLIPTokenizer
 
 from facechain.inference import data_process_fn
@@ -59,6 +70,39 @@ from facechain.inference import data_process_fn
 check_min_version("0.14.0.dev0")
 
 logger = get_logger(__name__, log_level="INFO")
+
+
+class FaceCrop(torch.nn.Module):
+
+    @staticmethod
+    def get_params(img: Tensor) -> Tuple[int, int, int, int]:
+        _, h, w = Ft.get_dimensions(img)
+        if h != w:
+            raise ValueError(f"The input image is not square.")
+        ratio = torch.rand(size=(1,)).item() * 0.1 + 0.35
+        yc = torch.rand(size=(1,)).item() * 0.15 + 0.35
+
+        th = int(h / 1.15 * 0.35 / ratio)
+        tw = th
+
+        cx = int(0.5 * w)
+        cy = int(0.5 / 1.15 * h)
+
+        i = min(max(int(cy - yc * th), 0), h - th)
+        j = int(cx - 0.5 * tw)
+
+        return i, j, th, tw
+
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, img):
+        i, j, h, w = self.get_params(img)
+
+        return Ft.crop(img, i, j, h, w)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}"
 
 
 def save_model_card(repo_id: str, images=None, base_model=str, dataset_name=str, repo_folder=None):
@@ -96,7 +140,8 @@ def softmax(x):
 
 
 def get_rot(image):
-    model_dir = snapshot_download('Cherrytest/rot_bgr', revision='v1.0.0')
+    model_dir = snapshot_download('Cherrytest/rot_bgr',
+                                  revision='v1.0.0')
     model_path = os.path.join(model_dir, 'rot_bgr.onnx')
     ort_session = onnxruntime.InferenceSession(model_path)
 
@@ -131,6 +176,193 @@ def get_rot(image):
         return Image.fromarray(cv2.cvtColor(img_clone, cv2.COLOR_BGR2RGB))
     else:
         return image
+
+
+def log_validation(model_dir, vae, text_encoder, tokenizer, unet, args, accelerator, weight_dtype, epoch, global_step, **kwargs):
+    """
+    This function, `log_validation`, serves as a validation step during training. 
+    It generates ID photo templates using controlnet if `template_dir` exists, otherwise, it creates random templates based on validation prompts. 
+    The resulting images are saved in the validation folder and logged in either TensorBoard or WandB.
+
+    Args:
+        model_dir (str): Directory path of the model.
+        vae: Variational Autoencoder model.
+        text_encoder: Text encoder model.
+        tokenizer: Tokenizer for text data.
+        unet: UNet model.
+        args: Command line arguments.
+        accelerator: Training accelerator.
+        weight_dtype: Data type for model weights.
+        epoch (int): Current training epoch.
+        global_step (int): Current global training step.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        None
+    """
+    # When template_dir doesn't exist, generate randomly based on validation prompts.
+    pipeline = StableDiffusionInpaintPipeline.from_pretrained(
+        model_dir,
+        unet=accelerator.unwrap_model(unet).to(accelerator.device, torch.float32),
+        text_encoder=accelerator.unwrap_model(text_encoder).to(accelerator.device, torch.float32),
+        vae=accelerator.unwrap_model(vae).to(accelerator.device, torch.float32),
+        torch_dtype=torch.float32,
+    )
+    pipeline = pipeline.to(accelerator.device)
+    pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config)
+    pipeline.set_progress_bar_config(disable=True)
+    generator = torch.Generator(device=accelerator.device)
+    if args.seed is not None:
+        generator = generator.manual_seed(args.seed)
+
+    # Predictions before the start
+    images = []
+    if args.template_dir is not None:
+        # Iteratively generate ID photos
+        jpgs = os.listdir(args.template_dir)
+        for jpg, read_jpg, shape, read_mask in zip(jpgs, kwargs['input_images'], kwargs['input_images_shape'], kwargs['input_masks']):
+            if args.template_mask:
+                image = pipeline(
+                    args.validation_prompt, image=read_jpg, mask_image=read_mask, strength=0.65, negative_prompt=args.neg_prompt, 
+                    guidance_scale=args.guidance_scale, num_inference_steps=20, generator=generator, height=kwargs['new_size'][1], width=kwargs['new_size'][0],
+                ).images[0]
+            else:
+                image = pipeline(
+                    args.validation_prompt, image=read_jpg, strength=0.65, negative_prompt=args.neg_prompt, 
+                    guidance_scale=args.guidance_scale, num_inference_steps=20, generator=generator, height=kwargs['new_size'][1], width=kwargs['new_size'][0],
+                ).images[0]
+
+            images.append(image)
+
+            save_name = jpg.split(".")[0]
+            if not os.path.exists(os.path.join(args.output_dir, "validation")):
+                os.makedirs(os.path.join(args.output_dir, "validation"))
+            image.save(os.path.join(args.output_dir, "validation", f"global_step_{save_name}_{global_step}_0.jpg"))
+
+    else:
+        # Random Generate
+        for _ in range(args.num_validation_images):
+            images.append(
+                pipeline(args.validation_prompt, negative_prompt=args.neg_prompt, guidance_scale=args.guidance_scale, \
+                        num_inference_steps=50, generator=generator, height=args.resolution, width=args.resolution,).images[0]
+            )
+        for index, image in enumerate(images):
+            if not os.path.exists(os.path.join(args.output_dir, "validation")):
+                os.makedirs(os.path.join(args.output_dir, "validation"))
+            image.save(os.path.join(args.output_dir, "validation", f"global_step_{global_step}_" + str(index) + ".jpg"))
+
+    # Wandb or tensorboard if we have
+    for tracker in accelerator.trackers:
+        if tracker.name == "tensorboard":
+            for index, image in enumerate(images):
+                tracker.writer.add_images("validation_" + str(index), np.asarray(image), epoch, dataformats="HWC")
+        if tracker.name == "wandb":
+            tracker.log(
+                {
+                    "validation": [
+                        wandb.Image(image, caption=f"{i}: {args.validation_prompt}")
+                        for i, image in enumerate(images)
+                    ]
+                }
+            )
+
+    del pipeline
+    torch.cuda.empty_cache()
+    vae.to(accelerator.device, dtype=weight_dtype)
+
+def eval_jpg_with_faceid(pivot_dir, test_img_dir, top_merge=10):
+    """
+    Evaluate images using local face identification.
+
+    Args:
+        pivot_dir (str): Directory containing reference real human images.
+        test_img_dir (str): Directory pointing to generated validation images for training.
+            Image names follow the format xxxx_{step}_{indx}.jpg.
+        top_merge (int, optional): Number of top weights to select for merging. Defaults to 10.
+
+    Returns:
+        list: List of evaluated results.
+
+    Function:
+        - Obtain faceid features locally.
+        - Calculate the average feature of real human images.
+        - Select top_merge weights for merging based on generated validation images.
+    """
+
+    # Create a face_recognition model
+
+    face_recognition    = modelscope_pipeline(Tasks.face_recognition, model='damo/cv_ir101_facerecognition_cfglint')
+    # get ID list
+    face_image_list     = glob(os.path.join(pivot_dir, '*.jpg')) + glob(os.path.join(pivot_dir, '*.JPG')) + \
+                          glob(os.path.join(pivot_dir, '*.png')) + glob(os.path.join(pivot_dir, '*.PNG'))
+    
+    #  vstack all embedding
+    embedding_list = []
+    for img in face_image_list:
+        embedding_list.append(face_recognition(img)[OutputKeys.IMG_EMBEDDING])
+    embedding_array = np.vstack(embedding_list)
+    
+    #  mean, get pivot
+    pivot_feature   = np.mean(embedding_array, axis=0)
+    pivot_feature   = np.reshape(pivot_feature, [512, 1])
+
+    # sort with cosine distance
+    embedding_list = [[np.dot(emb, pivot_feature)[0][0], emb] for emb in embedding_list]
+    embedding_list = sorted(embedding_list, key = lambda a : -a[0])
+    # for i in range(10):
+    #     print(embedding_list[i][0], embedding_list[i][1].shape)
+
+    top10_embedding         = [emb[1] for emb in embedding_list]
+    top10_embedding_array   = np.vstack(top10_embedding)
+    # [512, n]
+    top10_embedding_array   = np.swapaxes(top10_embedding_array, 0, 1)
+
+    # sort all validation image
+    result_list = []
+    if not test_img_dir.endswith('.jpg'):
+        img_list = glob(os.path.join(test_img_dir, '*.jpg')) + glob(os.path.join(test_img_dir, '*.JPG')) + \
+                   glob(os.path.join(test_img_dir, '*.png')) + glob(os.path.join(test_img_dir, '*.PNG'))
+        for img in img_list:
+            try:
+                # a average above all
+                emb1 = face_recognition(img)[OutputKeys.IMG_EMBEDDING]
+                res = np.mean(np.dot(emb1, top10_embedding_array))
+                result_list.append([res, img])
+                result_list = sorted(result_list, key = lambda a : -a[0])
+            except:
+                pass
+
+    # pick most similar using faceid
+    t_result_list = [i[1] for i in result_list][:top_merge]
+    tlist   = [i[1].split('_')[-2] for i in result_list][:top_merge]
+    scores  = [i[0] for i in result_list][:top_merge]
+    return t_result_list, tlist, scores
+
+def merge_from_name_and_index(name, index_list, output_dir='output_dir/'):
+    loras_load_path = [os.path.join(output_dir, f'checkpoint-{i}/pytorch_model.bin') for i in index_list]
+    os.mkdir(os.path.join(output_dir, 'ensemble'))
+    lora_save_path  = os.path.join(output_dir, 'ensemble', f'{name}.bin')
+    for l in loras_load_path:
+        assert os.path.exists(l)==True
+    merge_different_loras(loras_load_path, lora_save_path)
+    return lora_save_path
+
+def merge_different_loras(loras_load_path, lora_save_path, ratios=None):
+    if ratios is None:
+        ratios = [1 / float(len(loras_load_path)) for _ in loras_load_path]
+
+    state_dict = {}
+    for lora_load, ratio in zip(loras_load_path, ratios):
+        weights_sd = torch.load(lora_load, map_location="cpu")
+
+        for key in weights_sd.keys():
+            if key not in state_dict.keys():
+                state_dict[key] = weights_sd[key] * ratio
+            else:
+                state_dict[key] += weights_sd[key] * ratio
+
+        torch.save(state_dict, lora_save_path)
+    return 
 
 
 def prepare_dataset(instance_images: list, output_dataset_dir):
@@ -224,7 +456,7 @@ def parse_args():
     parser.add_argument(
         "--num_validation_images",
         type=int,
-        default=4,
+        default=1,
         help="Number of images that should be generated during validation with `validation_prompt`.",
     )
     parser.add_argument(
@@ -455,6 +687,46 @@ def parse_args():
         ),
     )
     parser.add_argument(
+        "--merge_best_lora_based_face_id",
+        default=False,
+        action="store_true",
+        help=(
+            "Merge the best loras based on face_id."
+        ),
+    )
+    parser.add_argument(
+        "--template_dir",
+        type=str,
+        default=None,
+        help=(
+            "The dir of template used, to make certificate photos."
+        ),
+    )
+    parser.add_argument(
+        "--template_mask",
+        default=False,
+        action="store_true",
+        help=(
+            "To mask certificate photos."
+        ),
+    )
+    parser.add_argument(
+        "--validation_steps",
+        type=int,
+        default=None,
+        help=(
+            "Run fine-tuning validation every X steps. The validation process consists of running the prompt"
+            " `args.validation_prompt` multiple times: `args.num_validation_images`."
+        ),
+    )
+    parser.add_argument(
+        "--neg_prompt", type=str, default="sketch, low quality, worst quality, low quality shadow, lowres, inaccurate eyes, huge eyes, longbody, bad anatomy, cropped, worst face, strange mouth, bad anatomy, inaccurate limb, bad composition, ugly, noface, disfigured, duplicate, ugly, text, logo", 
+        help="A prompt that is neg during training for inference."
+    )
+    parser.add_argument(
+        "--guidance_scale", type=int, default=9, help="A guidance_scale during training for inference."
+    )
+    parser.add_argument(
         "--enable_xformers_memory_efficient_attention", action="store_true", help="Whether or not to use xformers."
     )
 
@@ -476,6 +748,8 @@ DATASET_NAME_MAPPING = {
 
 
 def main():
+    from data_process.face_process_utils import call_face_crop
+
     args = parse_args()
     logging_dir = os.path.join(args.output_dir, args.logging_dir)
     shutil.rmtree(args.output_dir, ignore_errors=True)
@@ -539,8 +813,15 @@ def main():
             ).repo_id
 
     ## Download foundation Model
+<<<<<<< HEAD
     user_agent = {'invoked_by': 'trainer', 'third_party':'facechain'}
     model_dir = snapshot_download(args.pretrained_model_name_or_path, revision=args.revision, user_agent=user_agent)
+=======
+    model_dir = snapshot_download(args.pretrained_model_name_or_path,
+                                  revision=args.revision,
+                                  user_agent={'invoked_by': 'trainer', 'third_party': 'facechain'})
+
+>>>>>>> a4d5eda72791c73ed87fe0fcee04e72d3f31758f
     if args.sub_path is not None and len(args.sub_path) > 0:
         model_dir = os.path.join(model_dir, args.sub_path)
 
@@ -623,7 +904,7 @@ def main():
                 block_id = int(name[len("down_blocks.")])
                 hidden_size = unet.config.block_out_channels[block_id]
 
-            lora_attn_procs[name] = LoRAAttnProcessor(hidden_size=hidden_size, cross_attention_dim=cross_attention_dim)
+            lora_attn_procs[name] = LoRAAttnProcessor(hidden_size=hidden_size, cross_attention_dim=cross_attention_dim, rank=args.lora_r)
 
         unet.set_attn_processor(lora_attn_procs)
         lora_layers = AttnProcsLayers(unet.attn_processors)
@@ -762,8 +1043,10 @@ def main():
     # Preprocessing the datasets.
     train_transforms = transforms.Compose(
         [
+            #transforms.Resize(args.resolution, interpolation=transforms.InterpolationMode.BILINEAR),
+            #transforms.CenterCrop(args.resolution) if args.center_crop else transforms.RandomCrop(args.resolution),
+            FaceCrop(),
             transforms.Resize(args.resolution, interpolation=transforms.InterpolationMode.BILINEAR),
-            transforms.CenterCrop(args.resolution) if args.center_crop else transforms.RandomCrop(args.resolution),
             transforms.RandomHorizontalFlip() if args.random_flip else transforms.Lambda(lambda x: x),
             transforms.ToTensor(),
             transforms.Normalize([0.5], [0.5]),
@@ -853,7 +1136,12 @@ def main():
 
     # Potentially load in the weights and states from a previous save
     if args.resume_from_checkpoint:
-        if args.resume_from_checkpoint != "latest":
+        if args.resume_from_checkpoint == 'fromfacecommon':
+            weight_model_dir = snapshot_download('damo/face_frombase_c4',
+                                                 revision='v1.0.0',
+                                                 user_agent={'invoked_by': 'trainer', 'third_party': 'facechain'})
+            path = os.path.join(weight_model_dir, 'face_frombase_c4.bin')
+        elif args.resume_from_checkpoint != "latest":
             path = os.path.basename(args.resume_from_checkpoint)
         else:
             # Get the most recent checkpoint
@@ -868,9 +1156,15 @@ def main():
             )
             args.resume_from_checkpoint = None
         else:
-            accelerator.print(f"Resuming from checkpoint {path}")
-            accelerator.load_state(os.path.join(args.output_dir, path))
-            global_step = int(path.split("-")[1])
+            if args.resume_from_checkpoint == 'fromfacecommon':
+                accelerator.print(f"Resuming from checkpoint {path}")
+                unet_state_dict = torch.load(path, map_location='cpu')
+                accelerator._models[-1].load_state_dict(unet_state_dict)
+                global_step = 0
+            else:
+                accelerator.print(f"Resuming from checkpoint {path}")
+                accelerator.load_state(os.path.join(args.output_dir, path))
+                global_step = int(path.split("-")[1])
 
             resume_global_step = global_step * args.gradient_accumulation_steps
             first_epoch = global_step // num_update_steps_per_epoch
@@ -879,6 +1173,36 @@ def main():
     # Only show the progress bar once on each machine.
     progress_bar = tqdm(range(global_step, args.max_train_steps), disable=not accelerator.is_local_main_process)
     progress_bar.set_description("Steps")
+
+    if args.template_dir is not None:
+        input_images        = []
+        input_images_shape  = []
+        control_images      = []
+        input_masks         = []
+        retinaface_detection = modelscope_pipeline(Tasks.face_detection, 'damo/cv_resnet50_face-detection_retinaface')
+        jpgs                = os.listdir(args.template_dir)
+        for jpg in jpgs:
+            read_jpg        = os.path.join(args.template_dir, jpg)
+            read_jpg        = Image.open(read_jpg)
+            shape           = np.shape(read_jpg)
+
+            short_side  = min(read_jpg.width, read_jpg.height)
+            resize      = float(short_side / 512.0)
+            new_size    = (int(read_jpg.width//resize) // 64 * 64, int(read_jpg.height//resize) // 64 * 64)
+            read_jpg    = read_jpg.resize(new_size)
+
+            _, _, input_mask = call_face_crop(retinaface_detection, read_jpg, crop_ratio=1.3)
+
+            # append into list
+            input_images.append(read_jpg)
+            input_images_shape.append(shape)
+            input_masks.append(input_mask if args.template_mask else None)
+    else:
+        new_size = None
+        input_images = None
+        input_images_shape = None
+        control_images=None
+        input_masks = None
 
     for epoch in range(first_epoch, args.num_train_epochs):
         unet.train()
@@ -962,47 +1286,54 @@ def main():
             if global_step >= args.max_train_steps:
                 break
 
+            if accelerator.sync_gradients:
+                if accelerator.is_main_process:
+                    if args.validation_steps is not None and args.validation_prompt is not None and global_step % args.validation_steps == 0:
+                        logger.info(
+                            f"Running validation... \n Generating {args.num_validation_images} images with prompt:"
+                            f" {args.validation_prompt}."
+                        )
+                        log_validation(
+                            model_dir,
+                            vae,
+                            text_encoder,
+                            tokenizer,
+                            unet,
+                            args,
+                            accelerator,
+                            weight_dtype,
+                            epoch,
+                            global_step,
+                            input_images=input_images, 
+                            input_images_shape=input_images_shape, 
+                            control_images=control_images, 
+                            input_masks=input_masks,
+                            new_size=new_size
+                        )
+
         if accelerator.is_main_process:
-            if args.validation_prompt is not None and epoch % args.validation_epochs == 0:
+            if args.validation_steps is None and args.validation_prompt is not None and global_step % args.validation_epochs == 0:
                 logger.info(
                     f"Running validation... \n Generating {args.num_validation_images} images with prompt:"
                     f" {args.validation_prompt}."
                 )
-                # create pipeline
-                pipeline = DiffusionPipeline.from_pretrained(
+                log_validation(
                     model_dir,
-                    unet=accelerator.unwrap_model(unet),
-                    text_encoder=accelerator.unwrap_model(text_encoder),
-                    torch_dtype=weight_dtype,
+                    vae,
+                    text_encoder,
+                    tokenizer,
+                    unet,
+                    args,
+                    accelerator,
+                    weight_dtype,
+                    epoch,
+                    global_step,
+                    input_images=input_images, 
+                    input_images_shape=input_images_shape, 
+                    control_images=control_images, 
+                    input_masks=input_masks,
+                    new_size=new_size
                 )
-                pipeline = pipeline.to(accelerator.device)
-                pipeline.set_progress_bar_config(disable=True)
-
-                # run inference
-                generator = torch.Generator(device=accelerator.device).manual_seed(args.seed)
-                images = []
-                for _ in range(args.num_validation_images):
-                    images.append(
-                        pipeline(args.validation_prompt, num_inference_steps=30, generator=generator).images[0]
-                    )
-
-                if accelerator.is_main_process:
-                    for tracker in accelerator.trackers:
-                        if tracker.name == "tensorboard":
-                            np_images = np.stack([np.asarray(img) for img in images])
-                            tracker.writer.add_images("validation", np_images, epoch, dataformats="NHWC")
-                        if tracker.name == "wandb":
-                            tracker.log(
-                                {
-                                    "validation": [
-                                        wandb.Image(image, caption=f"{i}: {args.validation_prompt}")
-                                        for i, image in enumerate(images)
-                                    ]
-                                }
-                            )
-
-                del pipeline
-                torch.cuda.empty_cache()
 
     # Save the lora layers
     accelerator.wait_for_everyone()
@@ -1030,6 +1361,42 @@ def main():
             unet = unet.to(torch.float32)
             unet.save_attn_procs(args.output_dir, safe_serialization=False)
 
+        if args.merge_best_lora_based_face_id:
+            if args.validation_prompt is not None:
+                log_validation(
+                    model_dir,
+                    vae,
+                    text_encoder,
+                    tokenizer,
+                    unet,
+                    args,
+                    accelerator,
+                    weight_dtype,
+                    epoch,
+                    global_step,
+                    input_images=input_images, 
+                    input_images_shape=input_images_shape, 
+                    control_images=control_images, 
+                    input_masks=input_masks,
+                    new_size=new_size
+                )
+
+            pivot_dir = args.output_dataset_name
+            t_result_list, tlist, scores = eval_jpg_with_faceid(pivot_dir, os.path.join(args.output_dir, "validation"))
+
+            for index, line in enumerate(zip(tlist, scores)):
+                print(f"Top-{str(index)}: {str(line)}")
+                logger.info(f"Top-{str(index)}: {str(line)}")
+            
+            lora_save_path = merge_from_name_and_index("pytorch_lora_weights", tlist, output_dir=args.output_dir)
+            logger.info(f"Save Best Merged Loras To:{lora_save_path}.")
+
+            best_outputs_dir = os.path.join(args.output_dir, "ensemble")
+            os.makedirs(best_outputs_dir, exist_ok=True)
+            for result in t_result_list[:1]:
+                os.system(f"cp {result} {best_outputs_dir}/face_id.jpg")
+            # os.system(f"cp {lora_save_path} {best_outputs_dir}")
+
         if args.push_to_hub:
             save_model_card(
                 repo_id,
@@ -1052,7 +1419,6 @@ def main():
     )
 
     if args.use_peft:
-
         def load_and_set_lora_ckpt(pipe, ckpt_dir, global_step, device, dtype):
             with open(os.path.join(args.output_dir, f"{global_step}_lora_config.json"), "r") as f:
                 lora_config = json.load(f)
@@ -1099,4 +1465,5 @@ def main():
 
 
 if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
     main()

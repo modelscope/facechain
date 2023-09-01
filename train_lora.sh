@@ -15,10 +15,10 @@ accelerate launch facechain/train_text_to_image_lora.py \
     --resolution=512 --random_flip \
     --train_batch_size=1 \
     --num_train_epochs=200 --checkpointing_steps=5000 \
-    --learning_rate=1e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 \
+    --learning_rate=1.5e-04 --lr_scheduler="cosine" --lr_warmup_steps=0 \
     --seed=42 \
     --output_dir=$WORK_DIR \
-    --lora_r=32 --lora_alpha=32 \
-    --lora_text_encoder_r=32 --lora_text_encoder_alpha=32
+    --lora_r=4 --lora_alpha=32 \
+    --lora_text_encoder_r=32 --lora_text_encoder_alpha=32 --resume_from_checkpoint='fromfacecommon'
 
     
