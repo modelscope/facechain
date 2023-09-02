@@ -349,8 +349,10 @@ class Blipv2():
         # copy to the ensembledir for reading
         for i, index in enumerate(ref_indexes[:4]):
             save_path = os.path.join(ensembledir, f"best_roop_image_{str(i)}.jpg")
-            os.system(f"cp -rf {os.path.join(imdir, selected_paths[index])} {save_path}")
-
+            #os.system(f"cp -rf {os.path.join(imdir, selected_paths[index])} {save_path}")
+            if os.path.exists(save_path):
+                os.remove(save_path)
+            shutil.copy2(os.path.join(imdir, selected_paths[index]), save_path)
         cnt = 0
         tmp_path = os.path.join(savedir, 'tmp.png')
         for imname in _selected_paths:
