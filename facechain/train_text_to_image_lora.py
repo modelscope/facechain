@@ -1389,7 +1389,12 @@ def main():
             best_outputs_dir = os.path.join(args.output_dir, "ensemble")
             os.makedirs(best_outputs_dir, exist_ok=True)
             for result in t_result_list[:1]:
-                os.system(f"cp {result} {best_outputs_dir}/face_id.jpg")
+                #os.system(f"cp {result} {best_outputs_dir}/face_id.jpg")
+                try:
+                    shutil.copy(result, f"{best_outputs_dir}/face_id.jpg")
+                    print(f"复制成功：{result} -> {best_outputs_dir}/face_id.jpg")
+                except Exception as e:
+                    print(f"复制失败：{e}")
             # os.system(f"cp {lora_save_path} {best_outputs_dir}")
 
         if args.push_to_hub:
