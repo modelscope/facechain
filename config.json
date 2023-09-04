@@ -1,0 +1,9 @@
+{
+    "app_name": "facechain",
+    "debug_mode": true,
+  "save_img_flag": "true",
+    "tmp_path": {
+        "windows": "c:\\tmp",
+        "linux": "/tmp"
+    }
+}
