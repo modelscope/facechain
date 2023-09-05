@@ -98,6 +98,7 @@ print(os.getcwd())
 
 !pip3 install gradio
 !pip3 install controlnet_aux==0.0.6
+!pip3 install python-slugify
 !python3 app.py
 
 # Step4: 点击生成的URL即可访问web页面，上传照片开始训练和预测
@@ -125,6 +126,7 @@ docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.ali
 # Step4: 在容器中安装gradio
 pip3 install gradio
 pip3 install controlnet_aux==0.0.6
+pip3 install python-slugify
 
 # Step5: 获取facechain源代码
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
