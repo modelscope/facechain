@@ -97,6 +97,7 @@ print(os.getcwd())
 
 !pip3 install gradio
 !pip3 install controlnet_aux==0.0.6
+!pip3 install python-slugify
 !python3 app.py
 
 
@@ -123,6 +124,7 @@ docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.ali
 # Step4: Install the gradio in the docker container:
 pip3 install gradio
 pip3 install controlnet_aux==0.0.6
+pip3 install python-slugify
 
 # Step5 clone facechain from github
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
