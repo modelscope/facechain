@@ -22,6 +22,11 @@ from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt, \
     pose_models, pose_examples, base_models
 
+from modelscope.msdatasets import MsDataset
+from modelscope.hub.api import HubApi
+api = HubApi()
+api.login('')
+
 training_done_count = 0
 inference_done_count = 0
 
