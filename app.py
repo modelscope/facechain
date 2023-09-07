@@ -214,7 +214,10 @@ def launch_pipeline(uuid,
         if len(matched) == 0:
             raise ValueError(f'styles not found: {style_model}')
         matched = matched[0]
-        model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
+        if os.path.exists(matched['model_id']):
+            model_dir = matched['model_id']
+        else:
+            model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
         style_model_path = os.path.join(model_dir, matched['bin_file'])
 
     if pose_image is None or pose_model == 0:
