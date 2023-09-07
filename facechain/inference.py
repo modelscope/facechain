@@ -35,7 +35,6 @@ def data_process_fn(input_img_dir, use_data_process):
 
     return os.path.join(str(input_img_dir) + '_labeled', "metadata.jsonl")
 
-
 def txt2img(pipe, pos_prompt, neg_prompt, num_images=10):
     batch_size = 5
     images_out = []
@@ -67,6 +66,17 @@ def img_pad(pil_file, fixed_height=512, fixed_width=512):
 
     output_file = Image.fromarray(array_file)
     return output_file
+
+def preprocess_pose(origin_img) -> Image:
+    img = Image.open(origin_img)
+    img = img_pad(img)
+    model_dir = snapshot_download('damo/face_chain_control_model',revision='v1.0.1')
+    openpose = OpenposeDetector.from_pretrained(os.path.join(model_dir, 'model_controlnet/ControlNet'))
+    result = openpose(img, include_hand=True, output_type='np')
+    # resize to original size
+    h, w = img.size
+    result = cv2.resize(result, (w, h))
+    return result
 
 def txt2img_pose(pipe, pose_im, pos_prompt, neg_prompt, num_images=10):
     batch_size = 2
