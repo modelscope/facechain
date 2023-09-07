@@ -127,7 +127,7 @@ pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
 
 # Step5 clone facechain from github
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+GIT_LFS_SKIP_SMUDGE=1 git clone -b release/1.1 https://github.com/modelscope/facechain.git --depth 1
 cd facechain
 python3 app.py
 # Note: FaceChain currently assume single-GPU, if your environment has multiple GPU, please use the following instead:
@@ -146,7 +146,7 @@ Use the conda virtual environment, and refer to [Anaconda](https://docs.anaconda
 conda create -n facechain python=3.8    # Verified environments: 3.8 and 3.10
 conda activate facechain
 
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+GIT_LFS_SKIP_SMUDGE=1 git clone -b release/1.1 https://github.com/modelscope/facechain.git --depth 1
 cd facechain
 
 pip3 install -r requirements.txt

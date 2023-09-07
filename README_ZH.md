@@ -129,7 +129,7 @@ pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
 
 # Step5: 获取facechain源代码
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+GIT_LFS_SKIP_SMUDGE=1 git clone -b release/1.1 https://github.com/modelscope/facechain.git --depth 1
 cd facechain
 python3 app.py
 # Note: FaceChain目前支持单卡GPU，如果您的环境有多卡，请使用如下命令
@@ -148,7 +148,7 @@ python3 app.py
 conda create -n facechain python=3.8    # 已验证环境：3.8 和 3.10
 conda activate facechain
 
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+GIT_LFS_SKIP_SMUDGE=1 git clone -b release/1.1 https://github.com/modelscope/facechain.git --depth 1
 cd facechain
 
 pip3 install -r requirements.txt
