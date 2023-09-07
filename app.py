@@ -532,6 +532,7 @@ def update_output_model(uuid, base_model_index):
         raise gr.Error('请选择基模型(Please select the base model)!')
 
     base_model_path = base_models[base_model_index]['model_id']
+    style_list = base_models[base_model_index]['style_list']
 
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
