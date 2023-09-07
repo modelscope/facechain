@@ -34,7 +34,19 @@ class UploadTarget(enum.Enum):
     PERSONAL_PROFILE = 'Personal Profile'
     LORA_LIaBRARY = 'LoRA Library'
 
+# utils
+def concatenate_images(images):
+    heights = [img.shape[0] for img in images]
+    max_width = sum([img.shape[1] for img in images])
 
+    concatenated_image = np.zeros((max(heights), max_width, 3), dtype=np.uint8)
+    x_offset = 0
+    for img in images:
+        concatenated_image[0:img.shape[0], x_offset:x_offset + img.shape[1], :] = img
+        x_offset += img.shape[1]
+    return concatenated_image
+
+# hooks
 def update_cloth(style_index):
     style = styles[style_index]
     prompts = []
@@ -49,10 +61,12 @@ def update_cloth(style_index):
                                              style['add_prompt_style'])
         multiplier_human = style['multiplier_human']
         prompts.append(style['cloth_name'])
-    return gr.Radio.update(choices=prompts,
-                           value=prompts[0], visible=True), gr.Textbox.update(value=example_prompt), gr.Slider.update(value=multiplier_human)
-
-
+    
+    
+        
+    return gr.Radio.update(choices=prompts, value=prompts[0], visible=True), \
+           gr.Textbox.update(value=example_prompt), gr.Slider.update(value=multiplier_human)
+            
 def update_prompt(style_index, cloth_index):
     style = styles[style_index]
     if style_index == 0:
@@ -75,18 +89,6 @@ def update_optional_styles(base_model_index):
     style_list = base_models[base_model_index]['style_list']
     optional_styles = '\n'.join(style_list)
     return gr.Textbox.update(value=optional_styles)
-
-def concatenate_images(images):
-    heights = [img.shape[0] for img in images]
-    max_width = sum([img.shape[1] for img in images])
-
-    concatenated_image = np.zeros((max(heights), max_width, 3), dtype=np.uint8)
-    x_offset = 0
-    for img in images:
-        concatenated_image[0:img.shape[0], x_offset:x_offset + img.shape[1], :] = img
-        x_offset += img.shape[1]
-    return concatenated_image
-
 
 def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img_dir=None, work_dir=None, ensemble=True, enhance_lora=False, photo_num=0):
     validation_prompt, _ = get_popular_prompts(output_img_dir)
@@ -168,7 +170,6 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
                 f'--lora_text_encoder_alpha=32 '
                 f'--resume_from_checkpoint="fromfacecommon"')
 
-
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model == styles[0]['name'] or style_model is None:
         pos_prompt = pos_prompt_with_cloth.format(prompt_cloth)
@@ -180,14 +181,13 @@ def generate_pos_prompt(style_model, prompt_cloth):
         pos_prompt = pos_prompt_with_style.format(matched['add_prompt_style'])
     return pos_prompt
 
-
 def launch_pipeline(uuid,
                     pos_prompt,
                     neg_prompt=None,
                     base_model_index=None,
                     user_model=None,
                     num_images=1,
-                    lora_file=None,
+                    lora_choice=None,
                     style_model=None,
                     multiplier_style=0.25,
                     multiplier_human=0.85,
@@ -202,15 +202,16 @@ def launch_pipeline(uuid,
     
     # Check base model
     if base_model_index == None:
-        raise gr.Error('请选择基模型(Please select the base model)！')
-    
+        raise gr.Error('请选择基模型(Please select the base model)!')
     # Check output model
     if not user_model:
-        raise gr.Error('请选择产出模型(Please select the output model)！')
-    
+        raise gr.Error('请选择产出模型(Please select the output model)!')
+    # Check lora choice
+    if lora_choice == None:
+        raise gr.Error('请选择LORA模型(Please select the LORA model)!')
     # Check style model
-    if style_model == None:
-        raise gr.Error('请选择风格模型(Please select the style model)！')
+    if style_model == None and lora_choice == 'preset':
+        raise gr.Error('请选择风格模型(Please select the style model)!')
 
     base_model = base_models[base_model_index]['model_id']
     revision = base_models[base_model_index]['revision']
@@ -220,7 +221,7 @@ def launch_pipeline(uuid,
     before_done_count = inference_done_count
     style_model = styles[style_model]['name']
 
-    if lora_file is None or lora_file.name is None:
+    if lora_choice == 'preset':
         if style_model == styles[0]['name']:
             style_model_path = None
         else:
@@ -233,9 +234,9 @@ def launch_pipeline(uuid,
     else:
         print(f'uuid: {uuid}')
         temp_lora_dir = f"/tmp/{uuid}/temp_lora"
-        file_name = os.path.basename(lora_file.name)
-        print(os.path.basename(lora_file.name).split('.')[-1], os.path.join(temp_lora_dir, file_name))
-        if os.path.basename(lora_file.name).split('.')[-1] != 'safetensors' or not os.path.exists(os.path.join(temp_lora_dir, file_name)):
+        file_name = lora_choice
+        print(lora_choice.split('.')[-1], os.path.join(temp_lora_dir, file_name))
+        if lora_choice.split('.')[-1] != 'safetensors' or not os.path.exists(os.path.join(temp_lora_dir, file_name)):
             raise ValueError(f'Invalid lora file: {lora_file.name}')
         style_model_path = os.path.join(temp_lora_dir, file_name)
 
@@ -270,7 +271,7 @@ def launch_pipeline(uuid,
 
     train_file = os.path.join(lora_model_path, 'pytorch_lora_weights.bin')
     if not os.path.exists(train_file):
-        raise gr.Error('您还没有进行形象定制，请先进行训练。(Training is required before inference.)')
+        raise gr.Error('您还没有进行形象定制, 请先进行训练。(Training is required before inference.)')
 
     gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, 
                                multiplier_style, multiplier_human, use_main_model,
@@ -287,7 +288,7 @@ def launch_pipeline(uuid,
             if not is_processing:
                 cur_done_count = inference_done_count
                 to_wait = before_queue_size - (cur_done_count - before_done_count)
-                yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5),
+                yield ["排队等待资源中, 前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5),
                         None]
             else:
                 yield ["生成中, 请耐心等待(Generating)...", None]
@@ -297,14 +298,34 @@ def launch_pipeline(uuid,
     outputs_RGB = []
     for out_tmp in outputs:
         outputs_RGB.append(cv2.cvtColor(out_tmp, cv2.COLOR_BGR2RGB))
-    image_path = './lora_result.png'
+        
+    save_dir = os.path.join('/tmp', uuid, 'inference_result', base_model, user_model)
+    if lora_choice == 'preset':
+        save_dir = os.path.join(save_dir, 'style_' + style_model)
+    else:
+        save_dir = os.path.join(save_dir, 'lora_' + os.path.basename(lora_choice).split('.')[0])
+    
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    # use single to save outputs
+    if not os.path.exists(os.path.join(save_dir, 'single')):
+        os.makedirs(os.path.join(save_dir, 'single'))
+    for img in outputs:
+        # count the number of images in the folder
+        num = len(os.listdir(os.path.join(save_dir, 'single')))
+        cv2.imwrite(os.path.join(save_dir, 'single', str(num) + '.png'), img)
+    
     if len(outputs) > 0:
         result = concatenate_images(outputs)
+        if not os.path.exists(os.path.join(save_dir, 'concat')):
+            os.makedirs(os.path.join(save_dir, 'concat'))
+        num = len(os.listdir(os.path.join(save_dir, 'concat')))
+        image_path = os.path.join(save_dir, 'concat', str(num) + '.png')
         cv2.imwrite(image_path, result)
 
-        yield ["生成完毕(Generation done)！", outputs_RGB]
+        yield ["生成完毕(Generation done)!", outputs_RGB]
     else:
-        yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
+        yield ["生成失败, 请重试(Generation failed, please retry)!", outputs_RGB]
 
 
 def launch_pipeline_inpaint(uuid,
@@ -323,11 +344,11 @@ def launch_pipeline_inpaint(uuid,
 
     # Check base model
     if base_model_index == None:
-        raise gr.Error('请选择基模型(Please select the base model)！')
+        raise gr.Error('请选择基模型(Please select the base model)!')
     
     # Check output model
     if not user_model:
-        raise gr.Error('请选择产出模型(Please select the output model)！')
+        raise gr.Error('请选择产出模型(Please select the output model)!')
 
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -365,7 +386,7 @@ def launch_pipeline_inpaint(uuid,
             if not is_processing:
                 cur_done_count = inference_done_count
                 to_wait = before_queue_size - (cur_done_count - before_done_count)
-                yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5),
+                yield ["排队等待资源中, 前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5),
                        None]
             else:
                 yield ["生成中, 请耐心等待(Generating)...", None]
@@ -380,9 +401,9 @@ def launch_pipeline_inpaint(uuid,
         result = concatenate_images(outputs)
         cv2.imwrite(image_path, result)
 
-        yield ["生成完毕(Generation done)！", outputs_RGB]
+        yield ["生成完毕(Generation done)!", outputs_RGB]
     else:
-        yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
+        yield ["生成失败, 请重试(Generation failed, please retry)!", outputs_RGB]
 
 
 class Trainer:
@@ -404,11 +425,11 @@ class Trainer:
 
         # Check Instance Valid
         if instance_images is None:
-            raise gr.Error('您需要上传训练图片(Please upload photos)！')
+            raise gr.Error('您需要上传训练图片(Please upload photos)!')
         
         # Check output model name
         if not output_model_name:
-            raise gr.Error('请指定产出模型的名称(Please specify the output model name)！')
+            raise gr.Error('请指定产出模型的名称(Please specify the output model name)!')
         
         # Limit input Image
         if len(instance_images) > 20:
@@ -455,12 +476,12 @@ class Trainer:
                       enhance_lora=enhance_lora,
                       photo_num=len(instance_images))
 
-        message = f'训练已经完成！请切换至 [形象体验] 标签体验模型效果(Training done, please switch to the inference tab to generate photos.)'
+        message = f'训练已经完成!请切换至 [形象体验] 标签体验模型效果(Training done, please switch to the inference tab to generate photos.)'
         print(message)
         return message
 
 
-def flash_model_list(uuid, base_model_index, lora_file:gr.File):    
+def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):    
     if base_model_index is None:
         return gr.Radio.update(visible=False), gr.Dropdown.update(visible=False)
     
@@ -475,8 +496,22 @@ def flash_model_list(uuid, base_model_index, lora_file:gr.File):
 
     folder_path = f"/tmp/{uuid}/{base_model_path}"
     folder_list = []
+    lora_save_path = f"/tmp/{uuid}/temp_lora"
+    if not os.path.exists(lora_save_path):
+        lora_list = ['preset']
+    else:
+        lora_list = sorted(os.listdir(lora_save_path))
+        lora_list = ["preset"] + lora_list
+    
     if not os.path.exists(folder_path):
-        return gr.Radio.update(choices=[]),gr.Dropdown.update(choices=style_list)
+        if lora_choice == 'preset':     
+            return gr.Radio.update(choices=[]), \
+                gr.Dropdown.update(choices=style_list, value=style_list[0], visible=True), gr.Radio.update(visible=True), \
+                gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
+        else:
+            return gr.Radio.update(choices=[]), \
+                gr.Dropdown.update(visible=False), gr.Radio.update(visible=False), \
+                gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
     else:
         files = os.listdir(folder_path)
         for file in files:
@@ -485,16 +520,21 @@ def flash_model_list(uuid, base_model_index, lora_file:gr.File):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
                 if os.path.exists(file_lora_path):
                     folder_list.append(file)
-
-    if lora_file is not None and lora_file.name is not None:
-        return gr.Radio.update(choices=folder_list), gr.Dropdown.update(choices=style_list, visible=False)
-    return gr.Radio.update(choices=folder_list), gr.Dropdown.update(choices=style_list, value=style_list[0], visible=True)
+    
+    if lora_choice == 'preset':
+        return gr.Radio.update(choices=folder_list), \
+            gr.Dropdown.update(choices=style_list, value=style_list[0], visible=True), gr.Radio.update(visible=True), \
+            gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
+    else:
+        return gr.Radio.update(choices=folder_list), \
+            gr.Dropdown.update(visible=False), gr.Radio.update(visible=False), \
+            gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
 
 def update_output_model(uuid, base_model_index):
 
     # Check base model
     if base_model_index == None:
-        raise gr.Error('请选择基模型(Please select the base model)！')
+        raise gr.Error('请选择基模型(Please select the base model)!')
 
     base_model_path = base_models[base_model_index]['model_id']
 
@@ -531,16 +571,88 @@ def upload_lora_file(uuid, lora_file):
             uuid = 'qw'
     print("uuid: ", uuid)
     temp_lora_dir = f"/tmp/{uuid}/temp_lora"
-    os.makedirs(temp_lora_dir, exist_ok=True)
+    if not os.path.exists(temp_lora_dir):
+        os.makedirs(temp_lora_dir)
     shutil.copy(lora_file.name, temp_lora_dir)
     filename = os.path.basename(lora_file.name)
     newfilepath = os.path.join(temp_lora_dir, filename)
     print("newfilepath: ", newfilepath)
-    style_model = gr.Dropdown.update(visible=False)
+    
+    lora_list = sorted(os.listdir(temp_lora_dir))
+    lora_list = ["preset"] + lora_list
+    
+    return gr.Dropdown.update(choices=lora_list, value=filename)
+
+def clear_lora_file(uuid, lora_file):
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            return "请登陆后使用! (Please login first)"
+        else:
+            uuid = 'qw'
+    
+    return gr.Dropdown.update(value="preset")
+
+def change_lora_choice(uuid, lora_choice, base_model_index):
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            return "请登陆后使用! (Please login first)"
+        else:
+            uuid = 'qw'
+            
+    style_list = base_models[base_model_index]['style_list']
+    
+    if lora_choice == 'preset':
+        style_model = gr.Dropdown.update(choices=style_list, value=style_list[0], visible=True)
+    else:
+        style_model = gr.Dropdown.update(choices=style_list, value=style_list[0], visible=False)
     cloth_style = gr.Radio.update(visible=False)
     
     return style_model, cloth_style
 
+def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None, style_model=None, deal_type="load"):
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            return "请登陆后使用! (Please login first)"
+        else:
+            uuid = 'qw'
+    
+    if base_model_index is None:
+        raise gr.Error('请选择基模型(Please select the base model)!')
+    if user_model is None:
+        raise gr.Error('请选择用户模型(Please select the user model)!')    
+    if lora_choice is None:
+        raise gr.Error('请选择LoRa文件(Please select the LoRa file)!')
+    if style_model is None and lora_choice == 'preset':
+        raise gr.Error('请选择风格(Please select the style)!')
+    
+    base_model = base_models[base_model_index]['model_id']
+    style_model = styles[style_model]['name']
+    save_dir = os.path.join('/tmp', uuid, 'inference_result', base_model, user_model)
+    if lora_choice == 'preset':
+        save_dir = os.path.join(save_dir, 'style_' + style_model)
+    else:
+        save_dir = os.path.join(save_dir, 'lora_' + os.path.basename(lora_choice).split('.')[0])
+    
+    if not os.path.exists(save_dir):
+        return gr.Gallery.update(value=[], visible=True), gr.Gallery.update(value=[], visible=True)
+    
+    if deal_type == "load":
+        single_dir = os.path.join(save_dir, 'single')
+        concat_dir = os.path.join(save_dir, 'concat')
+        single_imgs = []
+        concat_imgs = []
+        if os.path.exists(single_dir):
+            single_imgs = sorted(os.listdir(single_dir))
+            single_imgs = [os.path.join(single_dir, img) for img in single_imgs]
+        if os.path.exists(concat_dir):
+            concat_imgs = sorted(os.listdir(concat_dir))
+            concat_imgs = [os.path.join(concat_dir, img) for img in concat_imgs]
+        
+        return gr.Gallery.update(value=single_imgs, visible=True), gr.Gallery.update(value=concat_imgs, visible=True)
+    elif deal_type == "delete":
+        shutil.rmtree(save_dir)
+        return gr.Gallery.update(value=[], visible=True), gr.Gallery.update(value=[], visible=True)
+    
 def train_input():
     trainer = Trainer()
 
@@ -578,9 +690,9 @@ def train_input():
                                          queue=False)
                     
                     gr.Markdown('''
-                        - Step 1. 上传计划训练的图片，3~10张头肩照（注意：请避免图片中出现多人脸、脸部遮挡等情况，否则可能导致效果异常）
-                        - Step 2. 点击 [开始训练] ，启动形象定制化训练，约需15分钟，请耐心等待～
-                        - Step 3. 切换至 [形象体验] ，生成你的风格照片
+                        - Step 1. 上传计划训练的图片, 3~10张头肩照(注意: 请避免图片中出现多人脸、脸部遮挡等情况, 否则可能导致效果异常)
+                        - Step 2. 点击 [开始训练] , 启动形象定制化训练, 约需15分钟, 请耐心等待～
+                        - Step 3. 切换至 [形象体验] , 生成你的风格照片
                         ''')
                     gr.Markdown('''
                         - Step 1. Upload 3-10 headshot photos of yours (Note: avoid photos with multiple faces or face obstruction, which may lead to non-ideal result).
@@ -590,30 +702,30 @@ def train_input():
 
         with gr.Box():
             with gr.Row():
-                ensemble = gr.Checkbox(label='人物LoRA融合（Ensemble）', value=False)
-                enhance_lora = gr.Checkbox(label='LoRA增强（LoRA-Enhancement）', value=False)
+                ensemble = gr.Checkbox(label='人物LoRA融合(Ensemble)', value=False)
+                enhance_lora = gr.Checkbox(label='LoRA增强(LoRA-Enhancement)', value=False)
             gr.Markdown(
                 '''
-                - 人物LoRA融合（Ensemble）：选择训练中几个最佳人物LoRA融合。提升相似度或在艺术照生成模式下建议勾选 - Allow fusion of multiple LoRAs during training. Recommended for enhanced-similarity or using with Inpaint mode.
-                - LoRA增强（LoRA-Enhancement）：扩大LoRA规模，生成图片更贴近用户，至少5张以上多图训练或者艺术照生成模式建议勾选 - Boost scale of LoRA to enhance output resemblance with input. Recommended for training with more than 5 pics or using with Inpaint mode. 
+                - 人物LoRA融合(Ensemble): 选择训练中几个最佳人物LoRA融合。提升相似度或在艺术照生成模式下建议勾选 - Allow fusion of multiple LoRAs during training. Recommended for enhanced-similarity or using with Inpaint mode.
+                - LoRA增强(LoRA-Enhancement): 扩大LoRA规模, 生成图片更贴近用户, 至少5张以上多图训练或者艺术照生成模式建议勾选 - Boost scale of LoRA to enhance output resemblance with input. Recommended for training with more than 5 pics or using with Inpaint mode. 
                 '''
             )
 
-        run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）'
+        run_button = gr.Button('开始训练(等待上传图片加载显示出来再点, 否则会报错)'
                                'Start training (please wait until photo(s) fully uploaded, otherwise it may result in training failure)')
 
         with gr.Box():
             gr.Markdown('''
-            请等待训练完成，请勿刷新或关闭页面。
+            请等待训练完成, 请勿刷新或关闭页面。
             
             Please wait for the training to complete, do not refresh or close the page.
             ''')
             output_message = gr.Markdown()
         with gr.Box():
             gr.Markdown('''
-            碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上进行体验。
+            碰到抓狂的错误或者计算资源紧张的情况下, 推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上进行体验。
             
-            安装方法请参考：https://github.com/modelscope/facechain .
+            安装方法请参考: https://github.com/modelscope/facechain .
             
             If you are experiencing prolonged waiting time, you may try on [ModelScope NoteBook](https://modelscope.cn/my/mynotebook/preset) to prepare your dedicated environment.
                         
@@ -675,13 +787,16 @@ def inference_input():
 
                 with gr.Accordion("高级选项(Advanced Options)", open=False):
                     # upload one lora file and show the name or path of the file
-                    lora_file = gr.File(
-                        value=None,
-                        label="上传LoRA文件(Upload LoRA file)",
-                        type="file",
-                        file_types=[".safetensors"],
-                        file_count="single",
-                    )
+                    with gr.Box():
+                        lora_choice = gr.Dropdown(choices=["preset"], type="value", value="preset", label="LoRA文件(LoRA file)", visible=False)
+                        lora_file = gr.File(
+                            value=None,
+                            label="上传LoRA文件(Upload LoRA file)",
+                            type="file",
+                            file_types=[".safetensors"],
+                            file_count="single",
+                            visible=False,
+                        )
                     
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, 
                                             value=generate_pos_prompt(None, cloth_prompt[0]['prompt']),
@@ -702,11 +817,18 @@ def inference_input():
                     num_images = gr.Number(
                         label='生成图片数量(Number of photos)', value=6, precision=1, minimum=1, maximum=6)
                     gr.Markdown('''
-                    注意：最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
-                         如果使用自定义LoRA文件，需要上传LoRA文件，否则默认使用风格模型的LoRA文件。(LoRA file is required if you are using custom LoRA file, otherwise the default LoRA file of the style model will be used.)
+                    注意: 最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
+                         如果使用自定义LoRA文件, 需要上传LoRA文件, 否则默认使用风格模型的LoRA文件。(LoRA file is required if you are using custom LoRA file, otherwise the default LoRA file of the style model will be used.)
+                         使用自定义LoRA文件时, 需要手动再prompt中输入提示词, 否则可能不能正常触发LoRA文件中的风格。(You need to manually input the prompt when using custom LoRA file, otherwise the style in the LoRA file may not be triggered.)
                         ''')
 
-        display_button = gr.Button('开始生成(Start!)')   
+        with gr.Row():
+            display_button = gr.Button('开始生成(Start!)')   
+            with gr.Column():
+                history_button = gr.Button('查看历史(Show history)')
+                load_history_text = gr.Text("load", visible=False)
+                delete_history_button = gr.Button('删除历史(Delete history)')
+                delete_history_text = gr.Text("delete", visible=False)
 
         with gr.Box():
             infer_progress = gr.Textbox(label="生成进度(Progress)", value="当前无生成任务(No task)", interactive=False)
@@ -714,28 +836,40 @@ def inference_input():
             gr.Markdown('生成结果(Result)')
             output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
                                                                                object_fit="contain")
+            
+        with gr.Accordion(label="历史生成结果(History)", open=False):
+            with gr.Row():
+                single_history = gr.Gallery(label='单张图片(Single image history)')
+                batch_history = gr.Gallery(label='图片组(Batch image history)')
         
-        lora_file.upload(fn=upload_lora_file, inputs=[uuid, lora_file], outputs=[style_model, cloth_style], queue=False)
-        lora_file.clear(fn=flash_model_list, inputs=[uuid, base_model_index], outputs=[user_model, style_model], queue=False)
-                                                                   
+        lora_choice.change(fn=change_lora_choice, inputs=[uuid, lora_choice, base_model_index], outputs=[style_model, cloth_style], queue=False)
+        
+        lora_file.upload(fn=upload_lora_file, inputs=[uuid, lora_file], outputs=[lora_choice], queue=False)
+        lora_file.clear(fn=clear_lora_file, inputs=[uuid, lora_file], outputs=[lora_choice], queue=False)
+        
         style_model.change(update_cloth, style_model, [cloth_style, pos_prompt, multiplier_human], queue=False)
         cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt, multiplier_style], queue=False)
         pose_image.change(update_pose_model, pose_image, [pose_model])
         base_model_index.change(fn=flash_model_list,
-                                inputs=[uuid, base_model_index, lora_file],
-                                outputs=[user_model, style_model],
+                                inputs=[uuid, base_model_index, lora_choice],
+                                outputs=[user_model, style_model, cloth_style, lora_choice, lora_file],
                                 queue=False)
         update_button.click(fn=update_output_model,
                       inputs=[uuid, base_model_index],
                       outputs=[user_model],
                       queue=False)
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, neg_prompt, base_model_index, user_model, num_images, lora_file, style_model, multiplier_style, multiplier_human,
+                             inputs=[uuid, pos_prompt, neg_prompt, base_model_index, user_model, num_images, lora_choice, style_model, multiplier_style, multiplier_human,
                                      pose_model, pose_image],
                              outputs=[infer_progress, output_images])
+        history_button.click(fn=deal_history,
+                             inputs=[uuid, base_model_index, user_model, lora_choice, style_model, load_history_text],
+                             outputs=[single_history, batch_history])
+        delete_history_button.click(fn=deal_history,
+                                    inputs=[uuid, base_model_index, user_model, lora_choice, style_model, delete_history_text],
+                                    outputs=[single_history, batch_history])
 
     return demo
-
 
 def inference_inpaint():
     """
