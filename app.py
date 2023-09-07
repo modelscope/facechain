@@ -15,7 +15,7 @@ import platform
 import subprocess
 from modelscope import snapshot_download
 
-from facechain.inference import GenPortrait
+from facechain.inference import preprocess_pose, GenPortrait
 from facechain.inference_inpaint import GenPortraitInpaint
 from facechain.data_process.preprocessing import get_popular_prompts
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
@@ -74,11 +74,14 @@ def update_prompt(style_index, cloth_index):
         multiplier_style = style['multiplier_style']
     return gr.Textbox.update(value=pos_prompt), gr.Slider.update(value=multiplier_style)
 
-def update_pose_model(pose_image):
+def update_pose_model(pose_image, pose_model):
     if pose_image is None:
-        return gr.Radio.update(value=pose_models[0]['name'])
+        return gr.Radio.update(value=pose_models[0]['name']), gr.Image.update(visible=False)
     else:
-        return gr.Radio.update(value=pose_models[1]['name'])
+        if pose_model == 0:
+            pose_model = 1
+        pose_res_img = preprocess_pose(pose_image)
+        return gr.Radio.update(value=pose_models[pose_model]['name']), gr.Image.update(value=pose_res_img, visible=True)
 
 def update_optional_styles(base_model_index):
     style_list = base_models[base_model_index]['style_list']
@@ -804,11 +807,14 @@ def inference_input():
                                                  step=0.05, label='风格权重(Multiplier style)')
                     multiplier_human = gr.Slider(minimum=0, maximum=1.2, value=0.95,
                                                  step=0.05, label='形象权重(Multiplier human)')
-                    pose_image = gr.Image(source='upload', type='filepath', label='姿态图片(Pose image)')
-                    gr.Examples(pose_examples['man'], inputs=[pose_image], label='男性姿态示例')
-                    gr.Examples(pose_examples['woman'], inputs=[pose_image], label='女性姿态示例')
-                    pose_model = gr.Radio(choices=pmodels, value=pose_models[0]['name'],
-                                          type="index", label="姿态控制模型(Pose control model)")
+                    with gr.Box():
+                        with gr.Row():
+                            pose_image = gr.Image(source='upload', type='filepath', label='姿态图片(Pose image)', height=250)
+                            pose_res_image = gr.Image(source='upload', interactive=False, label='姿态结果(Pose result)', visible=False, height=250)
+                        gr.Examples(pose_examples['man'], inputs=[pose_image], label='男性姿态示例')
+                        gr.Examples(pose_examples['woman'], inputs=[pose_image], label='女性姿态示例')
+                        pose_model = gr.Radio(choices=pmodels, value=pose_models[0]['name'],
+                                            type="index", label="姿态控制模型(Pose control model)")
                 with gr.Box():
                     num_images = gr.Number(
                         label='生成图片数量(Number of photos)', value=6, precision=1, minimum=1, maximum=6)
@@ -845,7 +851,7 @@ def inference_input():
         
         style_model.change(update_cloth, style_model, [cloth_style, pos_prompt, multiplier_human], queue=False)
         cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt, multiplier_style], queue=False)
-        pose_image.change(update_pose_model, pose_image, [pose_model])
+        pose_image.change(update_pose_model, [pose_image, pose_model], [pose_model, pose_res_image])
         base_model_index.change(fn=flash_model_list,
                                 inputs=[uuid, base_model_index, lora_choice],
                                 outputs=[user_model, style_model, cloth_style, lora_choice, lora_file],
