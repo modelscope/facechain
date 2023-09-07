@@ -186,12 +186,19 @@ def launch_pipeline(uuid,
                     base_model_index=None,
                     user_model=None,
                     num_images=1,
+                    lora_file=None,
                     style_model=None,
                     multiplier_style=0.25,
                     multiplier_human=0.85,
                     pose_model=None,
                     pose_image=None
                     ):
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            return "请登陆后使用! (Please login first)"
+        else:
+            uuid = 'qw'
+    
     # Check base model
     if base_model_index == None:
         raise gr.Error('请选择基模型(Please select the base model)！')
@@ -212,15 +219,24 @@ def launch_pipeline(uuid,
     before_done_count = inference_done_count
     style_model = styles[style_model]['name']
 
-    if style_model == styles[0]['name']:
-        style_model_path = None
+    if lora_file.name is None:
+        if style_model == styles[0]['name']:
+            style_model_path = None
+        else:
+            matched = list(filter(lambda style: style_model == style['name'], styles))
+            if len(matched) == 0:
+                raise ValueError(f'styles not found: {style_model}')
+            matched = matched[0]
+            model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
+            style_model_path = os.path.join(model_dir, matched['bin_file'])
     else:
-        matched = list(filter(lambda style: style_model == style['name'], styles))
-        if len(matched) == 0:
-            raise ValueError(f'styles not found: {style_model}')
-        matched = matched[0]
-        model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
-        style_model_path = os.path.join(model_dir, matched['bin_file'])
+        print(f'uuid: {uuid}')
+        temp_lora_dir = f"/tmp/{uuid}/temp_lora"
+        file_name = os.path.basename(lora_file.name)
+        print(os.path.basename(lora_file.name).split('.')[-1], os.path.join(temp_lora_dir, file_name))
+        if os.path.basename(lora_file.name).split('.')[-1] != 'safetensors' or not os.path.exists(os.path.join(temp_lora_dir, file_name)):
+            raise ValueError(f'Invalid lora file: {lora_file.name}')
+        style_model_path = os.path.join(temp_lora_dir, file_name)
 
     if pose_image is None or pose_model == 0:
         pose_model_path = None
@@ -445,6 +461,9 @@ class Trainer:
 
 
 def flash_model_list(uuid, base_model_index):
+    if base_model_index is None:
+        return gr.Radio.update(visible=False), gr.Dropdown.update(visible=False)
+    
     base_model_path = base_models[base_model_index]['model_id']
     style_list = base_models[base_model_index]['style_list']
 
@@ -498,11 +517,27 @@ def update_output_model(uuid, base_model_index):
 
     return gr.Radio.update(choices=folder_list)
 
-
 def upload_file(files, current_files):
     file_paths = [file_d['name'] for file_d in current_files] + [file.name for file in files]
     return file_paths
 
+def upload_lora_file(uuid, lora_file):
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            return "请登陆后使用! (Please login first)"
+        else:
+            uuid = 'qw'
+    print("uuid: ", uuid)
+    temp_lora_dir = f"/tmp/{uuid}/temp_lora"
+    os.makedirs(temp_lora_dir, exist_ok=True)
+    shutil.copy(lora_file.name, temp_lora_dir)
+    filename = os.path.basename(lora_file.name)
+    newfilepath = os.path.join(temp_lora_dir, filename)
+    print("newfilepath: ", newfilepath)
+    style_model = gr.Dropdown.update(visible=False)
+    cloth_style = gr.Radio.update(visible=False)
+    
+    return style_model, cloth_style
 
 def train_input():
     trainer = Trainer()
@@ -603,6 +638,7 @@ def train_input():
 def inference_input():
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
+        
         with gr.Row():
             with gr.Column():
                 base_model_list = []
@@ -636,6 +672,15 @@ def inference_input():
                     pmodels.append(pmodel['name'])
 
                 with gr.Accordion("高级选项(Advanced Options)", open=False):
+                    # upload one lora file and show the name or path of the file
+                    lora_file = gr.File(
+                        value=None,
+                        label="上传LoRA文件(Upload LoRA file)",
+                        type="file",
+                        file_types=[".safetensors"],
+                        file_count="single",
+                    )
+                    
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, 
                                             value=generate_pos_prompt(None, cloth_prompt[0]['prompt']),
                                             interactive=True)
@@ -655,7 +700,7 @@ def inference_input():
                     注意：最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
                         ''')
 
-        display_button = gr.Button('开始生成(Start!)')
+        display_button = gr.Button('开始生成(Start!)')   
 
         with gr.Box():
             infer_progress = gr.Textbox(label="生成进度(Progress)", value="当前无生成任务(No task)", interactive=False)
@@ -663,7 +708,10 @@ def inference_input():
             gr.Markdown('生成结果(Result)')
             output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
                                                                                object_fit="contain")
-                                                                               
+        
+        lora_file.upload(fn=upload_lora_file, inputs=[uuid, lora_file], outputs=[style_model, cloth_style], queue=False)
+        lora_file.clear(fn=flash_model_list, inputs=[uuid, base_model_index], outputs=[user_model, style_model], queue=False)
+                                                                            
         style_model.change(update_cloth, style_model, [cloth_style, pos_prompt, multiplier_human], queue=False)
         cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt, multiplier_style], queue=False)
         pose_image.change(update_pose_model, pose_image, [pose_model])
@@ -676,7 +724,7 @@ def inference_input():
                       outputs=[user_model],
                       queue=False)
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, base_model_index, user_model, num_images, style_model, multiplier_style, multiplier_human,
+                             inputs=[uuid, pos_prompt, base_model_index, user_model, num_images, lora_file, style_model, multiplier_style, multiplier_human,
                                      pose_model, pose_image],
                              outputs=[infer_progress, output_images])
 
