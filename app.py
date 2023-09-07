@@ -183,6 +183,7 @@ def generate_pos_prompt(style_model, prompt_cloth):
 
 def launch_pipeline(uuid,
                     pos_prompt,
+                    neg_prompt=None,
                     base_model_index=None,
                     user_model=None,
                     num_images=1,
@@ -219,7 +220,7 @@ def launch_pipeline(uuid,
     before_done_count = inference_done_count
     style_model = styles[style_model]['name']
 
-    if lora_file.name is None:
+    if lora_file is None or lora_file.name is None:
         if style_model == styles[0]['name']:
             style_model_path = None
         else:
@@ -270,7 +271,6 @@ def launch_pipeline(uuid,
     train_file = os.path.join(lora_model_path, 'pytorch_lora_weights.bin')
     if not os.path.exists(train_file):
         raise gr.Error('您还没有进行形象定制，请先进行训练。(Training is required before inference.)')
-
 
     gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, 
                                multiplier_style, multiplier_human, use_main_model,
@@ -460,7 +460,7 @@ class Trainer:
         return message
 
 
-def flash_model_list(uuid, base_model_index):
+def flash_model_list(uuid, base_model_index, lora_file:gr.File):    
     if base_model_index is None:
         return gr.Radio.update(visible=False), gr.Dropdown.update(visible=False)
     
@@ -486,6 +486,8 @@ def flash_model_list(uuid, base_model_index):
                 if os.path.exists(file_lora_path):
                     folder_list.append(file)
 
+    if lora_file is not None and lora_file.name is not None:
+        return gr.Radio.update(choices=folder_list), gr.Dropdown.update(choices=style_list, visible=False)
     return gr.Radio.update(choices=folder_list), gr.Dropdown.update(choices=style_list, value=style_list[0], visible=True)
 
 def update_output_model(uuid, base_model_index):
@@ -684,6 +686,9 @@ def inference_input():
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, 
                                             value=generate_pos_prompt(None, cloth_prompt[0]['prompt']),
                                             interactive=True)
+                    neg_prompt = gr.Textbox(label="负向提示语(Negative Prompt)", lines=3,
+                                            value="",
+                                            interactive=True)
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')
                     multiplier_human = gr.Slider(minimum=0, maximum=1.2, value=0.95,
@@ -698,6 +703,7 @@ def inference_input():
                         label='生成图片数量(Number of photos)', value=6, precision=1, minimum=1, maximum=6)
                     gr.Markdown('''
                     注意：最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
+                         如果使用自定义LoRA文件，需要上传LoRA文件，否则默认使用风格模型的LoRA文件。(LoRA file is required if you are using custom LoRA file, otherwise the default LoRA file of the style model will be used.)
                         ''')
 
         display_button = gr.Button('开始生成(Start!)')   
@@ -711,12 +717,12 @@ def inference_input():
         
         lora_file.upload(fn=upload_lora_file, inputs=[uuid, lora_file], outputs=[style_model, cloth_style], queue=False)
         lora_file.clear(fn=flash_model_list, inputs=[uuid, base_model_index], outputs=[user_model, style_model], queue=False)
-                                                                            
+                                                                   
         style_model.change(update_cloth, style_model, [cloth_style, pos_prompt, multiplier_human], queue=False)
         cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt, multiplier_style], queue=False)
         pose_image.change(update_pose_model, pose_image, [pose_model])
         base_model_index.change(fn=flash_model_list,
-                                inputs=[uuid, base_model_index],
+                                inputs=[uuid, base_model_index, lora_file],
                                 outputs=[user_model, style_model],
                                 queue=False)
         update_button.click(fn=update_output_model,
@@ -724,7 +730,7 @@ def inference_input():
                       outputs=[user_model],
                       queue=False)
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, base_model_index, user_model, num_images, lora_file, style_model, multiplier_style, multiplier_human,
+                             inputs=[uuid, pos_prompt, neg_prompt, base_model_index, user_model, num_images, lora_file, style_model, multiplier_style, multiplier_human,
                                      pose_model, pose_image],
                              outputs=[infer_progress, output_images])
 
