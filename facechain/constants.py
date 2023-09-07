@@ -100,4 +100,3 @@ pose_examples = {
         ['./poses/woman/pose4.png'],
     ]
 }
-

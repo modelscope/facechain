@@ -122,6 +122,7 @@ tensorboard.sh
 .DS_Store
 replace.sh
 result.png
+lora_result.png
 result.jpg
 result.mp4
 
