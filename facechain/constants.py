@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '拍立得风(Polaroid style)', '仙女风(Fairy style)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional Chinese Style)', '壮族服装风(zhuangzu)', '欧式田野风(european fields)']},
 ]
 
 cloth_prompt = [
@@ -75,6 +75,31 @@ styles = [
      'multiplier_human': 0.95,
      'cloth_name': '仙女风(Fairy style)',
      'add_prompt_style': 'a beautiful fairy standing in the middle of a flower field, petals, close-up, warm light, light green atmosphere, white atmosphere, in the style of celebrity photography, soft, romantic scenes, flowing fabrics, light white and light orange, high resolution'},
+     {'name': '古风(traditional Chinese Style)',
+     'model_id': 'iotang/lora_testing',
+     'revision': 'v5',
+     'bin_file': 'MoXinV1.safetensors',
+     'multiplier_style': 0.3,
+     'multiplier_human': 0.95,
+     'cloth_name': '汉服风(hanfu)',
+     'add_prompt_style': '(ultra high res face, face ultra zoom, highres, best quality, ultra detailed, cinematic lighting, portrait, Chinese traditional ink painting:1.2), sfw, shuimobysim, song, anxiang, hanfu, Ultra HD, wuchangshuo, detailed background, looking at viewer, serenity, peace'},
+    {'name': '壮族服装风(zhuangzu)',
+     'model_id': 'iotang/lora_testing',
+     'revision': 'v5',
+     'bin_file': 'zhuangnv.safetensors',
+     'multiplier_style': 0.7,
+     'multiplier_human': 0.95,
+     'cloth_name': '壮族服装风(zhuangzu)',
+     'add_prompt_style': '(masterpiece, ultra high res face, face ultra zoom, highres, best quality, ultra detailed, cinematic lighting, portrait:1.2), sfw, facing the camera with a smile, zhuangzunv, ornaments, jewelry, headwear, beautiful embroidery, floral print, marvelous design, ancient Chinese traditional clothing'},
+    {'name': '欧式田野风(european fields)',
+     'model_id': 'iotang/lora_testing',
+     'revision': 'v5',
+     'bin_file': 'edgEuropean_Vintage.safetensors',
+     'multiplier_style': 0.55,
+     'multiplier_human': 0.95,
+     'cloth_name': '欧式田野风(european fields)',
+     'add_prompt_style': '(masterpiece, ultra high res face, face ultra zoom, highres, best quality, ultra detailed, detailed background, cinematic lighting, portrait:1.2), sfw, focused, edgEV, wearing edgEV_vintage dress, field, natural lighting, windy hair, gentle hair, clean'},
+    
 ]
 
 inpaint_default_positive = 'beautiful, cool, finely detail, light smile, extremely detailed CG unity 8k wallpaper, huge filesize, best quality, realistic, photo-realistic, ultra high res, raw phot, put on makeup'
