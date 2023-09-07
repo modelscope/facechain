@@ -25,6 +25,7 @@ from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_wi
 training_done_count = 0
 inference_done_count = 0
 
+
 class UploadTarget(enum.Enum):
     PERSONAL_PROFILE = 'Personal Profile'
     LORA_LIaBRARY = 'LoRA Library'
@@ -45,7 +46,8 @@ def update_cloth(style_index):
         multiplier_human = style['multiplier_human']
         prompts.append(style['cloth_name'])
     return gr.Radio.update(choices=prompts,
-                           value=prompts[0], visible=True), gr.Textbox.update(value=example_prompt), gr.Slider.update(value=multiplier_human)
+                           value=prompts[0], visible=True), gr.Textbox.update(value=example_prompt), gr.Slider.update(
+        value=multiplier_human)
 
 
 def update_prompt(style_index, cloth_index):
@@ -60,16 +62,19 @@ def update_prompt(style_index, cloth_index):
         multiplier_style = style['multiplier_style']
     return gr.Textbox.update(value=pos_prompt), gr.Slider.update(value=multiplier_style)
 
+
 def update_pose_model(pose_image):
     if pose_image is None:
         return gr.Radio.update(value=pose_models[0]['name'])
     else:
         return gr.Radio.update(value=pose_models[1]['name'])
 
+
 def update_optional_styles(base_model_index):
     style_list = base_models[base_model_index]['style_list']
     optional_styles = '\n'.join(style_list)
     return gr.Textbox.update(value=optional_styles)
+
 
 def concatenate_images(images):
     heights = [img.shape[0] for img in images]
@@ -83,10 +88,13 @@ def concatenate_images(images):
     return concatenated_image
 
 
-def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img_dir=None, work_dir=None, ensemble=True, enhance_lora=False, photo_num=0):
+def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img_dir=None, work_dir=None, photo_num=0):
     validation_prompt, _ = get_popular_prompts(output_img_dir)
     torch.cuda.empty_cache()
-    
+
+    ensemble = False
+    enhance_lora = False
+
     lora_r = 4 if not enhance_lora else 128
     lora_alpha = 32 if not enhance_lora else 64
     max_train_steps = min(photo_num * 200, 800)
@@ -190,11 +198,11 @@ def launch_pipeline(uuid,
     # Check base model
     if base_model_index == None:
         raise gr.Error('请选择基模型(Please select the base model)！')
-    
+
     # Check output model
     if not user_model:
         raise gr.Error('请选择产出模型(Please select the output model)！')
-    
+
     # Check style model
     if style_model == None:
         raise gr.Error('请选择风格模型(Please select the style model)！')
@@ -202,7 +210,7 @@ def launch_pipeline(uuid,
     base_model = base_models[base_model_index]['model_id']
     revision = base_models[base_model_index]['revision']
     sub_path = base_models[base_model_index]['sub_path']
-    
+
     before_queue_size = 0
     before_done_count = inference_done_count
     style_model = styles[style_model]['name']
@@ -250,8 +258,7 @@ def launch_pipeline(uuid,
     if not os.path.exists(train_file):
         raise gr.Error('您还没有进行形象定制，请先进行训练。(Training is required before inference.)')
 
-
-    gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, 
+    gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path,
                                multiplier_style, multiplier_human, use_main_model,
                                use_face_swap, use_post_process,
                                use_stylization)
@@ -260,14 +267,14 @@ def launch_pipeline(uuid,
 
     with ProcessPoolExecutor(max_workers=5) as executor:
         future = executor.submit(gen_portrait, instance_data_dir,
-                                            num_images, base_model, lora_model_path, sub_path, revision)
+                                 num_images, base_model, lora_model_path, sub_path, revision)
         while not future.done():
             is_processing = future.running()
             if not is_processing:
                 cur_done_count = inference_done_count
                 to_wait = before_queue_size - (cur_done_count - before_done_count)
                 yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5),
-                        None]
+                       None]
             else:
                 yield ["生成中, 请耐心等待(Generating)...", None]
             time.sleep(1)
@@ -287,23 +294,23 @@ def launch_pipeline(uuid,
 
 
 def launch_pipeline_inpaint(uuid,
-                          base_model_index=None,
-                          user_model=None,
-                          selected_template_images=None,
-                          append_pos_prompt=None,
-                          select_face_num=1,
-                          first_control_weight=0.5,
-                          second_control_weight=0.1,
-                          final_fusion_ratio=0.5,
-                          use_fusion_before=True,
-                          use_fusion_after=True):
+                            base_model_index=None,
+                            user_model=None,
+                            selected_template_images=None,
+                            append_pos_prompt=None,
+                            select_face_num=1,
+                            first_control_weight=0.5,
+                            second_control_weight=0.1,
+                            final_fusion_ratio=0.5,
+                            use_fusion_before=True,
+                            use_fusion_after=True):
     before_queue_size = 0
     before_done_count = inference_done_count
 
     # Check base model
     if base_model_index == None:
         raise gr.Error('请选择基模型(Please select the base model)！')
-    
+
     # Check output model
     if not user_model:
         raise gr.Error('请选择产出模型(Please select the output model)！')
@@ -330,7 +337,7 @@ def launch_pipeline_inpaint(uuid,
         lora_model_path = f'/tmp/{uuid}/{base_model}/{user_model}/'
 
     gen_portrait_inpaint = GenPortraitInpaint(crop_template=False, short_side_resize=512)
-    
+
     cache_model_dir = snapshot_download("bubbliiiing/controlnet_helper", revision="v2.2")
 
     with ProcessPoolExecutor(max_workers=5) as executor:
@@ -371,8 +378,6 @@ class Trainer:
     def run(
             self,
             uuid: str,
-            ensemble: bool,
-            enhance_lora: bool,
             instance_images: list,
             base_model_index: int,
             output_model_name: str,
@@ -384,11 +389,11 @@ class Trainer:
         # Check Instance Valid
         if instance_images is None:
             raise gr.Error('您需要上传训练图片(Please upload photos)！')
-        
+
         # Check output model name
         if not output_model_name:
             raise gr.Error('请指定产出模型的名称(Please specify the output model name)！')
-        
+
         # Limit input Image
         if len(instance_images) > 20:
             raise gr.Error('请最多上传20张训练图片(20 images at most!)')
@@ -430,8 +435,6 @@ class Trainer:
                       sub_path=sub_path,
                       output_img_dir=instance_data_dir,
                       work_dir=work_dir,
-                      ensemble=ensemble,
-                      enhance_lora=enhance_lora,
                       photo_num=len(instance_images))
 
         message = f'训练已经完成！请切换至 [形象体验] 标签体验模型效果(Training done, please switch to the inference tab to generate photos.)'
@@ -452,7 +455,7 @@ def flash_model_list(uuid, base_model_index):
     folder_path = f"/tmp/{uuid}/{base_model_path}"
     folder_list = []
     if not os.path.exists(folder_path):
-        return gr.Radio.update(choices=[]),gr.Dropdown.update(choices=style_list)
+        return gr.Radio.update(choices=[]), gr.Dropdown.update(choices=style_list)
     else:
         files = os.listdir(folder_path)
         for file in files:
@@ -462,10 +465,11 @@ def flash_model_list(uuid, base_model_index):
                 if os.path.exists(file_lora_path):
                     folder_list.append(file)
 
-    return gr.Radio.update(choices=folder_list), gr.Dropdown.update(choices=style_list, value=style_list[0], visible=True)
+    return gr.Radio.update(choices=folder_list), gr.Dropdown.update(choices=style_list, value=style_list[0],
+                                                                    visible=True)
+
 
 def update_output_model(uuid, base_model_index):
-
     # Check base model
     if base_model_index == None:
         raise gr.Error('请选择基模型(Please select the base model)！')
@@ -482,7 +486,7 @@ def update_output_model(uuid, base_model_index):
     folder_path = f"/tmp/{uuid}/{base_model_path}"
     folder_list = []
     if not os.path.exists(folder_path):
-        return gr.Radio.update(choices=[]),gr.Dropdown.update(choices=style_list)
+        return gr.Radio.update(choices=[]), gr.Dropdown.update(choices=style_list)
     else:
         files = os.listdir(folder_path)
         for file in files:
@@ -514,16 +518,18 @@ def train_input():
                     for base_model in base_models:
                         base_model_list.append(base_model['name'])
 
-                    base_model_index = gr.Radio(label="基模型选择(Base model list)", choices=base_model_list, type="index",
-                                       value=base_model_list[0])
-                    
+                    base_model_index = gr.Radio(label="基模型选择(Base model list)", choices=base_model_list,
+                                                type="index",
+                                                value=base_model_list[0])
+
                     optional_style = '\n'.join(base_models[0]['style_list'])
-                    
-                    optional_styles = gr.Textbox(label="该基模型支持的风格(Styles supported by this base model.)", lines=3,
-                                        value=optional_style, interactive=False)
-                    
+
+                    optional_styles = gr.Textbox(label="该基模型支持的风格(Styles supported by this base model.)",
+                                                 lines=3,
+                                                 value=optional_style, interactive=False)
+
                     output_model_name = gr.Textbox(label="产出模型名称(Output model name)", value='test', lines=1)
- 
+
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
                     with gr.Row():
@@ -535,7 +541,7 @@ def train_input():
 
                     upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images,
                                          queue=False)
-                    
+
                     gr.Markdown('''
                         - Step 1. 上传计划训练的图片，3~10张头肩照（注意：请避免图片中出现多人脸、脸部遮挡等情况，否则可能导致效果异常）
                         - Step 2. 点击 [开始训练] ，启动形象定制化训练，约需15分钟，请耐心等待～
@@ -547,16 +553,6 @@ def train_input():
                         - Step 3. Switch to [Inference] Tab to generate stylized photos.
                         ''')
 
-        with gr.Box():
-            with gr.Row():
-                ensemble = gr.Checkbox(label='人物LoRA融合（Ensemble）', value=False)
-                enhance_lora = gr.Checkbox(label='LoRA增强（LoRA-Enhancement）', value=False)
-            gr.Markdown(
-                '''
-                - 人物LoRA融合（Ensemble）：选择训练中几个最佳人物LoRA融合。提升相似度或在艺术照生成模式下建议勾选 - Allow fusion of multiple LoRAs during training. Recommended for enhanced-similarity or using with Inpaint mode.
-                - LoRA增强（LoRA-Enhancement）：扩大LoRA规模，生成图片更贴近用户，至少5张以上多图训练或者艺术照生成模式建议勾选 - Boost scale of LoRA to enhance output resemblance with input. Recommended for training with more than 5 pics or using with Inpaint mode. 
-                '''
-            )
 
         run_button = gr.Button('开始训练（等待上传图片加载显示出来再点，否则会报错）'
                                'Start training (please wait until photo(s) fully uploaded, otherwise it may result in training failure)')
@@ -564,18 +560,18 @@ def train_input():
         with gr.Box():
             gr.Markdown('''
             请等待训练完成，请勿刷新或关闭页面。
-            
+
             Please wait for the training to complete, do not refresh or close the page.
             ''')
             output_message = gr.Markdown()
         with gr.Box():
             gr.Markdown('''
             碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上进行体验。
-            
+
             安装方法请参考：https://github.com/modelscope/facechain .
-            
+
             If you are experiencing prolonged waiting time, you may try on [ModelScope NoteBook](https://modelscope.cn/my/mynotebook/preset) to prepare your dedicated environment.
-                        
+
             You may refer to: https://github.com/modelscope/facechain for installation instruction.
             ''')
         base_model_index.change(fn=update_optional_styles,
@@ -586,8 +582,6 @@ def train_input():
         run_button.click(fn=trainer.run,
                          inputs=[
                              uuid,
-                             ensemble,
-                             enhance_lora,
                              instance_images,
                              base_model_index,
                              output_model_name,
@@ -595,6 +589,7 @@ def train_input():
                          outputs=[output_message])
 
     return demo
+
 
 def inference_input():
     with gr.Blocks() as demo:
@@ -606,7 +601,7 @@ def inference_input():
                     base_model_list.append(base_model['name'])
 
                 base_model_index = gr.Radio(label="基模型选择(Base model list)", choices=base_model_list, type="index")
-                
+
                 with gr.Row():
                     with gr.Column(scale=3):
                         user_model = gr.Radio(label="产出模型(Output Model list)", choices=[], type="value")
@@ -616,9 +611,9 @@ def inference_input():
                 style_model_list = []
                 for style in styles:
                     style_model_list.append(style['name'])
-                style_model = gr.Dropdown(choices=style_model_list, type="index", value=style_model_list[0], 
+                style_model = gr.Dropdown(choices=style_model_list, type="index", value=style_model_list[0],
                                           label="风格模型(Style model)", visible=False)
-                
+
                 prompts = []
                 for prompt in cloth_prompt:
                     prompts.append(prompt['name'])
@@ -632,7 +627,7 @@ def inference_input():
                     pmodels.append(pmodel['name'])
 
                 with gr.Accordion("高级选项(Advanced Options)", open=False):
-                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, 
+                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
                                             value=generate_pos_prompt(None, cloth_prompt[0]['prompt']),
                                             interactive=True)
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
@@ -659,7 +654,7 @@ def inference_input():
             gr.Markdown('生成结果(Result)')
             output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
                                                                                object_fit="contain")
-                                                                               
+
         style_model.change(update_cloth, style_model, [cloth_style, pos_prompt, multiplier_human], queue=False)
         cloth_style.change(update_prompt, [style_model, cloth_style], [pos_prompt, multiplier_style], queue=False)
         pose_image.change(update_pose_model, pose_image, [pose_model])
@@ -668,11 +663,12 @@ def inference_input():
                                 outputs=[user_model, style_model],
                                 queue=False)
         update_button.click(fn=update_output_model,
-                      inputs=[uuid, base_model_index],
-                      outputs=[user_model],
-                      queue=False)
+                            inputs=[uuid, base_model_index],
+                            outputs=[user_model],
+                            queue=False)
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, base_model_index, user_model, num_images, style_model, multiplier_style, multiplier_human,
+                             inputs=[uuid, pos_prompt, base_model_index, user_model, num_images, style_model,
+                                     multiplier_style, multiplier_human,
                                      pose_model, pose_image],
                              outputs=[infer_progress, output_images])
 
@@ -688,7 +684,7 @@ def inference_inpaint():
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         # Initialize the GUI
-        
+
         with gr.Row():
             with gr.Column():
                 base_model_list = []
@@ -702,7 +698,7 @@ def inference_inpaint():
                 )
 
                 user_model = gr.Radio(label="产出模型(Output Model list)", choices=[], type="value")
-                
+
                 template_gallery_list = [(i, f"模板{idx + 1}") for idx, i in enumerate(preset_template)]
                 gallery = gr.Gallery(template_gallery_list).style(grid=4, height=300)
 
@@ -712,7 +708,7 @@ def inference_inpaint():
 
                 selected_template_images = gr.Text(show_label=False, placeholder="Selected")
                 gallery.select(select_function, None, selected_template_images)
-                
+
                 with gr.Accordion("高级选项(Advanced Options)", open=False):
                     append_pos_prompt = gr.Textbox(
                         label="提示语(Prompt)",
@@ -745,7 +741,7 @@ def inference_inpaint():
                         label="后融合(Apply Fusion After)", type="value", choices=[True, False],
                         value=True
                     )
-                
+
         display_button = gr.Button('开始生成(Start Generation)')
         with gr.Box():
             infer_progress = gr.Textbox(
@@ -764,27 +760,29 @@ def inference_inpaint():
                                 inputs=[uuid, base_model_index],
                                 outputs=[user_model],
                                 queue=False)
-                        
+
         display_button.click(
             fn=launch_pipeline_inpaint,
-            inputs=[uuid, base_model_index, user_model, selected_template_images, append_pos_prompt, select_face_num, first_control_weight,
+            inputs=[uuid, base_model_index, user_model, selected_template_images, append_pos_prompt, select_face_num,
+                    first_control_weight,
                     second_control_weight,
                     final_fusion_ratio, use_fusion_before, use_fusion_after],
             outputs=[infer_progress, output_images]
         )
-        
+
     return demo
 
 
 with gr.Blocks(css='style.css') as demo:
-    gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale}, [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
+    gr.Markdown(
+        "# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale}, [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
     with gr.Tabs():
         with gr.TabItem('\N{rocket}形象定制(Train)'):
             train_input()
         with gr.TabItem('\N{party popper}形象体验(Inference)'):
             inference_input()
-        with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
-            inference_inpaint()
+        # with gr.TabItem('\N{party popper}艺术照(Inpaint)'):
+        #     inference_inpaint()
 
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')
