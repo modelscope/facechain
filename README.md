@@ -88,7 +88,7 @@ The following installation methods are supported:
 # Step1: 我的notebook -> PAI-DSW -> GPU环境
 
 # Step2: Entry the Notebook cell，clone FaceChain from github:
-!GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+!GIT_LFS_SKIP_SMUDGE=1 git clone -b release/1.1 https://github.com/modelscope/facechain.git --depth 1
 
 # Step3: Change the working directory to facechain:
 import os
