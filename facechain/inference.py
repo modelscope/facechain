@@ -402,7 +402,11 @@ def face_swap_fn(use_face_swap, gen_results, template_face):
         ## TODO
         out_img_list = []
         image_face_fusion = pipeline('face_fusion_torch',
-                                     model='damo/cv_unet_face_fusion_torch', model_revision='v1.0.3')
+                                     model='damo/cv_unet_face_fusion_torch',model_revision='v1.0.3')
+        
+        #动漫模型 pipeline('Tasks.image_portrait_stylization',model='damo/cv_unet_person-image-cartoon_compound-models')
+        #原模型 pipeline('face_fusion_torch',model=damo/cv_unet_face_fusion_torch,model_revision='v1.0.3'）
+        
         for img in gen_results:
             result = image_face_fusion(dict(template=img, user=template_face))[OutputKeys.OUTPUT_IMG]
             out_img_list.append(result)
