@@ -410,13 +410,14 @@ def launch_pipeline_inpaint(uuid,
 
 #######save out put img function
 def save_images(outputs):
+    # load config from config.json,to determine whether to save the image, with the default being to save it.
     # 读取配置文件，是否要保存图片
     with open('config.json', 'r') as config_file:
         config = json.load(config_file)
     save_img_flag = config['save_img_flag']
     if not save_img_flag:
         return
-    # 获取当前日期,创建日期文件夹
+    # Get the date and create a folder with the date format 获取当前日期,创建日期文件夹
     today = datetime.date.today()
     if platform.system() == 'Windows':
         tmp_path = config['tmp_path']['windows']
@@ -427,13 +428,13 @@ def save_images(outputs):
     if not os.path.exists(date_path):
         os.makedirs(date_path)
 
-    # 计数器,用于命名文件
+    # couter for filename as 00x format,计数器,用于命名文件
     count = 1
     for image in outputs:
-        # 构造文件名
+        # generate filename of picture 构造文件名
         filename = '{}_{}.png'.format(time.strftime("%Y%m%d%H%M%S"), str(count).zfill(3))
         image_path = os.path.join(date_path, filename)
-        # 保存图像
+        # save image, 保存图像
         cv2.imwrite(image_path, image)
         count += 1
 
