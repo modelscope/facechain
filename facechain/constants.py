@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['未知(unknown)', '洛丽塔(loli)', '户外婚纱(outdoor)', '冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '拍立得风(Polaroid style)', '仙女风(Fairy style)']},
+    'style_list': ['未知(unknown)', '瑶(yaoyao)', '洛丽塔(loli)', '户外婚纱(outdoor)', '冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '拍立得风(Polaroid style)', '仙女风(Fairy style)']},
 ]
 
 cloth_prompt = [
@@ -43,6 +43,14 @@ styles = [
      'multiplier_human': 0.95,
      'cloth_name': '未知(unknown)',
      'add_prompt_style': 'woman, face, doll'},
+    {'name': '瑶(yaoyao)',
+     'model_id': '/mnt/workspace/facechain/LORA',
+     'revision': 'v1.0.0',
+     'bin_file': 'yaoyao_v0.4.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.95,
+     'cloth_name': '瑶(yaoyao)',
+     'add_prompt_style': 'masterpiece, best quality,solo,blush,full body, 1gir,yaoyao,silver hair,dress,pointy ears,blue capelet,white horns,bow,sitting, looking at viewer, white simple background, <lora:yaoyao_v0.4:1>'},
     {'name': '洛丽塔(loli)',
      'model_id': '/mnt/workspace/facechain/LORA',
      'revision': 'v1.0.0',
