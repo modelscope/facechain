@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['未知(unknown)', '瑶(yaoyao)', '洛丽塔(loli)', '户外婚纱(outdoor)', '冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '拍立得风(Polaroid style)', '仙女风(Fairy style)']},
+    'style_list': ['未知(unknown)', '梦X(unknown)', '瑶(yaoyao)', '洛丽塔(loli)', '户外婚纱(outdoor)', '冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '拍立得风(Polaroid style)', '仙女风(Fairy style)']},
 ]
 
 cloth_prompt = [
@@ -43,6 +43,14 @@ styles = [
      'multiplier_human': 0.95,
      'cloth_name': '未知(unknown)',
      'add_prompt_style': 'woman, face, doll'},
+    {'name': '梦X(unknown)',
+     'model_id': '/mnt/workspace/facechain/LORA',
+     'revision': 'v1.0.0',
+     'bin_file': 'MengX girl_Mix_V40.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.95,
+     'cloth_name': '梦X(unknown)',
+     'add_prompt_style': '1girl,<lora:MengX girl_Mix_V40:0.9>,  <lora:suspension:1>,large breasts, spread legs, happy, (girl in gift box), full body, from above, 8k, RAW photo, best quality, masterpiece:1.2, cinema), (realistic, photo-realistic:1.3), bondage, in box, bound, box, ribbon, looking at viewer, blush, stuffed toy, kneeling,facing up, hair, gift, christmas,christmas present, (gift box:1.1), bound wrists, ribbon bondage,  <lora:GiftInBoxV1:0.9>,(blush,body blush:1.3), (blackmail:1.1), school uniform,black thighhighs, (zettai ryouiki:1.1), parted lips, small breasts,happy,cold,kawaii,cute,(white cat ears:1.2),(white cat tail with a chimunge:1.2),'},
     {'name': '瑶(yaoyao)',
      'model_id': '/mnt/workspace/facechain/LORA',
      'revision': 'v1.0.0',
