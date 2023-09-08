@@ -50,7 +50,7 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
      'cloth_name': '梦X(unknown)',
-     'add_prompt_style': '1girl,<lora:MengX girl_Mix_V40:0.9>,  <lora:suspension:1>,large breasts, spread legs, happy, (girl in gift box), full body, from above, 8k, RAW photo, best quality, masterpiece:1.2, cinema), (realistic, photo-realistic:1.3), bondage, in box, bound, box, ribbon, looking at viewer, blush, stuffed toy, kneeling,facing up, hair, gift, christmas,christmas present, (gift box:1.1), bound wrists, ribbon bondage,  <lora:GiftInBoxV1:0.9>,(blush,body blush:1.3), (blackmail:1.1), school uniform,black thighhighs, (zettai ryouiki:1.1), parted lips, small breasts,happy,cold,kawaii,cute,(white cat ears:1.2),(white cat tail with a chimunge:1.2),'},
+     'add_prompt_style': '<lora:MengX girl_Mix_V40:1>, Best quality, masterpiece, ultra high res, photorealistic, raw photo, unity 8k wallpaper,firework background, riverside, wind,night,city lights,cowboy shot,film grain, Fuji XT3, 1girl,pink print kimono, (laughing,happy,blush,shy:1.1),melowh, encanto, off shoulder, against railing, head tilt, curly hair, floating hair, flower headwear,'},
     {'name': '瑶(yaoyao)',
      'model_id': '/mnt/workspace/facechain/LORA',
      'revision': 'v1.0.0',
