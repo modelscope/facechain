@@ -36,7 +36,7 @@ base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 output_dir = './generated'
 use_style = True
-style = styles[1]
+style = styles[2]
 model_id = style['model_id']
 
 if not use_style:
@@ -46,9 +46,9 @@ else:
     if os.path.exists(model_id):
         model_dir = model_id
     else:
-        model_dir = snapshot_download(model_id, revision=style[10]['revision'])
-    style_model_path = os.path.join(model_dir, style[10]['bin_file'])
-    pos_prompt = generate_pos_prompt(style[10]['name'], style[10]['add_prompt_style'])  # style has its own prompt
+        model_dir = snapshot_download(model_id, revision=style['revision'])
+    style_model_path = os.path.join(model_dir, style['bin_file'])
+    pos_prompt = generate_pos_prompt(style['name'], style['add_prompt_style'])  # style has its own prompt
 
         #model_dir = snapshot_download(model_id, revision=style['revision'])
     #style_model_path = os.path.join(model_dir, style['bin_file'])
