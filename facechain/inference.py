@@ -506,8 +506,11 @@ def compress_image(input_path, target_size):
     image = cv2.imread(input_path)
 
     quality = 95
-    while cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, quality])[1].size > target_size:
-        quality -= 5
+    try:
+        while cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, quality])[1].size > target_size:
+            quality -= 5
+    except:
+        import pdb;pdb.set_trace()
 
     compressed_image = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, quality])[1].tostring()
 

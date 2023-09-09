@@ -18,10 +18,12 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 <br>
 
 ![image](resources/git_cover_CH.jpg)
-![image](resources/git_cover_1.png)
+![image](resources/git_cover_1.jpg)
+![image](resources/git_cover_2.jpg)
 
 
 # News
+- 高性能的(单人&双人)模版重绘功能，简化用户界面. (2023-09-09)
 - 更多技术细节可以在 [论文](https://arxiv.org/abs/2308.14256) 里查看. (2023-08-30)
 - 为Lora训练添加验证和根据face_id的融合，并添加InpaintTab（目前在Gradio界面上暂时默认隐藏）. (2023-08-28)
 - 增加姿势控制模块，可一键体验模版pose复刻. (2023-08-27)
