@@ -16,6 +16,7 @@ import subprocess
 from modelscope import snapshot_download
 
 from facechain.inference import preprocess_pose, GenPortrait
+from facechain.inference_ipt import GenPortrait_ipt_new
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt, \
     pose_models, pose_examples, base_models
@@ -181,7 +182,7 @@ def launch_pipeline(uuid,
         raise gr.Error('请选择基模型(Please select the base model)!')
     # Check output model
     if not user_model:
-        raise gr.Error('请选择产出模型(Please select the output model)!')
+        raise gr.Error('请选择人物lora(Please select the character lora)！')
     # Check lora choice
     if lora_choice == None:
         raise gr.Error('请选择LORA模型(Please select the LORA model)!')
@@ -303,6 +304,107 @@ def launch_pipeline(uuid,
     else:
         yield ["生成失败, 请重试(Generation failed, please retry)!", outputs_RGB]
 
+def launch_pipeline_inpaint(uuid,
+                            base_model_index=None,
+                            user_model_A=None,
+                            user_model_B=None,
+                            num_faces=1,
+                            template_image=None):
+    before_queue_size = 0
+    before_done_count = inference_done_count
+
+    # Check base model
+    if base_model_index == None:
+        raise gr.Error('请选择基模型(Please select the base model)！')
+
+    # Check character lora
+    if num_faces == 1:
+        if not user_model_A:
+            raise gr.Error('请至少选择一个人物lora(Please select at least one character lora)！')
+    else:
+        if not user_model_A and not user_model_B:
+            raise gr.Error('请至少选择一个人物lora(Please select at least one character lora)！')
+
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            return "请登陆后使用! (Please login first)"
+        else:
+            uuid = 'qw'
+
+    if isinstance(template_image, str):
+        if len(template_image) == 0:
+            raise gr.Error('请选择一张模板(Please select 1 template)')
+
+    base_model = base_models[base_model_index]['model_id']
+    revision = base_models[base_model_index]['revision']
+    sub_path = base_models[base_model_index]['sub_path']
+    multiplier_style = 0.05
+    multiplier_human = 0.95
+    strength = 0.65
+    output_img_size = 512
+
+    model_dir = snapshot_download('ly261666/cv_wanx_style_model', revision='v1.0.0')
+    style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_frommajicreal.safetensors')
+
+    pos_prompt = 'raw photo, masterpiece, chinese, simple background, high-class pure color background, solo, medium shot, high detail face, photorealistic, best quality, wearing T-shirt'
+    neg_prompt = 'nsfw, paintings, sketches, (worst quality:2), (low quality:2) ' \
+                'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character'
+
+    if user_model_A is not None:
+        instance_data_dir_A = os.path.join('/tmp', uuid, 'training_data', base_model, user_model_A)
+        lora_model_path_A = f'/tmp/{uuid}/{base_model}/{user_model_A}/'
+    else:
+        instance_data_dir_A = None
+        lora_model_path_A = None
+    if user_model_B is not None:
+        instance_data_dir_B = os.path.join('/tmp', uuid, 'training_data', base_model, user_model_B)
+        lora_model_path_B = f'/tmp/{uuid}/{base_model}/{user_model_B}/'
+    else:
+        instance_data_dir_B = None
+        lora_model_path_B = None
+
+    in_path = template_image
+    out_path = 'inpaint_rst'
+
+    use_main_model = True
+    use_face_swap = True
+    use_post_process = True
+    use_stylization = False
+
+    gen_portrait = GenPortrait_ipt_new(in_path, strength, num_faces,
+                                    pos_prompt, neg_prompt, style_model_path,
+                                    multiplier_style, multiplier_human, use_main_model,
+                                    use_face_swap, use_post_process,
+                                    use_stylization)
+
+    with ProcessPoolExecutor(max_workers=5) as executor:
+        future = executor.submit(gen_portrait, instance_data_dir_A, instance_data_dir_B, base_model,\
+                                 lora_model_path_A, lora_model_path_B, sub_path=sub_path, revision=revision)
+
+        while not future.done():
+            is_processing = future.running()
+            if not is_processing:
+                cur_done_count = inference_done_count
+                to_wait = before_queue_size - (cur_done_count - before_done_count)
+                yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5),
+                       None]
+            else:
+                yield ["生成中, 请耐心等待(Generating)...", None]
+            time.sleep(1)
+
+    outputs = future.result()
+    outputs_RGB = []
+    for out_tmp in outputs:
+        outputs_RGB.append(cv2.cvtColor(out_tmp, cv2.COLOR_BGR2RGB))
+
+
+    for i, out_tmp in enumerate(outputs):
+        cv2.imwrite('{}_{}.png'.format(out_path, i), out_tmp)
+
+    if len(outputs) > 0:   
+        yield ["生成完毕(Generation done)！", outputs_RGB]
+    else:
+        yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
 
 
 class Trainer:
@@ -326,7 +428,7 @@ class Trainer:
         
         # Check output model name
         if not output_model_name:
-            raise gr.Error('请指定产出模型的名称(Please specify the output model name)!')
+            raise gr.Error('请指定人物lora的名称(Please specify the character lora name)！')
         
         # Limit input Image
         if len(instance_images) > 20:
@@ -353,7 +455,7 @@ class Trainer:
         work_dir = f"/tmp/{uuid}/{base_model_path}/{output_model_name}"
 
         if os.path.exists(work_dir):
-            raise gr.Error("产出模型名称已存在。")
+            raise gr.Error("人物lora名称已存在。(This character lora name already exists.)")
 
         print("----------work_dir: ", work_dir)
         shutil.rmtree(work_dir, ignore_errors=True)
@@ -371,7 +473,9 @@ class Trainer:
                       work_dir=work_dir,
                       photo_num=len(instance_images))
 
-        message = f'训练已经完成!请切换至 [形象体验] 标签体验模型效果(Training done, please switch to the inference tab to generate photos.)'
+        message = '''<center><font size=4>训练已经完成！请切换至 [无限风格形象写真] 标签体验模型效果。</center>
+        
+        <center><font size=4>(Training done, please switch to the Infinite Style Portrait tab to generate photos.)</center>'''
         print(message)
         return message
 
@@ -455,6 +559,41 @@ def update_output_model(uuid, base_model_index):
 
     return gr.Radio.update(choices=folder_list)
 
+def update_output_model_inpaint(uuid, base_model_index):
+    # Check base model
+    if base_model_index == None:
+        raise gr.Error('请选择基模型(Please select the base model)！')
+
+    base_model_path = base_models[base_model_index]['model_id']
+    style_list = base_models[base_model_index]['style_list']
+
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            return "请登陆后使用! (Please login first)"
+        else:
+            uuid = 'qw'
+
+    folder_path = f"/tmp/{uuid}/{base_model_path}"
+    folder_list = ['不重绘该人物(Do not inpaint this character)']
+    if not os.path.exists(folder_path):
+        return gr.Radio.update(choices=[]), gr.Dropdown.update(choices=style_list)
+    else:
+        files = os.listdir(folder_path)
+        for file in files:
+            file_path = os.path.join(folder_path, file)
+            if os.path.isdir(folder_path):
+                file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
+                if os.path.exists(file_lora_path):
+                    folder_list.append(file)
+
+    return gr.Radio.update(choices=folder_list, value=folder_list[0]), gr.Radio.update(choices=folder_list, value=folder_list[0])
+
+def update_output_model_num(num_faces):
+    if num_faces == 1:
+        return gr.Radio.update(), gr.Radio.update(visible=False)
+    else:
+        return gr.Radio.update(), gr.Radio.update(visible=True)
+
 def upload_file(files, current_files):
     file_paths = [file_d['name'] for file_d in current_files] + [file.name for file in files]
     return file_paths
@@ -515,7 +654,7 @@ def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None
     if base_model_index is None:
         raise gr.Error('请选择基模型(Please select the base model)!')
     if user_model is None:
-        raise gr.Error('请选择用户模型(Please select the user model)!')    
+        raise gr.Error('请选择人物lora(Please select the character lora)!')    
     if lora_choice is None:
         raise gr.Error('请选择LoRa文件(Please select the LoRa file)!')
     if style_model is None and lora_choice == 'preset':
@@ -571,7 +710,7 @@ def train_input():
                     optional_styles = gr.Textbox(label="该基模型支持的风格(Styles supported by this base model.)", lines=3,
                                         value=optional_style, interactive=False)
                     
-                    output_model_name = gr.Textbox(label="产出模型名称(Output model name)", value='test', lines=1)
+                    output_model_name = gr.Textbox(label="人物lora名称(Character lora name)", value='person1', lines=1)
 
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
@@ -601,20 +740,20 @@ def train_input():
 
         with gr.Box():
             gr.Markdown('''
-            请等待训练完成, 请勿刷新或关闭页面。
-            
-            Please wait for the training to complete, do not refresh or close the page.
+            <center>请等待训练完成，请勿刷新或关闭页面。</center>
+
+            <center>(Please wait for the training to complete, do not refresh or close the page.)</center>
             ''')
             output_message = gr.Markdown()
         with gr.Box():
             gr.Markdown('''
-            碰到抓狂的错误或者计算资源紧张的情况下, 推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上进行体验。
-            
-            安装方法请参考: https://github.com/modelscope/facechain .
-            
-            If you are experiencing prolonged waiting time, you may try on [ModelScope NoteBook](https://modelscope.cn/my/mynotebook/preset) to prepare your dedicated environment.
-                        
-            You may refer to: https://github.com/modelscope/facechain for installation instruction.
+            碰到抓狂的错误或者计算资源紧张的情况下，推荐直接在[NoteBook](https://modelscope.cn/my/mynotebook/preset)上进行体验。
+
+            (If you are experiencing prolonged waiting time, you may try on [ModelScope NoteBook](https://modelscope.cn/my/mynotebook/preset) to prepare your dedicated environment.)
+
+            安装方法请参考：https://github.com/modelscope/facechain .
+
+            (You may refer to: https://github.com/modelscope/facechain for installation instruction.)
             ''')
         base_model_index.change(fn=update_optional_styles,
                                 inputs=[base_model_index],
@@ -646,14 +785,14 @@ def inference_input():
                 
                 with gr.Row():
                     with gr.Column(scale=3):
-                        user_model = gr.Radio(label="产出模型(Output Model list)", choices=[], type="value")
+                        user_model = gr.Radio(label="人物lora列表(Character lora list)", choices=[], type="value")
                     with gr.Column(scale=1):
-                        update_button = gr.Button('刷新产出模型(Update output model list)')
+                        update_button = gr.Button('刷新人物lora列表(Update character lora list)')
 
                 style_model_list = []
                 for style in styles:
                     style_model_list.append(style['name'])
-                style_model = gr.Dropdown(choices=style_model_list, type="index", value=style_model_list[0], 
+                style_model = gr.Dropdown(choices=style_model_list, type="index",
                                           label="风格模型(Style model)", visible=False)
                 
                 prompts = []
@@ -662,7 +801,7 @@ def inference_input():
                 for style in styles[1:]:
                     prompts.append(style['cloth_name'])
 
-                cloth_style = gr.Radio(choices=prompts, value=cloth_prompt[0]['name'],
+                cloth_style = gr.Radio(choices=prompts,
                                        type="index", label="服装风格(Cloth style)", visible=False)
                 pmodels = []
                 for pmodel in pose_models:
@@ -757,14 +896,85 @@ def inference_input():
 
     return demo
 
+def inference_inpaint():
+    preset_template = glob(os.path.join('resources/inpaint_template/*.jpg'))
+    with gr.Blocks() as demo:
+        uuid = gr.Text(label="modelscope_uuid", visible=False)
+        # Initialize the GUI
+
+        with gr.Row():
+            with gr.Column():
+                with gr.Box():
+                    gr.Markdown('请选择或上传模板图片(Please select or upload a template image)：')
+                    template_image_list = [[i] for idx, i in enumerate(preset_template)]
+                    print(template_image_list)
+                    template_image = gr.Image(source='upload', type='filepath', label='模板图片(Template image)')
+                    gr.Examples(template_image_list, inputs=[template_image], label='模板示例(Template examples)')
+
+                base_model_list = []
+                for base_model in base_models:
+                    base_model_list.append(base_model['name'])
+
+                base_model_index = gr.Radio(
+                    label="基模型选择(Base model list)",
+                    choices=base_model_list,
+                    type="index"
+                )
+
+                num_faces = gr.Number(minimum=1, maximum=2, value=1, precision=1, label='照片中的人脸数目(Number of Faces)')
+                with gr.Row():
+                    with gr.Column(scale=3):
+                        user_model_A = gr.Radio(label="人物lora A(Character lora A)", choices=[], type="value")
+                        user_model_B = gr.Radio(label="人物lora B(Character lora B)", choices=[], type="value", visible=False)
+                    with gr.Column(scale=1):
+                        update_button = gr.Button('刷新人物lora列表(Update character lora list)')
+
+        display_button = gr.Button('开始生成(Start Generation)')
+        with gr.Box():
+            infer_progress = gr.Textbox(
+                label="生成(Generation Progress)",
+                value="No task currently",
+                interactive=False
+            )
+        with gr.Box():
+            gr.Markdown('生成结果(Generated Results)')
+            output_images = gr.Gallery(
+                label='输出(Output)',
+                show_label=False
+            ).style(columns=3, rows=2, height=600, object_fit="contain")
+
+        base_model_index.change(fn=update_output_model_inpaint,
+                                inputs=[uuid, base_model_index],
+                                outputs=[user_model_A, user_model_B],
+                                queue=False)
+
+        update_button.click(fn=update_output_model_inpaint,
+                            inputs=[uuid, base_model_index],
+                            outputs=[user_model_A, user_model_B],
+                            queue=False)
+
+        num_faces.change(fn=update_output_model_num,
+                                inputs=[num_faces],
+                                outputs=[user_model_A, user_model_B],
+                                queue=False)
+
+        display_button.click(
+            fn=launch_pipeline_inpaint,
+            inputs=[uuid, base_model_index, user_model_A, user_model_B, num_faces, template_image],
+            outputs=[infer_progress, output_images]
+        )
+
+    return demo
 
 with gr.Blocks(css='style.css') as demo:
     gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale}, [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
     with gr.Tabs():
-        with gr.TabItem('\N{rocket}形象定制(Train)'):
+        with gr.TabItem('\N{rocket}人物形象训练(Train Digital Twin)'):
             train_input()
-        with gr.TabItem('\N{party popper}形象体验(Inference)'):
+        with gr.TabItem('\N{party popper}无限风格形象写真(Infinite Style Portrait)'):
             inference_input()
+        with gr.TabItem('\N{party popper}固定模板形象写真(Fixed Templates Portrait)'):
+            inference_inpaint()
 
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')
