@@ -428,7 +428,7 @@ class Trainer:
         
         # Check output model name
         if not output_model_name:
-            raise gr.Error('请指定人物lora的名称(Please specify the character lora name)！')
+            raise gr.Error('请指定人物lora的名称(Please specify the character LoRA name)！')
         
         # Limit input Image
         if len(instance_images) > 20:
@@ -725,17 +725,20 @@ def train_input():
                                          queue=False)
                     
                     gr.Markdown('''
+                        使用说明（Instructions）：
+                        ''')
+                    gr.Markdown('''
                         - Step 1. 上传计划训练的图片, 3~10张头肩照(注意: 请避免图片中出现多人脸、脸部遮挡等情况, 否则可能导致效果异常)
                         - Step 2. 点击 [开始训练] , 启动形象定制化训练, 约需15分钟, 请耐心等待～
-                        - Step 3. 切换至 [形象体验] , 生成你的风格照片
+                        - Step 3. 切换至 [形象写真] , 生成你的风格照片<br/><br/>
                         ''')
                     gr.Markdown('''
                         - Step 1. Upload 3-10 headshot photos of yours (Note: avoid photos with multiple faces or face obstruction, which may lead to non-ideal result).
                         - Step 2. Click [Train] to start training for customizing your Digital-Twin, this may take up-to 15 mins.
-                        - Step 3. Switch to [Inference] Tab to generate stylized photos.
+                        - Step 3. Switch to [Portrait] Tab to generate stylized photos.
                         ''')
 
-        run_button = gr.Button('开始训练(等待上传图片加载显示出来再点, 否则会报错)'
+        run_button = gr.Button('开始训练(等待上传图片加载显示出来再点, 否则会报错)... '
                                'Start training (please wait until photo(s) fully uploaded, otherwise it may result in training failure)')
 
         with gr.Box():
@@ -784,10 +787,10 @@ def inference_input():
                 base_model_index = gr.Radio(label="基模型选择(Base model list)", choices=base_model_list, type="index")
                 
                 with gr.Row():
-                    with gr.Column(scale=3):
-                        user_model = gr.Radio(label="人物lora列表(Character lora list)", choices=[], type="value")
+                    with gr.Column(scale=2):
+                        user_model = gr.Radio(label="人物LoRA列表(Character LoRAs)", choices=[], type="value")
                     with gr.Column(scale=1):
-                        update_button = gr.Button('刷新人物lora列表(Update character lora list)')
+                        update_button = gr.Button('刷新人物LoRA列表(Refresh character LoRAs)')
 
                 style_model_list = []
                 for style in styles:
@@ -842,9 +845,10 @@ def inference_input():
                     num_images = gr.Number(
                         label='生成图片数量(Number of photos)', value=6, precision=1, minimum=1, maximum=6)
                     gr.Markdown('''
-                    注意: 最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
-                         如果使用自定义LoRA文件, 需要上传LoRA文件, 否则默认使用风格模型的LoRA文件。(LoRA file is required if you are using custom LoRA file, otherwise the default LoRA file of the style model will be used.)
-                         使用自定义LoRA文件时, 需要手动再prompt中输入提示词, 否则可能不能正常触发LoRA文件中的风格。(You need to manually input the prompt when using custom LoRA file, otherwise the style in the LoRA file may not be triggered.)
+                    注意: 
+                    - 最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
+                    - 可上传在定义LoRA文件使用, 否则默认使用风格模型的LoRA。(You may upload custome LoRA file, otherwise the LoRA file of the style model will be used by deault.)
+                    - 使用自定义LoRA文件需手动输入promopt, 否则可能无法正常触发LoRA文件风格。(You shall provide prompt when using custom LoRA, otherwise desired LoRA style may not be triggered.)
                         ''')
 
         with gr.Row():
@@ -923,11 +927,11 @@ def inference_inpaint():
 
                 num_faces = gr.Number(minimum=1, maximum=2, value=1, precision=1, label='照片中的人脸数目(Number of Faces)')
                 with gr.Row():
-                    with gr.Column(scale=3):
-                        user_model_A = gr.Radio(label="人物lora A(Character lora A)", choices=[], type="value")
-                        user_model_B = gr.Radio(label="人物lora B(Character lora B)", choices=[], type="value", visible=False)
+                    with gr.Column(scale=2):
+                        user_model_A = gr.Radio(label="人物LoRA A(Character LoRA A)", choices=[], type="value")
+                        user_model_B = gr.Radio(label="人物LoRA B(Character LoRA B)", choices=[], type="value", visible=False)
                     with gr.Column(scale=1):
-                        update_button = gr.Button('刷新人物lora列表(Update character lora list)')
+                        update_button = gr.Button('刷新人物LoRA列表(Refresh character LoRAs)')
 
         display_button = gr.Button('开始生成(Start Generation)')
         with gr.Box():
@@ -967,7 +971,7 @@ def inference_inpaint():
     return demo
 
 with gr.Blocks(css='style.css') as demo:
-    gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale}, [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
+    gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale},   [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
     with gr.Tabs():
         with gr.TabItem('\N{rocket}人物形象训练(Train Digital Twin)'):
             train_input()
