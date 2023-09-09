@@ -99,7 +99,14 @@ styles = [
      'multiplier_human': 0.95,
      'cloth_name': '欧式田野风(european fields)',
      'add_prompt_style': '(masterpiece, ultra high res face, face ultra zoom, highres, best quality, ultra detailed, detailed background, cinematic lighting, portrait:1.2), sfw, focused, edgEV, wearing edgEV_vintage dress, field, natural lighting, windy hair, gentle hair, clean'},
-    
+    {'name': '生日气球风(birthday balloon)',
+     'model_id': /mnt/workspace/facechain/facechain/balloon_loral ,
+     'revision': 'v1.0.0',
+     'bin_file': 'balloon.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.95,
+     'cloth_name': '生日气球风(birthday balloon)',
+     'add_prompt_style': 'Balloon, Best quality, 1girl, <lora:Balloon_v01:0.8>'},
 ]
 
 pose_models = [
