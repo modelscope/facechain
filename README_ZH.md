@@ -18,8 +18,8 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 <br>
 
 ![image](resources/git_cover_CH.jpg)
-![image](resources/git_cover_1.png)
-![image](resources/git_cover_2.png)
+![image](resources/git_cover_1.jpg)
+![image](resources/git_cover_2.jpg)
 
 
 # News
