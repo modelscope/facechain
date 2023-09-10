@@ -25,6 +25,13 @@ def max_retries(max_attempts):
 def snapshot_download(*args, **kwargs):
     return ms_snapshot_download(*args, **kwargs)
 
-#
-# def pre_download_models():
-#     snapshot_download('damo/face_chain_control_model', revision='v1.0.1')
+
+def pre_download_models():
+    snapshot_download('ly261666/cv_portrait_model', revision='v4.0')
+    snapshot_download('YorickHe/majicmixRealistic_v6', revision='v1.0.0')
+    snapshot_download('damo/face_chain_control_model', revision='v1.0.1')
+    snapshot_download('ly261666/cv_wanx_style_model', revision='v1.0.3')
+    snapshot_download('damo/face_chain_control_model', revision='v1.0.1')
+    snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo', revision='v1.0.0')
+    snapshot_download('Cherrytest/rot_bgr', revision='v1.0.0')
+    snapshot_download('damo/face_frombase_c4', revision='v1.0.0')
