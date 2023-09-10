@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['生日气球风(birthday balloon)', '冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional Chinese Style)', '壮族服装风(zhuangzu)', '欧式田野风(european fields)']},
+    'style_list': ['生日气球风(birthday balloon)', '林中麋鹿', '冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional Chinese Style)', '壮族服装风(zhuangzu)', '欧式田野风(european fields)']},
 ]
 
 cloth_prompt = [
@@ -42,7 +42,15 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
      'cloth_name': '生日气球风(birthday balloon)',
-     'add_prompt_style': 'Balloon, Best quality, 1girl, <lora:Balloon_v01:0.8>'},
+     'add_prompt_style': 'Balloon, outdoor photo, Best quality, 1girl, slim body, solo, <lora:Balloon_v01:0.8>, <lora:outdoor photo_20230819231754:0.6> --ar 3:4'},
+    {'name': '林中麋鹿',
+     'model_id': '/mnt/workspace/facechain/facechain/deer_loral',
+     'revision': 'v1',
+     'bin_file': 'deer.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.95,
+     'cloth_name': '林中麋鹿',
+     'add_prompt_style': '1girl, dress, slim body, long hair, deer, nature, tree, white dress, forest, animal, antlers, flower, realistic, solo<lora:森林麋鹿:0.6> <lora:原生:0.65>'},
      {'name': '冬季汉服(Chinese winter hanfu)',
      'model_id': 'YorickHe/Winter_hanfu_lora',
      'revision': 'v1.0.0',
