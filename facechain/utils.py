@@ -24,3 +24,7 @@ def max_retries(max_attempts):
 @max_retries(3)
 def snapshot_download(*args, **kwargs):
     return ms_snapshot_download(*args, **kwargs)
+
+#
+# def pre_download_models():
+#     snapshot_download('damo/face_chain_control_model', revision='v1.0.1')

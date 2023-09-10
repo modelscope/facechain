@@ -343,7 +343,7 @@ def launch_pipeline_inpaint(uuid,
     strength = 0.65
     output_img_size = 512
 
-    model_dir = snapshot_download('ly261666/cv_wanx_style_model', revision='v1.0.0')
+    model_dir = snapshot_download('ly261666/cv_wanx_style_model', revision='v1.0.3')
     style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_frommajicreal.safetensors')
 
     pos_prompt = 'raw photo, masterpiece, chinese, simple background, high-class pure color background, solo, medium shot, high detail face, photorealistic, best quality, wearing T-shirt'
