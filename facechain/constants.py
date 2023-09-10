@@ -50,7 +50,7 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
      'cloth_name': '林中麋鹿',
-     'add_prompt_style': '1girl, dress, slim body, long hair, deer, nature, tree, white dress, forest, animal, antlers, flower, realistic, solo<lora:森林麋鹿:0.6> <lora:原生:0.65>'},
+     'add_prompt_style': '1girl, dress, slim body, long hair, single deer, nature, tree, white dress, forest, animal, antlers, flower, realistic, solo<lora:森林麋鹿:0.6> <lora:原生:0.65>'},
      {'name': '冬季汉服(Chinese winter hanfu)',
      'model_id': 'YorickHe/Winter_hanfu_lora',
      'revision': 'v1.0.0',
