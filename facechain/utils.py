@@ -1,7 +1,7 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
 import time
-from modelscope import snapshot_download
+from modelscope import snapshot_download as ms_snapshot_download
 
 
 def max_retries(max_attempts):
@@ -23,4 +23,4 @@ def max_retries(max_attempts):
 
 @max_retries(3)
 def snapshot_download(*args, **kwargs):
-    return snapshot_download(*args, **kwargs)
+    return ms_snapshot_download(*args, **kwargs)
