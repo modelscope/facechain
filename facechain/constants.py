@@ -37,7 +37,7 @@ styles = [
      'add_prompt_style': 'red, hanfu, tiara, crown'},
     {'name': '生日气球风(birthday balloon)',
      'model_id': '/mnt/workspace/facechain/facechain/balloon_loral' ,
-     'revision': 'v1.0.0',
+     'revision': 'v1',
      'bin_file': 'balloon.safetensors',
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,

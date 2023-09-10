@@ -50,9 +50,7 @@ else:
     style_model_path = os.path.join(model_dir, style['bin_file'])
     pos_prompt = generate_pos_prompt(style['name'], style['add_prompt_style'])  # style has its own prompt
 
-        #model_dir = snapshot_download(model_id, revision=style['revision'])
-    #style_model_path = os.path.join(model_dir, style['bin_file'])
-    #pos_prompt = generate_pos_prompt(style['name'], style['add_prompt_style'])  # style has its own prompt"""
+
     
 if not use_pose_model:
     pose_model_path = None
