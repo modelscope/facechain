@@ -1,0 +1,26 @@
+# Copyright (c) Alibaba, Inc. and its affiliates.
+
+import time
+from modelscope import snapshot_download
+
+
+def max_retries(max_attempts):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            attempts = 0
+            while attempts < max_attempts:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    attempts += 1
+                    print(f"Retry {attempts}/{max_attempts}: {e}")
+                    # wait 1 sec
+                    time.sleep(1)
+            raise Exception(f"Max retries ({max_attempts}) exceeded.")
+        return wrapper
+    return decorator
+
+
+@max_retries(3)
+def snapshot_download(*args, **kwargs):
+    return snapshot_download(*args, **kwargs)

@@ -13,7 +13,7 @@ import torch
 from glob import glob
 import platform
 import subprocess
-from modelscope import snapshot_download
+from facechain.utils import snapshot_download
 
 from facechain.inference import preprocess_pose, GenPortrait
 from facechain.inference_ipt import GenPortrait_ipt_new
