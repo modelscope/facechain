@@ -11,7 +11,7 @@ from skimage import transform
 from controlnet_aux import OpenposeDetector
 from diffusers import StableDiffusionPipeline, StableDiffusionControlNetPipeline, \
     StableDiffusionControlNetInpaintPipeline, ControlNetModel, UniPCMultistepScheduler
-from modelscope import snapshot_download
+from facechain.utils import snapshot_download
 from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
