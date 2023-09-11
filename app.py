@@ -16,7 +16,7 @@ import subprocess
 from facechain.utils import snapshot_download
 
 from facechain.inference import preprocess_pose, GenPortrait
-from facechain.inference_ipt import GenPortrait_ipt_new
+from facechain.inference_inpaint import GenPortrait_inpaint
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt, \
     pose_models, pose_examples, base_models
@@ -371,7 +371,7 @@ def launch_pipeline_inpaint(uuid,
     use_post_process = True
     use_stylization = False
 
-    gen_portrait = GenPortrait_ipt_new(in_path, strength, num_faces,
+    gen_portrait = GenPortrait_inpaint(in_path, strength, num_faces,
                                     pos_prompt, neg_prompt, style_model_path,
                                     multiplier_style, multiplier_human, use_main_model,
                                     use_face_swap, use_post_process,
