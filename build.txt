@@ -2,6 +2,10 @@ import os
 os.chdir('/mnt/workspace/facechain')    # You may change to your own path
 print(os.getcwd())
 
+mkdir -p /tmp/qw/temp_lora
+cp /mnt/workspace/facechain/facechain/deer_loral/deer.safetensors /tmp/qw/temp_lora/
+
+!pip3 install -r requirements.txt
 !pip3 install gradio
 !pip3 install controlnet_aux==0.0.6
 !pip3 install mediapipe
