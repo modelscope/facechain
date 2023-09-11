@@ -3,7 +3,7 @@ import os
 
 from facechain.inference import GenPortrait
 import cv2
-from modelscope import snapshot_download
+from facechain.utils import snapshot_download
 from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt
 
 

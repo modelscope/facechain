@@ -53,10 +53,8 @@ from diffusers.optimization import get_scheduler
 from diffusers.utils import check_min_version, is_wandb_available
 from diffusers.utils.import_utils import is_xformers_available
 from huggingface_hub import create_repo, upload_folder
-from modelscope import snapshot_download
-from modelscope.outputs import OutputKeys
-from modelscope.pipelines import pipeline as modelscope_pipeline
-from modelscope.utils.constant import Tasks
+from facechain.utils import snapshot_download
+
 from packaging import version
 from PIL import Image
 from torchvision import transforms
