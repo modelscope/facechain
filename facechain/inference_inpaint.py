@@ -1,4 +1,5 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
+# Modified from the original implementation at https://github.com/modelscope/facechain/pull/104.
 import json
 import os
 import sys
