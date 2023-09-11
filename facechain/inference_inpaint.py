@@ -1,4 +1,5 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
+# Modified from the original implementation at https://github.com/modelscope/facechain/pull/104.
 import json
 import os
 import sys
@@ -11,7 +12,7 @@ from skimage import transform
 from controlnet_aux import OpenposeDetector
 from diffusers import StableDiffusionPipeline, StableDiffusionControlNetPipeline, \
     StableDiffusionControlNetInpaintPipeline, ControlNetModel, UniPCMultistepScheduler
-from modelscope import snapshot_download
+from facechain.utils import snapshot_download
 from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
@@ -669,7 +670,7 @@ def post_process_fn(use_post_process, swap_results_ori, selected_face, num_gen_i
         return np.array(swap_results_ori)
 
 
-class GenPortrait_ipt_new:
+class GenPortrait_inpaint:
     def __init__(self, inpaint_img, strength, num_faces,
                  pos_prompt, neg_prompt, style_model_path, multiplier_style, multiplier_human,
                  use_main_model=True, use_face_swap=True,

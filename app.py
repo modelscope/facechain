@@ -13,10 +13,10 @@ import torch
 from glob import glob
 import platform
 import subprocess
-from modelscope import snapshot_download
+from facechain.utils import snapshot_download
 
 from facechain.inference import preprocess_pose, GenPortrait
-from facechain.inference_ipt import GenPortrait_ipt_new
+from facechain.inference_inpaint import GenPortrait_inpaint
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, \
     pose_models, pose_examples, base_models
@@ -360,7 +360,7 @@ def launch_pipeline_inpaint(uuid,
     strength = 0.65
     output_img_size = 512
 
-    model_dir = snapshot_download('ly261666/cv_wanx_style_model', revision='v1.0.0')
+    model_dir = snapshot_download('ly261666/cv_wanx_style_model', revision='v1.0.3')
     style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_frommajicreal.safetensors')
 
     pos_prompt = 'raw photo, masterpiece, chinese, simple background, high-class pure color background, solo, medium shot, high detail face, photorealistic, best quality, wearing T-shirt'
@@ -393,7 +393,7 @@ def launch_pipeline_inpaint(uuid,
     use_post_process = True
     use_stylization = False
 
-    gen_portrait = GenPortrait_ipt_new(in_path, strength, num_faces,
+    gen_portrait = GenPortrait_inpaint(in_path, strength, num_faces,
                                     pos_prompt, neg_prompt, style_model_path,
                                     multiplier_style, multiplier_human, use_main_model,
                                     use_face_swap, use_post_process,
