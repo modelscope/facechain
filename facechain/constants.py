@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional Chinese Style)', '壮族服装风(zhuangzu)', '欧式田野风(european fields)', '林中麋鹿']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional Chinese Style)', '壮族服装风(zhuangzu)', '欧式田野风(european fields)', '麋鹿精灵风']},
 ]
 
 cloth_prompt = [
@@ -35,13 +35,13 @@ styles = [
      'multiplier_human': 0.95,
      'cloth_name': '汉服风(hanfu)',
      'add_prompt_style': 'red, hanfu, tiara, crown'},
-    {'name': '鹿角精灵风',
+    {'name': '麋鹿精灵风',
      'model_id': '/mnt/workspace/facechain/facechain/deer_loral',
      'revision': 'v1',
      'bin_file': 'deer.safetensors',
      'multiplier_style': 0.4,
      'multiplier_human': 0.95,
-     'cloth_name': '鹿角精灵风',
+     'cloth_name': '麋鹿精灵风',
      'add_prompt_style': '1girl with thin antlers and Moose ear,  hind synergy, white dress, slim body, long hair, high key, bright sunshine, outdoor photo, spring, nature, tree, happy atmosphere ,  forest, pink maple leaves,  animal, white elk, flower, realistic'},
      {'name': '冬季汉服(Chinese winter hanfu)',
      'model_id': 'YorickHe/Winter_hanfu_lora',
