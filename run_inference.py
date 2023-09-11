@@ -36,8 +36,7 @@ base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 output_dir = './generated'
 use_style = True
-# style = styles[2] # balloon_loral
-style = styles[3] # deer_loral
+style = styles[2] # balloon_loral
 model_id = style['model_id']
 
 if not use_style:
