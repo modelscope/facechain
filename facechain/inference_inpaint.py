@@ -1,4 +1,5 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
+# Modified from the original implementation at https://github.com/modelscope/facechain/pull/104.
 import json
 import os
 import sys
@@ -669,7 +670,7 @@ def post_process_fn(use_post_process, swap_results_ori, selected_face, num_gen_i
         return np.array(swap_results_ori)
 
 
-class GenPortrait_ipt_new:
+class GenPortrait_inpaint:
     def __init__(self, inpaint_img, strength, num_faces,
                  pos_prompt, neg_prompt, style_model_path, multiplier_style, multiplier_human,
                  use_main_model=True, use_face_swap=True,
