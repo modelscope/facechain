@@ -11,7 +11,7 @@ from skimage import transform
 from controlnet_aux import OpenposeDetector
 from diffusers import StableDiffusionPipeline, StableDiffusionControlNetPipeline, \
     StableDiffusionControlNetInpaintPipeline, ControlNetModel, UniPCMultistepScheduler
-from modelscope import snapshot_download
+from facechain.utils import snapshot_download
 from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
@@ -103,7 +103,7 @@ def crop_and_paste(Source_image, Source_image_mask, Target_image, Source_Five_Po
     return output, mask
 
 
-def segment(segmentation_pipeline, img, ksize=0, eyeh=0, ksize1=0, include_neck=False, warp_mask=None):
+def segment(segmentation_pipeline, img, ksize=0, eyeh=0, ksize1=0, include_neck=False, warp_mask=None, return_human=False):
     if True:
         result = segmentation_pipeline(img)
         masks = result['masks']
@@ -160,7 +160,11 @@ def segment(segmentation_pipeline, img, ksize=0, eyeh=0, ksize1=0, include_neck=
         if include_neck:
             soft_mask = np.clip(soft_mask + mask_neck, 0, 1)
 
-    return soft_mask
+    if return_human:  
+        mask_human = cv2.GaussianBlur(mask_human, (21, 21), 0) * mask_human
+        return soft_mask, mask_human
+    else:
+        return soft_mask
 
 
 def crop_bottom(pil_file, width):
@@ -321,13 +325,14 @@ def main_diffusion_inference_inpaint(inpaint_image, strength, output_img_size, p
     pipe = pipe.to("cuda")
 
     images_human = []
+    images_auto = []
     inpaint_bbox, inpaint_keypoints = call_face_crop(det_pipeline, inpaint_im, 1.1)
     eye_height = int((inpaint_keypoints[0, 1] + inpaint_keypoints[1, 1]) / 2)
     canny_image = cv2.Canny(np.array(inpaint_im, np.uint8), 100, 200)[:, :, None]
     mask = segment(segmentation_pipeline, inpaint_im, ksize=0.05, eyeh=eye_height)
     canny_image = (canny_image * (1.0 - mask[:, :, None])).astype(np.uint8)
     canny_image = Image.fromarray(np.concatenate([canny_image, canny_image, canny_image], axis=2))
-    canny_image.save('canny.png')
+    # canny_image.save('canny.png')
     for i in range(1):
         image_face = swap_results[i]
         image_face = Image.fromarray(image_face[:, :, ::-1])
@@ -340,31 +345,48 @@ def main_diffusion_inference_inpaint(inpaint_image, strength, output_img_size, p
         replaced_input_image, warp_mask = crop_and_paste(image_face, face_mask, inpaint_im, face_keypoints,
                                                          inpaint_keypoints, face_bbox)
         warp_mask = 1.0 - warp_mask
-        cv2.imwrite('tmp_{}.png'.format(i), replaced_input_image[:, :, ::-1])
+        # cv2.imwrite('tmp_{}.png'.format(i), replaced_input_image[:, :, ::-1])
 
         openpose_image = openpose(np.array(replaced_input_image * warp_mask, np.uint8), include_hand=True,
                                   include_body=False, include_face=True)
-        openpose_image.save('openpose_{}.png'.format(i))
+        # openpose_image.save('openpose_{}.png'.format(i))
         read_control = [openpose_image, canny_image]
-        inpaint_mask = segment(segmentation_pipeline, inpaint_im, ksize=0.1, ksize1=0.06, eyeh=eye_height, include_neck=False,
-                               warp_mask=warp_mask)
+        inpaint_mask, human_mask = segment(segmentation_pipeline, inpaint_im, ksize=0.1, ksize1=0.06, eyeh=eye_height, include_neck=False,
+                               warp_mask=warp_mask, return_human=True)
         inpaint_with_mask = ((1.0 - inpaint_mask[:,:,None]) * np.array(inpaint_im))[:,:,::-1]
-        cv2.imwrite('inpaint_with_mask_{}.png'.format(i), inpaint_with_mask)
+        # cv2.imwrite('inpaint_with_mask_{}.png'.format(i), inpaint_with_mask)
         print('Finishing segmenting images.')
         images_human.extend(img2img_multicontrol(inpaint_im, read_control, [1.0, 0.2], pipe, inpaint_mask,
                                                  trigger_style + add_prompt_style + pos_prompt, neg_prompt,
                                                  strength=strength))
+        images_auto.extend(img2img_multicontrol(inpaint_im, read_control, [1.0, 0.2], pipe, np.zeros_like(inpaint_mask),
+                                                 trigger_style + add_prompt_style + pos_prompt, neg_prompt,
+                                                 strength=0.025))
+    
+        edge_add = np.array(inpaint_im).astype(np.int16) - np.array(images_auto[i]).astype(np.int16)
+        edge_add = edge_add * (1 - human_mask[:,:,None])
+        images_human[i] = Image.fromarray((np.clip(np.array(images_human[i]).astype(np.int16) + edge_add.astype(np.int16), 0, 255)).astype(np.uint8))
+    
     images_rst = []
-    for im in images_human:
+    
+    for i in range(len(images_human)):
+        im = images_human[i]
         canny_image = cv2.Canny(np.array(im, np.uint8), 100, 200)[:, :, None]
         canny_image = Image.fromarray(np.concatenate([canny_image, canny_image, canny_image], axis=2))
         openpose_image = openpose(np.array(im, np.uint8), include_hand=True, include_face=True)
         read_control = [openpose_image, canny_image]
-        inpaint_mask = segment(segmentation_pipeline, images_human[i], ksize=0.02)
+        inpaint_mask, human_mask = segment(segmentation_pipeline, images_human[i], ksize=0.02, return_human=True)
         print('Finishing segmenting images.')
         image_rst = img2img_multicontrol(im, read_control, [0.8, 0.8], pipe, inpaint_mask,
                                          trigger_style + add_prompt_style + pos_prompt, neg_prompt, strength=0.1,
                                          num=1)[0]
+        image_auto = img2img_multicontrol(im, read_control, [0.8, 0.8], pipe, np.zeros_like(inpaint_mask),
+                                         trigger_style + add_prompt_style + pos_prompt, neg_prompt, strength=0.025,
+                                         num=1)[0]
+        edge_add = np.array(im).astype(np.int16) - np.array(image_auto).astype(np.int16)
+        edge_add = edge_add * (1 - human_mask[:,:,None])
+        image_rst = Image.fromarray((np.clip(np.array(image_rst).astype(np.int16) + edge_add.astype(np.int16), 0, 255)).astype(np.uint8))
+        
         images_rst.append(image_rst)
 
     for i in range(1):
@@ -472,7 +494,8 @@ def main_diffusion_inference_inpaint_multi(inpaint_images, strength, output_img_
     pipe = merge_lora(pipe, lora_model_path, multiplier_human, from_safetensor=False)
     pipe = pipe.to("cuda")
 
-    images_human = []    
+    images_human = []  
+    images_auto = []
     for i in range(1):
         inpaint_im = inpaint_images[i]
         inpaint_bbox, inpaint_keypoints = call_face_crop(det_pipeline, inpaint_im, 1.1)
@@ -499,25 +522,42 @@ def main_diffusion_inference_inpaint_multi(inpaint_images, strength, output_img_
                                   include_body=False, include_face=True)
         # openpose_image.save('openpose_{}.png'.format(i))
         read_control = [openpose_image, canny_image]
-        inpaint_mask = segment(segmentation_pipeline, inpaint_im, ksize=0.1, ksize1=0.06, eyeh=eye_height, include_neck=False,
-                               warp_mask=warp_mask)
+        inpaint_mask, human_mask = segment(segmentation_pipeline, inpaint_im, ksize=0.1, ksize1=0.06, eyeh=eye_height, include_neck=False,
+                               warp_mask=warp_mask, return_human=True)
         inpaint_with_mask = ((1.0 - inpaint_mask[:,:,None]) * np.array(inpaint_im))[:,:,::-1]
         # cv2.imwrite('inpaint_with_mask_{}.png'.format(i), inpaint_with_mask)
         print('Finishing segmenting images.')
         images_human.extend(img2img_multicontrol(inpaint_im, read_control, [1.0, 0.2], pipe, inpaint_mask,
                                                  trigger_style + add_prompt_style + pos_prompt, neg_prompt,
                                                  strength=strength))
+        images_auto.extend(img2img_multicontrol(inpaint_im, read_control, [1.0, 0.2], pipe, np.zeros_like(inpaint_mask),
+                                                 trigger_style + add_prompt_style + pos_prompt, neg_prompt,
+                                                 strength=0.025))
+    
+        edge_add = np.array(inpaint_im).astype(np.int16) - np.array(images_auto[i]).astype(np.int16)
+        edge_add = edge_add * (1 - human_mask[:,:,None])
+        images_human[i] = Image.fromarray((np.clip(np.array(images_human[i]).astype(np.int16) + edge_add.astype(np.int16), 0, 255)).astype(np.uint8))
+        
+    
     images_rst = []
-    for im in images_human:
+    for i in range(len(images_human)):
+        im = images_human[i]
         canny_image = cv2.Canny(np.array(im, np.uint8), 100, 200)[:, :, None]
         canny_image = Image.fromarray(np.concatenate([canny_image, canny_image, canny_image], axis=2))
         openpose_image = openpose(np.array(im, np.uint8), include_hand=True, include_face=True)
         read_control = [openpose_image, canny_image]
-        inpaint_mask = segment(segmentation_pipeline, images_human[i], ksize=0.02)
+        inpaint_mask, human_mask = segment(segmentation_pipeline, images_human[i], ksize=0.02, return_human=True)
         print('Finishing segmenting images.')
-        image_rst = img2img_multicontrol(im, read_control, [0.8, 0.8], pipe, inpaint_mask,
+        image_rst = img2img_multicontrol(im, read_control, [0.8, 0.8], pipe, np.zeros_like(inpaint_mask),
                                          trigger_style + add_prompt_style + pos_prompt, neg_prompt, strength=0.1,
                                          num=1)[0]
+        image_auto = img2img_multicontrol(im, read_control, [0.8, 0.8], pipe, np.zeros_like(inpaint_mask),
+                                         trigger_style + add_prompt_style + pos_prompt, neg_prompt, strength=0.025,
+                                         num=1)[0]
+        edge_add = np.array(im).astype(np.int16) - np.array(image_auto).astype(np.int16)
+        edge_add = edge_add * (1 - human_mask[:,:,None])
+        image_rst = Image.fromarray((np.clip(np.array(image_rst).astype(np.int16) + edge_add.astype(np.int16), 0, 255)).astype(np.uint8))
+        
         images_rst.append(image_rst)
 
     for i in range(1):
@@ -760,7 +800,7 @@ class GenPortrait_ipt_new:
             
             inpaint_imgs = []
             for i in range(1):
-                inpaint_img_large = final_gen_results_new[i]
+                inpaint_img_large = final_gen_results_new[i] * mask_large
                 inpaint_img = np.pad(inpaint_img_large[cy-cropup:cy+cropbo, cx-crople:cx+cropri], ((cropl-cropup, cropl-cropbo), (cropl-crople, cropl-cropri), (0, 0)), 'constant')
                 inpaint_img = cv2.resize(inpaint_img, (512, 512)) 
                 inpaint_img = Image.fromarray(inpaint_img[:,:,::-1])
