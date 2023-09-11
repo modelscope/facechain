@@ -531,7 +531,7 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
         if lora_choice == 'preset':  
             return gr.Radio.update(choices=[]), \
                 gr.Gallery.update(value=[(item["img"], item["name"]) for item in sub_styles], visible=True), \
-                gr.Text.update(value=style_list[0]), \
+                gr.Text.update(value=style_list[0], visible=True), \
                 gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
         else:
             return gr.Radio.update(choices=[]), \
@@ -549,7 +549,7 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
     if lora_choice == 'preset':
         return gr.Radio.update(choices=folder_list), \
             gr.Gallery.update(value=[(item["img"], item["name"]) for item in sub_styles], visible=True), \
-            gr.Text.update(value=style_list[0]), \
+            gr.Text.update(value=style_list[0], visible=True), \
             gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
     else:
         return gr.Radio.update(choices=folder_list), \
@@ -732,7 +732,7 @@ def train_input():
                     
                     optional_style = '\n'.join(base_models[0]['style_list'])
                     
-                    optional_styles = gr.Textbox(label="该基模型支持的风格(Styles supported by this base model.)", lines=3,
+                    optional_styles = gr.Textbox(label="该基模型支持的风格(Styles supported by this base model.)", max_lines=5,
                                         value=optional_style, interactive=False)
                     
                     output_model_name = gr.Textbox(label="人物lora名称(Character lora name)", value='person1', lines=1)
@@ -818,7 +818,7 @@ def inference_input():
                         update_button = gr.Button('刷新人物LoRA列表(Refresh character LoRAs)')
 
                 with gr.Box():
-                    style_model = gr.Text(label='Selected', interactive=False, visible=False)
+                    style_model = gr.Text(label='请选择一种风格(Select a style from the pics below):', interactive=False)
                     gallery = gr.Gallery(value=[(item["img"], item["name"]) for item in styles],
                                         label="风格(Style)",
                                         allow_preview=False,
@@ -948,11 +948,10 @@ def inference_inpaint():
                 )
 
                 num_faces = gr.Number(minimum=1, maximum=2, value=1, precision=1, label='照片中的人脸数目(Number of Faces)')
-                gr.Markdown('''注意: 人物顺序从左至右。''')
                 with gr.Row():
                     with gr.Column(scale=2):
-                        user_model_A = gr.Radio(label="人物LoRA A(Character LoRA A)", choices=[], type="value")
-                        user_model_B = gr.Radio(label="人物LoRA B(Character LoRA B)", choices=[], type="value", visible=False)
+                        user_model_A = gr.Radio(label="第1个人物LoRA，按从左至右的顺序（1st Character LoRA，counting from left to right）", choices=[], type="value")
+                        user_model_B = gr.Radio(label="第2个人物LoRA，按从左至右的顺序（2nd Character LoRA，counting from left to right）", choices=[], type="value", visible=False)
                     with gr.Column(scale=1):
                         update_button = gr.Button('刷新人物LoRA列表(Refresh character LoRAs)')
 
