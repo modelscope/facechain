@@ -20,10 +20,12 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 ![image](resources/git_cover.jpg)
-![image](resources/git_cover_1.png)
+![image](resources/git_cover_1.jpg)
+![image](resources/git_cover_2.jpg)
 
 
 # News
+- High performance inpainting for single & double person, Simplify User Interface. (September 09th, 2023 UTC)
 - More Technology Details can be seen in [Paper](https://arxiv.org/abs/2308.14256). (August 30th, 2023 UTC)
 - Add validate & ensemble for Lora training, and InpaintTab(hide in gradio for now).  (August 28th, 2023 UTC)
 - Add pose control module.   (August 27th, 2023 UTC)
@@ -97,6 +99,7 @@ print(os.getcwd())
 
 !pip3 install gradio
 !pip3 install controlnet_aux==0.0.6
+!pip3 install python-slugify
 !python3 app.py
 
 
@@ -123,6 +126,7 @@ docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.ali
 # Step4: Install the gradio in the docker container:
 pip3 install gradio
 pip3 install controlnet_aux==0.0.6
+pip3 install python-slugify
 
 # Step5 clone facechain from github
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
@@ -160,6 +164,12 @@ python3 app.py
 ```
 
 **Note**: After the app service is successfully launched, go to the URL in the log, enter the "Image Customization" tab, click "Select Image to Upload", and choose at least one image with a face. Then, click "Start Training" to begin model training. After the training is completed, there will be corresponding displays in the log. Afterwards, switch to the "Image Experience" tab and click "Start Inference" to generate your own digital image.
+
+*Note* For windows user, you should pay attention to following steps:
+```shell
+1. reinstall  package pytorch and numpy compatible with tensorflow
+2. install mmcv-full by pip: pip3 install mmcv-full
+```
 
 
 ### 4. Colab notebook

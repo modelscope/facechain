@@ -3,12 +3,12 @@ import os
 
 from facechain.inference import GenPortrait
 import cv2
-from modelscope import snapshot_download
-from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, cloth_prompt
+from facechain.utils import snapshot_download
+from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, base_models
 
 
 def generate_pos_prompt(style_model, prompt_cloth):
-    if style_model == styles[0]['name'] or style_model is None:
+    if style_model in base_models[0]['style_list'][:-1] or style_model is None:
         pos_prompt = pos_prompt_with_cloth.format(prompt_cloth)
     else:
         matched = list(filter(lambda style: style_model == style['name'], styles))
@@ -35,13 +35,12 @@ multiplier_human = 0.85
 base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 output_dir = './generated'
-use_style = False
-style = styles[1]
+style = styles[0]
 model_id = style['model_id']
 
-if not use_style:
+if model_id == None:
     style_model_path = None
-    pos_prompt = generate_pos_prompt(styles[0]['name'], cloth_prompt[0]['prompt'])
+    pos_prompt = generate_pos_prompt(style['name'], style['add_prompt_style'])
 else:
     if os.path.exists(model_id):
         model_dir = model_id

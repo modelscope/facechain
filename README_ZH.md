@@ -18,10 +18,12 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 <br>
 
 ![image](resources/git_cover_CH.jpg)
-![image](resources/git_cover_1.png)
+![image](resources/git_cover_1.jpg)
+![image](resources/git_cover_2.jpg)
 
 
 # News
+- 高性能的(单人&双人)模版重绘功能，简化用户界面. (2023-09-09)
 - 更多技术细节可以在 [论文](https://arxiv.org/abs/2308.14256) 里查看. (2023-08-30)
 - 为Lora训练添加验证和根据face_id的融合，并添加InpaintTab（目前在Gradio界面上暂时默认隐藏）. (2023-08-28)
 - 增加姿势控制模块，可一键体验模版pose复刻. (2023-08-27)
@@ -98,6 +100,7 @@ print(os.getcwd())
 
 !pip3 install gradio
 !pip3 install controlnet_aux==0.0.6
+!pip3 install python-slugify
 !python3 app.py
 
 # Step4: 点击生成的URL即可访问web页面，上传照片开始训练和预测
@@ -120,11 +123,12 @@ docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu2
 
 # Step3: 拉起镜像运行
 docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0 /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
-(注意： 如果提示无法使用宿主机GPU的错误，可能需要安装nvidia-container-runtime, 参考：https://github.com/NVIDIA/nvidia-container-runtime)
+# (注意： 如果提示无法使用宿主机GPU的错误，可能需要安装nvidia-container-runtime, 参考：https://github.com/NVIDIA/nvidia-container-runtime)
 
 # Step4: 在容器中安装gradio
 pip3 install gradio
 pip3 install controlnet_aux==0.0.6
+pip3 install python-slugify
 
 # Step5: 获取facechain源代码
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
@@ -159,6 +163,12 @@ python3 app.py
 # CUDA_VISIBLE_DEVICES=0 python3 app.py
 
 # 最后点击log中生成的URL即可访问页面。
+```
+
+备注：如果是Windows环境还需要注意以下步骤：
+```shell
+# 1. 重新安装pytorch、与tensorflow匹配的numpy
+# 2. pip方式安装mmcv-full: pip3 install mmcv-full
 ```
 
 ### 4. colab运行
