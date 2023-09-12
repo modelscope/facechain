@@ -1,5 +1,5 @@
-neg_prompt = 'nsfw, paintings, sketches, (worst quality:2), (low quality:2) ' \
-             'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character'
+neg_prompt = '(nsfw:2), paintings, sketches, (worst quality:2), (low quality:2), ' \
+             'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character, bad hand'
 pos_prompt_with_cloth = 'raw photo, masterpiece, chinese, {}, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
 pos_prompt_with_style = '{}, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'
 
@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)']},
 ]
 
 styles = [
@@ -177,7 +177,14 @@ styles = [
      'multiplier_style': 0.55,
      'multiplier_human': 0.95,
      'add_prompt_style': '(masterpiece, ultra high res face, face ultra zoom, highres, best quality, ultra detailed, detailed background, cinematic lighting, portrait:1.2), sfw, focused, edgEV, wearing edgEV_vintage dress, field, natural lighting, windy hair, gentle hair, clean'},
-    
+    {'name': '雪山羽绒服风(Jacket in Snow Mountain)',
+     'img': './style_image/Jacket_in_Snow_Mountain.jpg',
+     'model_id': 'iotang/lora_testing',
+     'revision': 'v7',
+     'bin_file': 'puffy_jacket-1.0.safetensors',
+     'multiplier_style': 0.6,
+     'multiplier_human': 0.9,
+     'add_prompt_style': 'close-up, fur collar, ((jacket)), shirt, pants, winter, (bright sunny day, snow mountain, alpine slopes, snow), gyaru, fashion, trendy, gentle hair'},
 ]
 
 pose_models = [
