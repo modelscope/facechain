@@ -184,11 +184,60 @@ python3 app.py
 
 FaceChain supports direct training and inference in the python environment. Run the following command in the cloned folder to start training:
 
+There are currently two base models:
+
+```python
+base_models = [
+    {	
+        'name': 'leosamsMoonfilm_filmGrain20',
+        'model_id': 'ly261666/cv_portrait_model',
+        'revision': 'v2.0',
+        'sub_path': "film/film",
+        'style_list': ['工作服(Working suit)', 
+                       '盔甲风(Armor)',
+                       'T恤衫(T-shirt)',
+                       '汉服风(Hanfu)',
+                       '女士晚礼服(Gown)',
+                       '赛博朋克(Cybernetics punk)',
+                       '凤冠霞帔(Chinese traditional gorgeous suit)']
+    },
+    {
+        'name': 'MajicmixRealistic_v6',
+        'model_id': 'YorickHe/majicmixRealistic_v6',
+        'revision': 'v1.0.0',
+        'sub_path': "realistic",
+        'style_list': ['冬季汉服(Chinese winter hanfu)', 
+                       '校服风(School uniform)', 
+                       '婚纱风(Wedding dress)', 
+                       '夜景港风(Hong Kong night style)', 
+                       '雨夜(Rainy night)', 
+                       '模特风(Model style)', 
+                       '机车风(Motorcycle race style)', 
+                       '婚纱风-2(Wedding dress 2)',
+                       '拍立得风(Polaroid style)', 
+                       '仙女风(Fairy style)', 
+                       '古风(traditional chinese style)', 
+                       '壮族服装风(Zhuang style)', 
+                       '欧式田野风(European fields)']
+    },
+]
+```
+
+Different base models provide different styles. Switch base models and corresponding configuration information according to your needs, such as:
+
+- Use the base model: leosamsMoonfilm_filmGrain20
+
 ```shell
 PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./output"
 ```
 
-Parameters description:
+- Use the base model: MajicmixRealistic_v6
+
+```bash
+PYTHONPATH=. sh train_lora.sh "YorickHe/majicmixRealistic_v6" "v1.0.0" "realistic" "./imgs" "./processed" "./output"
+```
+
+Parameters description(The two base model configuration parameters are equally understood):
 
 ```text
 ly261666/cv_portrait_model: The stable diffusion base model of the ModelScope model hub, which will be used for training, no need to be changed.
@@ -204,37 +253,58 @@ Wait for 5-20 minutes to complete the training. Users can also adjust other trai
 When inferring, please edit the code in run_inference.py:
 
 ```python
-# Use depth control, default False, only effective when using pose control
+use_main_model = True
+use_face_swap = True
+# Enable pose processing, default is False
+use_post_process = False
+# Enable stylization, default is False
+use_stylization = False
+# Enable depth control, default is False, only effective when using pose control
 use_depth_control = False
-# Use pose control, default False
+# Enable pose control, default is False
 use_pose_model = False
-# The path of the image for pose control, only effective when using pose control
+# Path to pose control image, only effective when using pose control
 pose_image = 'poses/man/pose1.png'
-# Fill in the folder of the images after preprocessing above, it should be the same as during training
+# Specify the folder with pre-processed images, should be the same as during training
 processed_dir = './processed'
-# The number of images to generate in inference
+# Number of generated images during inference
 num_generate = 5
-# The stable diffusion base model used in training, no need to be changed
+# Base model
 base_model = 'ly261666/cv_portrait_model'
-# The version number of this base model, no need to be changed
+# Version of the base model
 revision = 'v2.0'
-# This base model may contains multiple subdirectories of different styles, currently we use film/film, no need to be changed
+multiplier_style = 0.25
+multiplier_human = 0.85
+# The base model includes multiple style subdirectories, and it uses the style model in the film/film directory, no need to modify
 base_model_sub_dir = 'film/film'
-# The folder where the model weights stored after training, it must be the same as during training
+# Folder where generated model weights are saved, should be the same as during training
 train_output_dir = './output'
-# Specify a folder to save the generated images, this parameter can be modified as needed
+# Specify a folder to save generated images, this parameter can be modified as needed
 output_dir = './generated'
-# Use Chinese style model, default False
-use_style = False
+# Raw photo folder for training and generation
+input_dir = './imgs'
+# Default style is Working Suit
+style = styles[0]
+model_id = style['model_id']
 ```
 
-Then execute:
+Then execute (if no parametric inference is specified, the default parameters in the run_inference.py file are used) :
 
 ```shell
 python run_inference.py
 ```
 
-You can find the generated personal digital image photos in the `output_dir`.
+The generated personal digital image photo can be found in 'output_dir'.
+
+Can also be executed (if you specify parametric inference, need to be consistent with training model, version number and other information) :
+
+```bash
+python run_inference.py --base_model "YorickHe/majicmixRealistic_v6" --revision "v1.0.0" --base_model_sub_dir "realistic" --input_dir "./imgs" --processed_dir "./processed" --output_dir "./generated"
+```
+
+The generated personal digital image photo can be found in 'output_dir'.
+
+
 
 # Algorithm Introduction
 

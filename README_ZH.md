@@ -185,11 +185,60 @@ python3 app.py
 
 如果不想启动服务，而是直接在命令行进行开发调试等工作，FaceChain也支持在python环境中直接运行脚本进行训练和推理。在克隆后的文件夹中直接运行如下命令来进行训练：
 
+目前有两种基模型：
+
+```python
+base_models = [
+    {	
+        'name': 'leosamsMoonfilm_filmGrain20',
+        'model_id': 'ly261666/cv_portrait_model',
+        'revision': 'v2.0',
+        'sub_path': "film/film",
+        'style_list': ['工作服(Working suit)', 
+                       '盔甲风(Armor)',
+                       'T恤衫(T-shirt)',
+                       '汉服风(Hanfu)',
+                       '女士晚礼服(Gown)',
+                       '赛博朋克(Cybernetics punk)',
+                       '凤冠霞帔(Chinese traditional gorgeous suit)']
+    },
+    {
+        'name': 'MajicmixRealistic_v6',
+        'model_id': 'YorickHe/majicmixRealistic_v6',
+        'revision': 'v1.0.0',
+        'sub_path': "realistic",
+        'style_list': ['冬季汉服(Chinese winter hanfu)', 
+                       '校服风(School uniform)', 
+                       '婚纱风(Wedding dress)', 
+                       '夜景港风(Hong Kong night style)', 
+                       '雨夜(Rainy night)', 
+                       '模特风(Model style)', 
+                       '机车风(Motorcycle race style)', 
+                       '婚纱风-2(Wedding dress 2)',
+                       '拍立得风(Polaroid style)', 
+                       '仙女风(Fairy style)', 
+                       '古风(traditional chinese style)', 
+                       '壮族服装风(Zhuang style)', 
+                       '欧式田野风(European fields)']
+    },
+]
+```
+
+不同的基模型提供的风格不一样，根据自己的需要切换基模型以及对应的配置信息，例如：
+
+- 使用基模型：leosamsMoonfilm_filmGrain20
+
 ```shell
 PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./output"
 ```
 
-参数含义：
+- 使用基模型：MajicmixRealistic_v6
+
+```bash
+PYTHONPATH=. sh train_lora.sh "YorickHe/majicmixRealistic_v6" "v1.0.0" "realistic" "./imgs" "./processed" "./output"
+```
+
+参数含义（两个基模型配置参数同理）：
 
 ```text
 ly261666/cv_portrait_model: ModelScope模型仓库的stable diffusion基模型，该模型会用于训练，可以不修改
@@ -205,6 +254,12 @@ film/film: 该基模型包含了多个不同风格的子目录，其中使用了
 进行推理时，请编辑run_inference.py中的代码:
 
 ```python
+use_main_model = True
+use_face_swap = True
+# 使用姿态处理，默认False
+use_post_process = False
+# 使用风格化，默认False
+use_stylization = False
 # 使用深度控制，默认False，仅在使用姿态控制时生效
 use_depth_control = False
 # 使用姿态控制，默认False
@@ -215,28 +270,42 @@ pose_image = 'poses/man/pose1.png'
 processed_dir = './processed'
 # 推理生成的图片数量
 num_generate = 5
-# 训练时使用的stable diffusion基模型，可以不修改
+# 基模型
 base_model = 'ly261666/cv_portrait_model'
-# 该基模型的版本号，可以不修改
+# 该基模型的版本号
 revision = 'v2.0'
+multiplier_style = 0.25
+multiplier_human = 0.85
 # 该基模型包含了多个不同风格的子目录，其中使用了film/film目录中的风格模型，可以不修改
 base_model_sub_dir = 'film/film'
 # 训练生成保存模型weights的文件夹，需要保证和训练时相同
 train_output_dir = './output'
 # 指定一个保存生成的图片的文件夹，本参数可以根据需要修改
 output_dir = './generated'
-# 使用凤冠霞帔风格模型，默认False
-use_style = False
+# 用来训练和生成的原始照片文件夹 
+input_dir = './imgs'
+# 默认使用工作服(Working suit)风格
+style = styles[0]
+model_id = style['model_id']
 ```
 
-之后执行：
+之后执行（若不指定参数推理，则使用run_inference.py文件中的默认参数）：
 
 ```python
-python run_inference.py
+python run_inference.py 
 ```
 
 即可在`output_dir`中找到生成的个人数字形象照片。
-                                             
+
+也可以执行（若指定参数推理，需要和训练时保持一致，模型，版本号等其他信息）：
+
+```bash
+python run_inference.py --base_model "YorickHe/majicmixRealistic_v6" --revision "v1.0.0" --base_model_sub_dir "realistic" --input_dir "./imgs" --processed_dir "./processed" --output_dir "./generated"
+```
+
+即可在`output_dir`中找到生成的个人数字形象照片。
+
+​                                             
 # 算法介绍
 
 ## 基本原理
