@@ -13,10 +13,29 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)']},
+     # zju_02 add here
+    'style_list': ['水墨1','水墨2','冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)']},
 ]
 
 styles = [
+    # zju_02 add here
+    {'name': '水墨1',   # 名称，要与前面style_list对应
+     'img': './style_image/shuimo.jpg',    # 在web界面上的展示图片，自行添加
+     'model_id': 'Tyytyy528/ShortSemester2023_zju_02',    # modelscope上的模型id
+     'revision': 'v2.0.1',    # 版本号，千万不能错！
+     'bin_file': 'shuimo.safetensors',    # LoRA模型文件
+     'multiplier_style': 0.3,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'inky cloth, dark hair, Splash ink'},    # 提示词，重要
+    {'name': '水墨2',   
+     'img': './style_image/shuimo.jpg',   
+     'model_id': 'Tyytyy528/ShortSemester2023_zju_02',    
+     'revision': 'v2.0.1',   
+     'bin_file': 'shuimo-000008.safetensors',   
+     'multiplier_style': 0.3,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'inky cloth, dark hair, Splash ink'},  
+    # end
     {'name': '工作服(Working suit)',
      'img': './style_image/Working_suit.jpg',
      'model_id': None,
