@@ -35,7 +35,7 @@ multiplier_human = 0.85
 base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 output_dir = './generated'
-style = styles[0]
+style = styles[1]
 model_id = style['model_id']
 
 if model_id == None:
@@ -45,7 +45,7 @@ else:
     if os.path.exists(model_id):
         model_dir = model_id
     else:
-        model_dir = snapshot_download(model_id, revision=style['revision'])
+        model_dir = '/mnt/workspace/facechain/wedding'#snapshot_download(model_id, revision=style['revision'])
     style_model_path = os.path.join(model_dir, style['bin_file'])
     pos_prompt = generate_pos_prompt(style['name'], style['add_prompt_style'])  # style has its own prompt
 
