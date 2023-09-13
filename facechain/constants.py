@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)']},
 ]
 
 styles = [
@@ -193,7 +193,30 @@ styles = [
      'multiplier_style': 0.45,
      'multiplier_human': 0.95,
      'add_prompt_style': 'white_cheongsam, photography, warm light, Chinese classical indoor scene, close-up, front view, earrings, hairpin, serenity, elegant, facing the camera with a smile, beautiful chinese embroidery, symmetrical short sleeves'},
-
+    {'name': '机械风(Mechanical)',
+     'img': './style_image/Mechnical.jpg',
+     'model_id': 'rewfueranro/Mechanical_lora',
+     'revision': 'v1.0.0',
+     'bin_file': 'reelmech1v2.safetensors',
+     'multiplier_style': 0.65,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'a full portrait of a futuristic dystopian city, colorful background, mechanical woman, looking to the camera, facing the camera,  best quality face, smooth face,  smooth hair,  hair on shoulders, no hair in front of face, cable electric wires,  masterpiece, top quality, official art, beautiful and aesthetic,  elegant, highly detailed, sharp focus,  cyberpunk, luminescence, transparency,  8K, stunning art, digital photography, painting, hyper-realistic art,  mechnical, expressive, delicate, Nikon D850, F/8, moody, perfect lighting, perfect shading, HDR, photorealistic: 1.6'},
+    {'name': '林中鹿女风(deer girl)',
+     'img': './style_image/Deer_girl.jpg',
+     'model_id': 'EnlZhao/deer_lora',
+     'revision': 'v3.2.0',
+     'bin_file': 'deer.safetensors',
+     'multiplier_style': 0.5,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'bust shot, an elk girl in pink forest, smile, keep eyes staring at the camera, detailed antlers, monochrome ears, white dress, slim body, long hair, natural lighting, warm sunlight, light pink atmosphere, outdoor photo, field of pink maple leaves, flower, realistic, best quality'},
+    {'name': '漫画风(cartoon)',
+     'img': './style_image/cartoon.jpg',
+     'model_id': 'rewfueranro/Mechanical_lora',
+     'revision': 'v1.0',
+     'bin_file': 'cartoon.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'Manhuanan,jewelry,1boy,<lora:Manhuanan_20230827182922-000009:1>,half body photo,white hair,at the coffee shop,blurred background,CG,UE5'},
 ]
 
 pose_models = [
