@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)','圣诞风(Christmas)']},
 ]
 
 styles = [
@@ -185,6 +185,14 @@ styles = [
      'multiplier_style': 0.6,
      'multiplier_human': 0.9,
      'add_prompt_style': 'close-up, fur collar, ((jacket)), shirt, pants, winter, (bright sunny day, snow mountain, alpine slopes, snow), gyaru, fashion, trendy, gentle hair'},
+     {'name': '圣诞风(Christmas)',
+     'img': './style_image/Jacket_in_Snow_Mountain.jpg',
+     'model_id': 'mowunian/christmas',
+     'revision': 'v1.0.0',
+     'bin_file': 'christmas.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'christmas, christmas tree, dress, sweater, snowing, gift, gift box, bell'},
 ]
 
 pose_models = [
