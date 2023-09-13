@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '漫游宇航员(Roaming Astronaut)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '漫游宇航员(Roaming Astronaut)', '复古军装风(Retro military uniform)']},
 ]
 
 styles = [
@@ -193,7 +193,7 @@ styles = [
      'multiplier_style': 0.45,
      'multiplier_human': 0.95,
      'add_prompt_style': 'white_cheongsam, photography, warm light, Chinese classical indoor scene, close-up, front view, earrings, hairpin, serenity, elegant, facing the camera with a smile, beautiful chinese embroidery, symmetrical short sleeves'},
-     {'name': '漫游宇航员',
+     {'name': '漫游宇航员(Roaming Astronaut)',
      'img': './style_image/Roaming_Astronaut.jpg',
      'model_id':'idlepiggy/zju_16FC',
      'revision': 'v2.0',
@@ -201,6 +201,15 @@ styles = [
      'multiplier_style': 0.7,
      'multiplier_human': 0.9,
      'add_prompt_style': 'firmament,space_helmet,background is universe with stars,moon,looking at viewer'},
+    {'name': '复古军装风(Retro military uniform)',
+     'img': './style_image/junzhuang.png',
+     'model_id': 'idlepiggy/zju_16FC',
+     'revision': 'v1',
+     'bin_file': 'minguojunzhuangv1.0.safetensors',
+     'multiplier_style': 0.65,
+     'multiplier_human': 0.9,
+     'add_prompt_style': 'fall, wall behind, blurry, blurry background, depth of field, gloves, hat,  realistic, solo, uniform, black hair, long sleeves, black gloves, cape, military, black headwear, military uniform, peaked cap, military hat, outfit, looking at viewer,front view'},
+
 
 ]
 
