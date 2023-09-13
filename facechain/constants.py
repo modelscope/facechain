@@ -200,7 +200,7 @@ styles = [
      'bin_file': 'foreign_princess_costum.safetensors',
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
-     'add_prompt_style': 'masterpiece, best quality, (detailed face, perfect face, perfect eyes, realistic eyes, perfect fingers), (clear face), fantasy girl, long hair, jewelry, earrings,looking at viewer, intricate, high detail, sharp focus, dramatic, beautiful girl, knees up, cathedral, sitting, white dress,crown,'},
+     'add_prompt_style': 'fantasy girl, close-up, Waist shot, long hair, jewelry, earrings, looking at viewer, white dress, cathedral background, crown, (detailed face, perfect face, perfect eyes, realistic eyes), (clear face), high detail, sharp focus, dramatic, beautiful girl'},
 ]
 
 pose_models = [
