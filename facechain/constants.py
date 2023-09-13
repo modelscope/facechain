@@ -194,7 +194,7 @@ styles = [
      'multiplier_human': 0.95,
      'add_prompt_style': 'white_cheongsam, photography, warm light, Chinese classical indoor scene, close-up, front view, earrings, hairpin, serenity, elegant, facing the camera with a smile, beautiful chinese embroidery, symmetrical short sleeves'},
     {'name': '日系和服风(Kimono Style)',
-     'img': './style_image/Kimono.png',
+     'img': './style_image/Kimono.jpg',
      'model_id': 'ZackWang123/filmvelvia_lora',
      'revision': 'v1.0.0',
      'bin_file': 'FilmVelvia3.safetensors',
