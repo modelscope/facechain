@@ -254,7 +254,7 @@ styles = [
      'bin_file': '武侠飘逸高清脸_出男脸必备_男女脸都漂亮_v1.0.safetensors',
      'multiplier_style': 0.86,
      'multiplier_human': 0.95,
-     'add_prompt_style': '1boy, martial arts, solo, jewelry, long hair, earrings, necklace, shut up, gray eyes, belt, cross, tassel, upper body, lips, tattoos'}
+     'add_prompt_style': '1boy, martial arts costume,  forest, long hair, period costume, martial arts, solo, jewelry, long hair, earrings, necklace, shut up, black eyes, belt, tassel, upper body,upper_body, original photo, masterpiece, high detail face, slim body, realistic, best quality, chinoiserie, chinese costume, kung fu, sword, dark clothes, ancient architectural background, real background, alpine flowing water'}
 ]
 
 pose_models = [
