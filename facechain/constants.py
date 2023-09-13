@@ -14,7 +14,7 @@ base_models = [
     'revision': 'v1.0.0',
     'sub_path': "realistic",
      # zju_02 add here
-    'style_list': ['特种兵01','特种兵02','特种兵03','水墨1','水墨2','印度风(India)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)']},
+    'style_list': ['特种兵01','特种兵02','特种兵03','水墨1','水墨2','印度风(India)', '泰式校服', '海洋', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)']},
     #,'拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '自然户外风(natural outdoor)','武林（gongfu）'
 ]
 
@@ -69,6 +69,23 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
      'add_prompt_style': 'wear indian style costume, gold ornament, gorgeous background'},
+      # LFQ add
+    {'name': '泰式校服',
+     'img': './style_image/TaiUniform.png',
+     'model_id': 'MushroomLyn/Student_MathayomKhaki',
+     'revision': 'v2.0.0',
+     'bin_file': 'Student_MathayomKhaki.safetensors',
+     'multiplier_style': 0.5,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'student, white shirt, brown short pant,  young, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'},
+    {'name': '海洋',
+     'img': './style_image/DreamyOcean.png',
+     'model_id': 'MushroomLyn/artist',
+     'revision': 'v2.0.0',
+     'bin_file': 'mine.safetensors',
+     'multiplier_style': 0.5,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'delicate, gentle eye, ocean, white cloth, sunlit, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'},
     {'name': '盔甲风(Armor)',
      'img': './style_image/Armor.jpg',
      'model_id': None,
