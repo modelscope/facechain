@@ -198,9 +198,9 @@ styles = [
      'model_id': 'ZackWang123/filmvelvia_lora',
      'revision': 'v1.0.0',
      'bin_file': 'FilmVelvia3.safetensors',
-     'multiplier_style': 0.2,
+     'multiplier_style': 0.45,
      'multiplier_human': 0.95,
-     'add_prompt_style': 'outdoor, cute japanese model girl, kimono, floral print, hair ornament, looking at viewer, hair flower, brown eyes, bangs, realistic'},
+     'add_prompt_style': 'outdoor, (linen:1.4), cute japanese model girl, kimono, floral print, hair ornament, looking at viewer, hair flower, brown eyes, bangs, realistic'},
 ]
 
 pose_models = [
