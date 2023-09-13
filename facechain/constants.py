@@ -199,7 +199,7 @@ styles = [
      'revision': 'v1.0.2',
      'bin_file': 'minguo_3.safetensors',
      'multiplier_style': 0.50,
-     'multiplier_human': 0.95,
+     'multiplier_human': 0.9,
      'add_prompt_style': 'Chinese traditional clothes, photography, warm light, soft lighting, outdoor scene, close-up, front view, braid, reserved, serenity, smart, facing the camera with a smile.'},
 ]
 
