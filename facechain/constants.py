@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '藏族服饰风格(tibetan clothing style)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '藏族服饰风格(tibetan clothing style)', '萧瑟秋天风格(bleak autumn scenary)']},
 ]
 
 styles = [
@@ -201,6 +201,14 @@ styles = [
      'multiplier_style': 0.7,
      'multiplier_human': 0.9,
      'add_prompt_style': 'extremely delicate and beautiful girls, (tibetan clothing style), ((fur hat)), solo, upper_body, raw photo, masterpiece, medium shot, high detail face, slim body, photorealistic, best quality, long hair, colorful makeup, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'},
+      {'name': '萧瑟秋天风格(bleak autumn scenary)',
+     'img': './style_image/bleak_autumn.jpg',
+     'model_id': 'PeiPeiY/style_lora',
+     'revision': 'v1',
+     'bin_file': 'bleak_autumn.safetensors',
+     'multiplier_style': 0.55,
+     'multiplier_human': 0.9,
+     'add_prompt_style': 'extremely delicate and beautiful girls, (bleak autumn scenary), asia, brown hair,  solo, upper_body, raw photo, masterpiece, medium shot, high detail face, slim body, photorealistic, best quality,  upper_body, raw photo, masterpiece, medium shot, high detail face, slim body, photorealistic, best quality, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'},
 
 ]
 
