@@ -200,7 +200,7 @@ styles = [
      'bin_file': 'FilmVelvia3.safetensors',
      'multiplier_style': 0.2,
      'multiplier_human': 0.95,
-     'add_prompt_style': '<lora:FilmVelvia3:0.6>, 1girl, outdoor, cute japanese model girl, kimono, floral print, hair ornament, looking at viewer, hair flower, brown eyes, bangs, realistic'},
+     'add_prompt_style': 'outdoor, cute japanese model girl, kimono, floral print, hair ornament, looking at viewer, hair flower, brown eyes, bangs, realistic'},
 ]
 
 pose_models = [
