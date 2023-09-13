@@ -14,7 +14,7 @@ base_models = [
     'revision': 'v1.0.0',
     'sub_path': "realistic",
      # zju_02 add here
-    'style_list': ['特种兵01','特种兵02','特种兵03','水墨1','水墨2','冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)']},
+    'style_list': ['特种兵01','特种兵02','特种兵03','水墨1','水墨2','印度风(India)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)']},
     #,'拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '自然户外风(natural outdoor)','武林（gongfu）'
 ]
 
@@ -61,14 +61,14 @@ styles = [
      'multiplier_human': 0.95,
      'add_prompt_style': 'military uniform, goggles overhead, holding a rifle, buildings, solo'},  
     # end
-    {'name': '工作服(Working suit)',
-     'img': './style_image/Working_suit.jpg',
-     'model_id': None,
-     'revision': None,
-     'bin_file': None,
+    {'name': '印度风(India)',
+     'img': './style_image/india.jpg',
+     'model_id': 'lljjcc/IndianSarres',
+     'revision':'v1.0.0',
+     'bin_file': 'Indian saree.safetensors',
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
-     'add_prompt_style': 'wearing high-class business/working suit, simple background, high-class pure color background'},
+     'add_prompt_style': 'wear indian style costume, gold ornament, gorgeous background'},
     {'name': '盔甲风(Armor)',
      'img': './style_image/Armor.jpg',
      'model_id': None,
