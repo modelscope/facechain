@@ -1,4 +1,4 @@
-neg_prompt = '(nsfw:2), paintings, sketches, (worst quality:2), (low quality:2), ' \
+neg_prompt = '(nsfw:2), paintings, sketches, (worst quality:2), (low quality:2), malformed hands, missing fingers' \
              'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character, bad hand'
 pos_prompt_with_cloth = 'raw photo, masterpiece, chinese, {}, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
 pos_prompt_with_style = '{}, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'
@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '宇航服风(astronaut)', '炫彩服装风(colorful style)']},
 ]
 
 styles = [
@@ -193,7 +193,22 @@ styles = [
      'multiplier_style': 0.45,
      'multiplier_human': 0.95,
      'add_prompt_style': 'white_cheongsam, photography, warm light, Chinese classical indoor scene, close-up, front view, earrings, hairpin, serenity, elegant, facing the camera with a smile, beautiful chinese embroidery, symmetrical short sleeves'},
-
+    {'name': '宇航服风(astronaut)',
+     'img': './style_image/astronaut.jpg',
+     'model_id': 'SoulNut/facechain_style',
+     'revision': 'v1.0',
+     'bin_file': 'astronaut.safetensors',
+     'multiplier_style': 0.7,
+     'multiplier_human': 0.95,
+     'add_prompt_style': '(masterpiece, ultra high res face, face ultra zoom, highres, best quality, ultra detailed, cinematic lighting, portrait:1.2), sfw, perfect composition, short hair, hair does not cover the face, flat chest, firmament, space_helmet, utility belt, the most fantastic details, super detailed, cinematic composition, space craft background, space void galaxy universe background'},
+    {'name': '炫彩服装风(colorful style)',
+     'img': './style_image/colorful.jpg',
+     'model_id': 'wwwwwrc/colorful_lora',
+     'revision': 'v1',
+     'bin_file': 'colorful_lora.safetensors',
+     'multiplier_style': 0.75,
+     'multiplier_human': 0.4,
+     'add_prompt_style': 'upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality, good anatomy, ((in a colorful and light galaxy)),  ((colorful inner hair)), fashionable high-neck clothing, full dress, ((colorful jacket)), (((dark black eye))),  (colorful background)'},
 ]
 
 pose_models = [
