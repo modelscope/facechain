@@ -193,6 +193,14 @@ styles = [
      'multiplier_style': 0.45,
      'multiplier_human': 0.95,
      'add_prompt_style': 'white_cheongsam, photography, warm light, Chinese classical indoor scene, close-up, front view, earrings, hairpin, serenity, elegant, facing the camera with a smile, beautiful chinese embroidery, symmetrical short sleeves'},
+     {'name': '漫游宇航员',
+     'img': './style_image/Roaming_Astronaut.jpg',
+     'model_id':'idlepiggy/zju_16FC',
+     'revision': 'v2.0',
+     'bin_file': 'firmamentV2.1.safetensors',
+     'multiplier_style': 0.7,
+     'multiplier_human': 0.9,
+     'add_prompt_style': 'firmament,space_helmet,background is universe with stars,moon,looking at viewer'},
 
 ]
 
