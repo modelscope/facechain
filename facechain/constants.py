@@ -1,5 +1,5 @@
 neg_prompt = '(nsfw:2), paintings, sketches, (worst quality:2), (low quality:2), ' \
-             'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character, bad hand, asymmetric sleeves'
+             'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character, bad hand'
 pos_prompt_with_cloth = 'raw photo, masterpiece, chinese, {}, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
 pos_prompt_with_style = '{}, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'
 
@@ -191,8 +191,8 @@ styles = [
      'revision': 'v1.0.0',
      'bin_file': 'qipao2.safetensors',
      'multiplier_style': 0.45,
-     'multiplier_human': 1.15,
-     'add_prompt_style': 'white_cheongsam, photography, warm light, Chinese classical indoor scene, close-up, front view, earrings, hairpin, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, serenity, elegant, facing the camera with a smile, photorealistic, best quality'},
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'white_cheongsam, photography, warm light, Chinese classical indoor scene, close-up, front view, earrings, hairpin, serenity, elegant, facing the camera with a smile, beautiful chinese embroidery, symmetrical short sleeves'},
 
 ]
 
