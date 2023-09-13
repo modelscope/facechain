@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)']},
 ]
 
 styles = [
@@ -185,6 +185,15 @@ styles = [
      'multiplier_style': 0.6,
      'multiplier_human': 0.9,
      'add_prompt_style': 'close-up, fur collar, ((jacket)), shirt, pants, winter, (bright sunny day, snow mountain, alpine slopes, snow), gyaru, fashion, trendy, gentle hair'},
+    {'name': '旗袍风(Cheongsam)',
+     'img': './style_image/Cheongsam.jpg',
+     'model_id': 'PaperCloud/zju19_minguo_style_lora',
+     'revision': 'v1.0.0',
+     'bin_file': 'qipao2.safetensors',
+     'multiplier_style': 0.45,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'white_cheongsam, photography, warm light, Chinese classical indoor scene, close-up, front view, earrings, hairpin, serenity, elegant, facing the camera with a smile, beautiful chinese embroidery, symmetrical short sleeves'},
+
 ]
 
 pose_models = [
