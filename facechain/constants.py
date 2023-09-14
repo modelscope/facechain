@@ -199,7 +199,7 @@ styles = [
      'model_id': 'rewfueranro/Mechanical_lora',
      'revision': 'v1.0.0',
      'bin_file': 'reelmech1v2.safetensors',
-     'multiplier_style': 0.65,
+     'multiplier_style': 0.85,
      'multiplier_human': 0.95,
      'add_prompt_style': 'looking to the camera , clean face, Masterpiece, top quality, official art, beautiful and aesthetic, a full portrait of a futuristic dystopian city,  scrapper,  intricate, elegant, highly detailed, sharp focus,  cyberpunk, luminescence: 1.3, transparency,  8K, stunning art, digital photography, painting, hyper-realistic art: 1.3, mechanical woman, art by Genevieve Valentine: 1.2, Nikon D850, F/8, reelmech, demonic, expressive, hypnotic, delicate, moody, alluring, perfect shading, HDR, photorealistic: 1.6'},
     {'name': '林中鹿女风(deer girl)',
