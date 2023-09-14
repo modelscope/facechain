@@ -850,6 +850,8 @@ def inference_input():
                     neg_prompt = gr.Textbox(label="负向提示语(Negative Prompt)", lines=3,
                                             value="",
                                             interactive=True)
+                    if neg_prompt.value == '' :
+                        neg_prompt.value = neg
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')
                     multiplier_human = gr.Slider(minimum=0, maximum=1.2, value=0.95,
