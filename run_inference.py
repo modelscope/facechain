@@ -18,7 +18,7 @@ def generate_pos_prompt(style_model, prompt_cloth):
         pos_prompt = pos_prompt_with_style.format(matched['add_prompt_style'])
     return pos_prompt
 
-
+use_style = True ## if choose to use style
 use_main_model = True
 use_face_swap = True
 use_post_process = True
@@ -35,19 +35,39 @@ multiplier_human = 0.85
 base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 output_dir = './generated'
-style = styles[0]
-model_id = style['model_id']
 
-if model_id == None:
+#style = styles[0]
+#model_id = style['model_id']
+
+
+
+if not use_style:
     style_model_path = None
-    pos_prompt = generate_pos_prompt(style['name'], style['add_prompt_style'])
+    pos_prompt = generate_pos_prompt(styles[0]['name'], cloth_prompt[0]['prompt'])
 else:
-    if os.path.exists(model_id):
-        model_dir = model_id
+    user_input = input("请输入选择的样式（1 for styles1, 2 for styles2 , 3 for styles3）: ")
+    if user_input == "1":
+        model_dir = '/mnt/workspace/armor'
+        style_model_path = os.path.join(model_dir, styles[1]['bin_file'])
+        pos_prompt = generate_pos_prompt(styles[1]['name'], styles[1]['add_prompt_style'])  # style has its own prompt 
+    elif user_input == "2":
+        model_dir = '/mnt/workspace/cyberpunk'
+        style_model_path = os.path.join(model_dir, styles[2]['bin_file'])
+        pos_prompt = generate_pos_prompt(styles[2]['name'], styles[2]['add_prompt_style'])  # style has its own prompt 
     else:
-        model_dir = snapshot_download(model_id, revision=style['revision'])
-    style_model_path = os.path.join(model_dir, style['bin_file'])
-    pos_prompt = generate_pos_prompt(style['name'], style['add_prompt_style'])  # style has its own prompt
+        model_dir = '/mnt/workspace/genshin_impact'
+        style_model_path = os.path.join(model_dir, styles[3]['bin_file'])
+        pos_prompt = generate_pos_prompt(styles[3]['name'], styles[3]['add_prompt_style'])  # style has its own prompt 
+#if model_id == None:
+#    style_model_path = None
+#    pos_prompt = generate_pos_prompt(style['name'], style['add_prompt_style'])
+#else:
+#    if os.path.exists(model_id):
+#        model_dir = model_id
+#    else:
+#        model_dir = snapshot_download(model_id, revision=style['revision'])
+#    style_model_path = os.path.join(model_dir, style['bin_file'])
+#    pos_prompt = generate_pos_prompt(style['name'], style['add_prompt_style'])  # style has its own prompt
 
 if not use_pose_model:
     pose_model_path = None
