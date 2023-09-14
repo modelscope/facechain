@@ -200,7 +200,7 @@ styles = [
      'bin_file': 'minguojunzhuangv1.0.safetensors',
      'multiplier_style': 0.65,
      'multiplier_human': 0.9,
-     'add_prompt_style': 'fall, wall behind, blurry, blurry background, depth of field, gloves, hat,  realistic, solo, uniform, black hair, long sleeves, black gloves, cape, military, black headwear, military uniform, peaked cap, military hat, outfit, looking at viewer,front view'},
+     'add_prompt_style': 'fall, wall behind, blurry, blurry background, depth of field, gloves, hat,  realistic, solo, uniform, black hair, long sleeves, black gloves, cape, military, black headwear, military uniform, peaked cap, military hat, looking at viewer,front view'},
     {'name': '花环洛丽塔(Flora Lolita)',
      'img': './style_image/luolita.png',
      'model_id': 'idlepiggy/zju_16FC',
@@ -208,7 +208,7 @@ styles = [
      'bin_file': 'lolitaV1.safetensors',
      'multiplier_style': 0.6,
      'multiplier_human': 0.95,
-     'add_prompt_style': 'lolita, warm sunlight, front view, jewelry,summer,purple eyes,long hair,upper_body, raw photo, masterpiece,white dress, medium shot, high detail face, slim body, photorealistic, best quality,backgound is sun and rainbow,faceing camera with a smile,beautiful flower on the head'},
+     'add_prompt_style': 'lolita, warm sunlight, front view, jewelry,summer,purple eyes,long hair, white dress,backgound is sun and rainbow,faceing camera with a smile,beautiful flower on the head'},
 ]
 
 pose_models = [
