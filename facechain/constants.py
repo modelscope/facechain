@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)', '丁达尔风(Tyndall Light)', '哥特洛丽塔(Gothic Lolita)']},
 ]
 
 styles = [
@@ -209,6 +209,22 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
      'add_prompt_style': 'fantasy girl, close-up, Waist shot, long hair, jewelry, earrings, looking at viewer, white dress, cathedral background, crown, (detailed face, perfect face, perfect eyes, realistic eyes), (clear face), high detail, sharp focus, dramatic, beautiful girl'},
+   {'name': '丁达尔风(Tyndall Light)',
+     'img': './style_image/Tyndall.jpg',
+     'model_id': 'Cleaner/Tyndalleffect_Light',
+     'revision': 'v1.0.0',
+     'bin_file': 'Tyndall effect_Light v1.1.safetensors',
+     'multiplier_style': 0.7,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'Best Quality,Masterpiece,Ultra High Resolution,(Realisticity:1.4),Original Photo,Cinematic Lighting,1Girl,light rays,Tyndall effect,<lora:Tyndall effect_Light v1.1:0.6>,masterpiece, best quality, highly detailed,outdoor,soft light'},
+    {'name': '哥特洛丽塔(Gothic Lolita)',
+     'img': './style_image/li.jpg',
+     'model_id': '/mnt/workspace/facechain',
+     'revision': 'v1.0.0',
+     'bin_file': 'lo_dress_gothic_style2_v2.safetensors',
+     'multiplier_style': 0.4,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'Lolita dress, Gothic Lolita style, Clothes in black or burgundy tones, 1 girl, solo, realistic, photorealistic, masterpiece, best quality, ultra detailed, looking at viewer, standing, natural lighting, depth of field, Gothic castle, Park, Garden, Sky, masterpiece, best quality, slim, long hair, dynamic pose, detailed background, lace-trimmed, with bowknot'},
 ]
 
 pose_models = [
