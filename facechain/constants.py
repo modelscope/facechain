@@ -1,6 +1,7 @@
 neg_prompt = '(nsfw:2), paintings, sketches, (worst quality:2), (low quality:2), ' \
              'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character, bad hand, tattoo, (username, watermark, signature, time signature, timestamp, artist name, copyright name, copyright),'\
-             'low res, ((monochrome)), ((grayscale)), skin spots, acnes, skin blemishes, age spot, glans, extra fingers, fewer fingers, strange fingers, bad hand, mole, ((extra legs)), ((extra hands))'
+             'low res, ((monochrome)), ((grayscale)), skin spots, acnes, skin blemishes, age spot, glans, extra fingers, fewer fingers, strange fingers, bad hand, mole, ((extra legs)), ((extra hands))'\
+             'fused fingers, ((text)), (watermark), face spots'
 pos_prompt_with_cloth = 'raw photo, masterpiece, chinese, {}, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
 pos_prompt_with_style = '{}, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'
 
@@ -240,7 +241,7 @@ styles = [
      'revision': 'v2',
      'bin_file': 'dunhuangV3.safetensors',
      'multiplier_style': 0.45,
-     'multiplier_human': 0.95,
+     'multiplier_human': 1.05,
      'add_prompt_style':'(close-up),(((faceshort))),black long hair, (clean face), dunhuang, Chinese ancient style, clean skin, organza_lace, Dunhuang wind, Art deco, Necklace, jewelry, Bracelet, Earrings, dunhuang_style, see-through_dress, Expressionism, looking towards the camera'},
 ]
 
