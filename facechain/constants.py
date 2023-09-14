@@ -1,5 +1,5 @@
 neg_prompt = '(nsfw:2), paintings, sketches, (worst quality:2), (low quality:2), ' \
-             'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character, bad hand'
+             'lowers, normal quality, ((monochrome)), ((grayscale)), signature, logo, word, character, bad hand'
 pos_prompt_with_cloth = 'raw photo, masterpiece, chinese, {}, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
 pos_prompt_with_style = '{}, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'
 
@@ -214,9 +214,9 @@ styles = [
      'model_id': 'PeiPeiY/style_lora',
      'revision': 'v1',
      'bin_file': 'autumn_populus.safetensors',
-     'multiplier_style': 0.65,
+     'multiplier_style': 0.55,
      'multiplier_human': 0.9,
-     'add_prompt_style': 'extremely delicate and beautiful girls, red dress, (autumn populus euphratica scenary), long sleeves, clear background'}
+     'add_prompt_style': 'extremely delicate and beautiful girls, (autumn populus euphratica scenary, 1girl)'}
 
 ]
 
