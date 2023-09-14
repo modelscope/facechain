@@ -1,5 +1,6 @@
 neg_prompt = '(nsfw:2), paintings, sketches, (worst quality:2), (low quality:2), ' \
-             'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character, bad hand'
+             'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character, bad hand' \
+             'paintings, sketches, (worst quality:2), (low quality), (normal quality), low res, ((monochrome)), ((grayscale)), skin spots, acnes, skin blemishes, age spot, glans, extra fingers, fewer fingers, strange fingers, bad hand, mole, ((extra legs)), ((extra hands))'
 pos_prompt_with_cloth = 'raw photo, masterpiece, chinese, {}, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
 pos_prompt_with_style = '{}, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'
 
@@ -200,7 +201,7 @@ styles = [
      'bin_file': 'reelmech1v2.safetensors',
      'multiplier_style': 0.65,
      'multiplier_human': 0.95,
-     'add_prompt_style': 'a full portrait of a futuristic dystopian city, colorful background, mechanical woman, looking to the camera, facing the camera,  best quality face, smooth face,  smooth hair,  hair on shoulders, no hair in front of face, cable electric wires,  masterpiece, top quality, official art, beautiful and aesthetic,  elegant, highly detailed, sharp focus,  cyberpunk, luminescence, transparency,  8K, stunning art, digital photography, painting, hyper-realistic art,  mechnical, expressive, delicate, Nikon D850, F/8, moody, perfect lighting, perfect shading, HDR, photorealistic: 1.6'},
+     'add_prompt_style': 'looking to the camera , clean face, Masterpiece, top quality, official art, beautiful and aesthetic, a full portrait of a futuristic dystopian city,  scrapper,  intricate, elegant, highly detailed, sharp focus,  cyberpunk, luminescence: 1.3, transparency,  8K, stunning art, digital photography, painting, hyper-realistic art: 1.3, mechanical woman, art by Genevieve Valentine: 1.2, Nikon D850, F/8, reelmech, demonic, expressive, hypnotic, delicate, moody, alluring, perfect shading, HDR, photorealistic: 1.6'},
     {'name': '林中鹿女风(deer girl)',
      'img': './style_image/Deer_girl.jpg',
      'model_id': 'EnlZhao/deer_lora',
