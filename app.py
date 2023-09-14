@@ -532,12 +532,12 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
     
     if not os.path.exists(folder_path):
         if lora_choice == 'preset':  
-            return gr.Radio.update(choices=[]), \
+            return gr.Radio.update(choices=[], value = None), \
                 gr.Gallery.update(value=[(item["img"], item["name"]) for item in sub_styles], visible=True), \
                 gr.Text.update(value=style_list[0], visible=True), \
                 gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
         else:
-            return gr.Radio.update(choices=[]), \
+            return gr.Radio.update(choices=[], value = None), \
                 gr.Gallery.update(visible=False), gr.Text.update(),\
                 gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
     else:
@@ -550,12 +550,12 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
                     folder_list.append(file)
     
     if lora_choice == 'preset':
-        return gr.Radio.update(choices=folder_list), \
+        return gr.Radio.update(choices=folder_list, value = None), \
             gr.Gallery.update(value=[(item["img"], item["name"]) for item in sub_styles], visible=True), \
             gr.Text.update(value=style_list[0], visible=True), \
             gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
     else:
-        return gr.Radio.update(choices=folder_list), \
+        return gr.Radio.update(choices=folder_list, value = None), \
             gr.Gallery.update(visible=False), gr.Text.update(), \
             gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
 
@@ -577,7 +577,7 @@ def update_output_model(uuid, base_model_index):
     folder_path = f"/tmp/{uuid}/{base_model_path}"
     folder_list = []
     if not os.path.exists(folder_path):
-        return gr.Radio.update(choices=[]),gr.Dropdown.update(choices=style_list)
+        return gr.Radio.update(choices=[], value = None)
     else:
         files = os.listdir(folder_path)
         for file in files:
@@ -606,7 +606,7 @@ def update_output_model_inpaint(uuid, base_model_index):
     folder_path = f"/tmp/{uuid}/{base_model_path}"
     folder_list = ['不重绘该人物(Do not inpaint this character)']
     if not os.path.exists(folder_path):
-        return gr.Radio.update(choices=[]), gr.Dropdown.update(choices=style_list)
+        return gr.Radio.update(choices=[], value = None), gr.Dropdown.update(choices=style_list)
     else:
         files = os.listdir(folder_path)
         for file in files:
@@ -903,16 +903,16 @@ def inference_input():
         update_history_text = gr.Text("update", visible=False)
         
         gallery.select(select_function, None, style_model, queue=False)
-        lora_choice.change(fn=change_lora_choice, inputs=[lora_choice, base_model_index], outputs=[gallery, style_model], queue=False)
-        lora_choice.change(fn=deal_history,
+        lora_choice.change(fn=change_lora_choice, inputs=[lora_choice, base_model_index], outputs=[gallery, style_model], queue=False).then(
+                           fn=deal_history,
                            inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
                            outputs=[single_history, batch_history])
         
         lora_file.upload(fn=upload_lora_file, inputs=[uuid, lora_file], outputs=[lora_choice], queue=False)
         lora_file.clear(fn=clear_lora_file, inputs=[uuid, lora_file], outputs=[lora_choice], queue=False)
         
-        style_model.change(update_prompt, style_model, [pos_prompt, multiplier_style, multiplier_human], queue=False)
-        style_model.change(fn=deal_history,
+        style_model.change(update_prompt, style_model, [pos_prompt, multiplier_style, multiplier_human], queue=False).then(
+                           fn=deal_history,
                            inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
                            outputs=[single_history, batch_history])
         
@@ -920,8 +920,8 @@ def inference_input():
         base_model_index.change(fn=flash_model_list,
                                 inputs=[uuid, base_model_index, lora_choice],
                                 outputs=[user_model, gallery, style_model, lora_choice, lora_file],
-                                queue=False)
-        base_model_index.change(fn=deal_history,
+                                queue=False).then(
+                                fn=deal_history,
                                 inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
                                 outputs=[single_history, batch_history])
         
