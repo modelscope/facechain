@@ -14,7 +14,7 @@ base_models = [
     'revision': 'v1.0.0',
     'sub_path': "realistic",
      # zju_02 add here
-    'style_list': ['使命召唤6.1','使命召唤6.2','使命召唤2.1','印度风(India)', '泰式校服', '海洋', '自然户外风(natural outdoor)','武林风(gongfu)']},
+    'style_list': ['使命召唤6.1','使命召唤7.1','使命召唤7.2','印度风(India)', '泰式校服', '海洋', '自然户外风(natural outdoor)','武林风(gongfu)']},
     #,'拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '自然户外风(natural outdoor)','武林（gongfu）'
 ]
 
@@ -28,23 +28,24 @@ styles = [
      'bin_file': 'CallOfDuty6.safetensors',    # LoRA模型文件
      'multiplier_style': 0.6,
      'multiplier_human': 0.95,
-     'add_prompt_style': 'solo, helmet, rifle, realistic, gloves, manly,military uniform, bulletproof vest, holding weapon,headset, fire, explosion, buildings'},    # 提示词，重要
-    {'name': '使命召唤6.2',   # 名称，要与前面style_list对应
+     'add_prompt_style': 'solo, helmet, rifle, realistic, gloves, goggles overhead, manly,military uniform, bulletproof vest, holding weapon,headset, fire, explosion, buildings'},    # 提示词，重要
+    # 使命召唤7.1， very nice
+    {'name': '使命召唤7.1',   # 名称，要与前面style_list对应
      'img': './style_image/CallOfDuty.jpg',    # 在web界面上的展示图片，自行添加
      'model_id': 'Tyytyy528/ShortSemester2023_zju_02',    # modelscope上的模型id
-     'revision': 'v2.0.8',    # 版本号，千万不能错！
-     'bin_file': 'CallOfDuty6-000002.safetensors',    # LoRA模型文件
+     'revision': 'v2.0.9',    # 版本号，千万不能错！
+     'bin_file': 'CallOfDuty7.safetensors',    # LoRA模型文件
      'multiplier_style': 0.3,
      'multiplier_human': 0.95,
-     'add_prompt_style': 'solo, helmet, rifle, realistic, gloves, military uniform, wearing goggles, bulletproof vest, holding weapon,headset'},    # 提示词，重要
-    {'name': '使命召唤2.1',   # 名称，要与前面style_list对应
+     'add_prompt_style': 'solo, rifle, realistic, manly, gloves, military, military uniform, goggles overhead, bulletproof vest, holding weapon,headset, fire, explosion, buildings'},    # 提示词，重要
+    {'name': '使命召唤7.2',   # 名称，要与前面style_list对应
      'img': './style_image/CallOfDuty.jpg',    # 在web界面上的展示图片，自行添加
      'model_id': 'Tyytyy528/ShortSemester2023_zju_02',    # modelscope上的模型id
-     'revision': 'v2.0.5',    # 版本号，千万不能错！
-     'bin_file': 'CallOfDuty2.0.safetensors',    # LoRA模型文件
+     'revision': 'v2.0.9',    # 版本号，千万不能错！
+     'bin_file': 'CallOfDuty7-000006.safetensors',    # LoRA模型文件
      'multiplier_style': 0.3,
      'multiplier_human': 0.95,
-     'add_prompt_style': 'solo, helmet, rifle, realistic, gloves, military uniform, bulletproof vest, holding weapon, headset, fire, explosion, buildings'},    # 提示词，重要
+     'add_prompt_style': 'solo, helmet, rifle, realistic, gloves, military uniform, goggles overhead, bulletproof vest, holding weapon,headset, fire, explosion, buildings'},    # 提示词，重要
     {'name': '使命召唤3.4',   # 名称，要与前面style_list对应
      'img': './style_image/CallOfDuty.jpg',    # 在web界面上的展示图片，自行添加
      'model_id': 'Tyytyy528/ShortSemester2023_zju_02',    # modelscope上的模型id
