@@ -13,7 +13,11 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
+<<<<<<< HEAD
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '将军(Military uniform)','校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)']},
+=======
     'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)']},
+>>>>>>> test_remote/main
 ]
 
 styles = [
@@ -81,6 +85,14 @@ styles = [
      'multiplier_style': 0.3,
      'multiplier_human': 0.95,
      'add_prompt_style': 'red hanfu, winter hanfu, cloak, photography, warm light, sunlight, majestic snow scene,  close-up, front view, soft falling snowflakes, jewelry, enchanted winter wonderland'},
+    {'name': '将军(Military uniform)',
+     'img': './style_image/military_uniform.png',
+     'model_id': 'ChenYiZhen/military_uniform',
+     'revision': 'v2.0.0',
+     'bin_file': 'junfa.safetensors',
+     'multiplier_style': 0.5,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'junfa, outfit, uniform, black_hair, long sleeves, black gloves, cape, military, black headwear, military uniform, peaked cap, military hat, simple background, high-class background, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'},
      {'name': '校服风(School uniform)',
      'img': './style_image/School_uniform.jpg',
      'model_id': 'YorickHe/JK_uniform_lora',
@@ -160,7 +172,11 @@ styles = [
      'bin_file': 'MoXinV1.safetensors',
      'multiplier_style': 0.3,
      'multiplier_human': 0.95,
+<<<<<<< HEAD
+     'add_prompt_style': '(ultra high res face, face ultra zoom, highres, best quality, ultra detailed, cinematic lighting, portrait, Chinese traditional ink painting:1.2), sfw, shuimobysim, song, anxiang, hanfu, Ultra HD, wuchangshuo, detailed background, looking at viewer, serenity, peace'},
+=======
      'add_prompt_style': '(best quality, hanfu, Chinese traditional ink painting:1.8), close-up, song, anxiang, chinese_clothes, ornaments, topknot, perfect eyes, perfect face, soft smile'},
+>>>>>>> test_remote/main
     {'name': '壮族服装风(Zhuang style)',
      'img': './style_image/Zhuang_style.jpg',
      'model_id': 'iotang/lora_testing',
@@ -168,7 +184,11 @@ styles = [
      'bin_file': 'zhuangnv.safetensors',
      'multiplier_style': 0.75,
      'multiplier_human': 0.95,
+<<<<<<< HEAD
+     'add_prompt_style': '(masterpiece, ultra high res face, face ultra zoom, highres, best quality, ultra detailed, cinematic lighting, portrait:1.2), sfw, facing the camera with a smile, zhuangzunv, ornaments, jewelry, headwear, beautiful embroidery, floral print, marvelous design, ancient Chinese traditional clothing'},
+=======
      'add_prompt_style': '((best quality)), close-up, portrait, ((zhuangzunv)), ornaments, jewelry, headwear, ((beautiful embroidery, floral print, marvelous design)), perfect eyes, perfect face, gentle black hair, smile'},
+>>>>>>> test_remote/main
     {'name': '欧式田野风(European fields)',
      'img': './style_image/European_fields.jpg',
      'model_id': 'iotang/lora_testing',
@@ -176,6 +196,10 @@ styles = [
      'bin_file': 'edgEuropean_Vintage.safetensors',
      'multiplier_style': 0.55,
      'multiplier_human': 0.95,
+<<<<<<< HEAD
+     'add_prompt_style': '(masterpiece, ultra high res face, face ultra zoom, highres, best quality, ultra detailed, detailed background, cinematic lighting, portrait:1.2), sfw, focused, edgEV, wearing edgEV_vintage dress, field, natural lighting, windy hair, gentle hair, clean'},
+    
+=======
      'add_prompt_style': 'focused, (edgEV, wearing edgEV_vintage dress), (field, natural lighting, detailed background, cinematic lighting), (gentle hair:1.1), windy hair, perfect eyes, perfect face'},
     {'name': '雪山羽绒服风(Jacket in Snow Mountain)',
      'img': './style_image/Jacket_in_Snow_Mountain.jpg',
@@ -209,6 +233,7 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
      'add_prompt_style': 'fantasy girl, close-up, Waist shot, long hair, jewelry, earrings, looking at viewer, white dress, cathedral background, crown, (detailed face, perfect face, perfect eyes, realistic eyes), (clear face), high detail, sharp focus, dramatic, beautiful girl'},
+>>>>>>> test_remote/main
 ]
 
 pose_models = [
