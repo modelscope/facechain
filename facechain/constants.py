@@ -299,7 +299,7 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
     'add_prompt_style':'Masterpiece, best quality,edgQuality,smirk,smug, edgAyre, red hair,red eyes,dress,Haute_Couture, feathered top,woman wearing a Haute_Couture dress'},
-     {'name': '多巴胺风格',
+     {'name': '多巴胺风格(Colourful Style)',
      'img': './style_image/duobaan.jpg',
      'model_id': 'Tekhne/dubaan',
      'revision': 'v1.0.0',
