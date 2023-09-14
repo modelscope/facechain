@@ -18,7 +18,7 @@ from facechain.utils import snapshot_download
 from facechain.inference import preprocess_pose, GenPortrait
 from facechain.inference_inpaint import GenPortrait_inpaint
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
-from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, \
+from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_prompt_with_style, styles, \
     pose_models, pose_examples, base_models
 
 training_done_count = 0
