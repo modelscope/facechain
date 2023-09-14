@@ -210,7 +210,7 @@ styles = [
      'multiplier_human': 0.9,
      'add_prompt_style': 'extremely delicate and beautiful girls, (bleak autumn scenary), asia, brown hair'},
       {'name': '秋日胡杨风(autumn populus euphratica style)',
-     'img': './style_image/populus.jpg',
+     'img': './style_image/autumn_populus.jpg',
      'model_id': 'PeiPeiY/style_lora',
      'revision': 'v1',
      'bin_file': 'autumn_populus.safetensors',
