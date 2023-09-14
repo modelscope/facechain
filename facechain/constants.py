@@ -1,5 +1,6 @@
 neg_prompt = '(nsfw:2), paintings, sketches, (worst quality:2), (low quality:2), ' \
-             'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character, bad hand, tattoo, (username, watermark, signature, time signature, timestamp, artist name, copyright name, copyright)'
+             'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character, bad hand, tattoo, (username, watermark, signature, time signature, timestamp, artist name, copyright name, copyright),'\
+             'low res, ((monochrome)), ((grayscale)), skin spots, acnes, skin blemishes, age spot, glans, extra fingers, fewer fingers, strange fingers, bad hand, mole, ((extra legs)), ((extra hands))'
 pos_prompt_with_cloth = 'raw photo, masterpiece, chinese, {}, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
 pos_prompt_with_style = '{}, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'
 
@@ -13,7 +14,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)', '藏族服饰风(tibetan clothing style)', '萧瑟秋天风(bleak autumn style)', '秋日胡杨风(autumn populus euphratica style)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)', '机械风(Mechanical)', '林中鹿女风(deer girl)', '漫画风(cartoon)', '藏族服饰风(tibetan clothing style)', '萧瑟秋天风(bleak autumn style)', '秋日胡杨风(autumn populus euphratica style)']},
 ]
 
 styles = [
@@ -209,6 +210,30 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
      'add_prompt_style': 'fantasy girl, close-up, Waist shot, long hair, jewelry, earrings, looking at viewer, white dress, cathedral background, crown, (detailed face, perfect face, perfect eyes, realistic eyes), (clear face), high detail, sharp focus, dramatic, beautiful girl'},
+    {'name': '机械风(Mechanical)',
+     'img': './style_image/Mechnical.jpg',
+     'model_id': 'rewfueranro/Mechanical_lora',
+     'revision': 'v1.0.0',
+     'bin_file': 'reelmech1v2.safetensors',
+     'multiplier_style': 1,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'looking to the camera , clean face, Masterpiece, top quality, official art, beautiful and aesthetic, a full portrait of a futuristic dystopian city,  scrapper,  intricate, elegant, highly detailed, sharp focus,  cyberpunk, luminescence: 1.3, transparency,  8K, stunning art, digital photography, painting, hyper-realistic art: 1.3, mechanical woman, art by Genevieve Valentine: 1.2, Nikon D850, F/8, reelmech, demonic, expressive, hypnotic, delicate, moody, alluring, perfect shading, HDR, photorealistic: 1.6'},
+    {'name': '林中鹿女风(deer girl)',
+     'img': './style_image/Deer_girl.jpg',
+     'model_id': 'EnlZhao/deer_lora',
+     'revision': 'v3.2.0',
+     'bin_file': 'deer.safetensors',
+     'multiplier_style': 0.5,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'bust shot, an elk girl in pink forest, smile, keep eyes staring at the camera, detailed antlers, monochrome ears, white dress, slim body, long hair, natural lighting, warm sunlight, light pink atmosphere, outdoor photo, field of pink maple leaves, flower, realistic, best quality'},
+    {'name': '漫画风(cartoon)',
+     'img': './style_image/cartoon.jpg',
+     'model_id': 'rewfueranro/cartoon_lora',
+     'revision': 'v1.0.0',
+     'bin_file': 'cartoon.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'Manhuanan,jewelry,1boy,<lora:Manhuanan_20230827182922-000009:1>,half body photo,white hair,at the coffee shop,blurred background,CG,UE5'},
      {'name': '藏族服饰风(tibetan clothing style)',
      'img': './style_image/tibetan_clothing.jpg',
      'model_id': 'PeiPeiY/style_lora',
