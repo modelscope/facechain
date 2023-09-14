@@ -14,7 +14,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)', '男士西装风(Men\'s Suit)']},
 ]
 
 styles = [
@@ -282,6 +282,15 @@ styles = [
      'multiplier_style': 0.25,
      'multiplier_human': 0.95,
      'add_prompt_style': 'purple hair, ponytail, wearing slip skirt,looking straight into the camera with shoulders parallel to the frame, light purple background'},
+    {'name': '男士西装风(Men\'s Suit)',
+     'img': './style_image/men_suit.jpg',
+     'model_id': 'potazinc/suit',
+     'revision': 'v2',
+     'bin_file': 'businessman-AIX.safetensors',
+     'multiplier_style': 0.7,
+     'multiplier_human': 0.95,
+     'add_prompt_style': '(realistic:1.2), HDR, UHD, 8K, face ultra zoom, portrait, male, (1boy, office man, adult, asian, black hair,  suit, hand in pocket, close-up)'},
+    
 ]
 
 pose_models = [
