@@ -202,7 +202,7 @@ styles = [
      'multiplier_human': 0.9,
      'add_prompt_style': 'fall, wall behind, blurry, blurry background, depth of field, gloves, hat,  realistic, solo, uniform, black hair, long sleeves, black gloves, cape, military, black headwear, military uniform, peaked cap, military hat, outfit, looking at viewer,front view'},
     {'name': '海港船长风(Sea Captain)',
-     'img': './style_image/hai_feng.jpg',
+     'img': './style_image/hai_feng.png',
      'model_id': 'idlepiggy/zju_16FC',
      'revision': 'v2.0',
      'bin_file': 'uniform11.safetensors',
