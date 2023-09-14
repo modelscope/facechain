@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '复古风(retro style)', '绅士风(gentleman style)', '肌肉风(muscular style)', '西部牛仔风(west cowboy)', '嘻哈风(hiphop style)', '洛丽塔(lolita)', '女巫风(witch style)', '女仆风(maid style)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '湖景汉服风(Lake view Hanfu)', '复古风(retro style)', '绅士风(gentleman style)', '肌肉风(muscular style)', '西部牛仔风(west cowboy)', '嘻哈风(hiphop style)', '洛丽塔(lolita)', '女巫风(witch style)', '女仆风(maid style)']},
 ]
 
 styles = [
@@ -193,6 +193,14 @@ styles = [
      'multiplier_style': 0.45,
      'multiplier_human': 0.95,
      'add_prompt_style': 'white_cheongsam, photography, warm light, Chinese classical indoor scene, close-up, front view, earrings, hairpin, serenity, elegant, facing the camera with a smile, beautiful chinese embroidery, symmetrical short sleeves'},
+    {'name': '湖景汉服风(Lake view Hanfu)',
+     'img': './style_image/lake_hanfu.png',
+     'model_id': 'kkksx114/Han4',
+     'revision': 'v1.0.0',
+     'bin_file': 'Han4.safetensors',
+     'multiplier_style': 0.7,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'Han4,chinese clothes,flower,hair ornament, ancient Chinese traditional clothing, close-up, gentle hair, (lake, clouds, pavilion, Overcast and rainy weather, reflection, blurred background)'},
     {'name': '复古风(retro style)',
      'img': './style_image/retro_style.jpeg',
      'model_id': 'Licht000/retro_style_lora',
