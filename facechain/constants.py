@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)','枪林弹雨风(CallOfDuty)','印度风(India)', '海洋风(ocean)', '花园风(flowers)','武侠风(kongfu)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)','印度风(India)', '海洋风(ocean)', '花园风(flowers)']},
 ]
 
 styles = [
@@ -202,15 +202,6 @@ styles = [
      'multiplier_human': 0.95,
      'add_prompt_style': 'outdoor, (linen:1.4), cute japanese model girl, kimono, floral print, hair ornament, looking at viewer, hair flower, brown eyes, bangs, realistic'},
     # zju_02 add here
-    # 使命召唤7.1， very nice
-    {'name': '枪林弹雨风(CallOfDuty)',   # 名称，要与前面style_list对应
-     'img': './style_image/CallOfDuty.jpg',    # 在web界面上的展示图片，自行添加
-     'model_id': 'Tyytyy528/ShortSemester2023_zju_02',    # modelscope上的模型id
-     'revision': 'v2.0.9',    # 版本号，千万不能错！
-     'bin_file': 'CallOfDuty7.safetensors',    # LoRA模型文件
-     'multiplier_style': 0.3,
-     'multiplier_human': 0.95,
-     'add_prompt_style': 'solo, rifle, realistic, manly, gloves, military uniform, goggles overhead, bulletproof vest, holding weapon, military, fire, explosion, buildings, street'},    # 提示词，重要
     {'name': '印度风(India)',
      'img': './style_image/india.jpg',
      'model_id': 'lljjcc/IndianSarres',
@@ -235,14 +226,6 @@ styles = [
      'multiplier_style': 0.86,
      'multiplier_human': 0.95,
      'add_prompt_style': 'girl,flower, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'},
-    {'name': '武侠风(kongfu)',
-     'img': './style_image/wulin.jpg',
-     'model_id': 'lljjcc/gongfu',
-     'revision': 'v1.0.0',
-     'bin_file': '武侠飘逸高清脸_出男脸必备_男女脸都漂亮_v1.0.safetensors',
-     'multiplier_style': 0.86,
-     'multiplier_human': 0.95,
-     'add_prompt_style': '1boy, martial arts costume,  forest, long hair, period costume, martial arts, solo, jewelry, long hair, earrings, necklace, shut up, black eyes, belt, tassel, upper_body, original photo, masterpiece, high detail face, slim body, realistic, best quality, chinoiserie, ksword, ancient architectural background'}
     # zju_02 end here
 ]
 
