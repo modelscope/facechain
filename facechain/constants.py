@@ -15,7 +15,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','藏族风(ZangZu Style)','红发礼服风(Red Style)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','藏族风(ZangZu Style)','红发礼服风(Red Style),'多巴胺风格(Colourful Style)']},
 ]
 
 styles = [
@@ -299,6 +299,14 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
     'add_prompt_style':'Masterpiece, best quality,edgQuality,smirk,smug, edgAyre, red hair,red eyes,dress,Haute_Couture, feathered top,woman wearing a Haute_Couture dress'},
+     {'name': '多巴胺风格',
+     'img': './style_image/duobaan.jpg',
+     'model_id': 'Tekhne/dubaan',
+     'revision': 'v1.0.0',
+     'bin_file': 'colorfashionstyle_v1.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.95,
+     'add_prompt_style':'colorfashionstyle,light smile, orange and blue and red theme'},
 ]
 
 pose_models = [
