@@ -241,7 +241,7 @@ styles = [
      'bin_file': 'dunhuangV3.safetensors',
      'multiplier_style': 0.45,
      'multiplier_human': 0.95,
-     'add_prompt_style':'close-up,((faceshort)), long hair, clean face, dunhuang, Chinese ancient style, clean skin, organza_lace,Bust portrait, Dunhuang wind, Art deco, Necklace, jewelry, Bracelet, Earrings, ribbon, dunhuang_style, see-through_dress, colorful dress, Expressionism, looking towards the camera, upper_body'},
+     'add_prompt_style':'(close-up),(((faceshort))),black long hair, (clean face), dunhuang, Chinese ancient style, clean skin, organza_lace, Dunhuang wind, Art deco, Necklace, jewelry, Bracelet, Earrings, dunhuang_style, see-through_dress, Expressionism, looking towards the camera'},
 ]
 
 pose_models = [
