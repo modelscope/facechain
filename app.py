@@ -673,7 +673,11 @@ def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None
             return "请登陆后使用! (Please login first)"
         else:
             uuid = 'qw'
-    
+            
+    if deal_type == "update":
+        if (base_model_index is None) or (user_model is None) or (lora_choice is None) or (style_model is None and lora_choice == 'preset'):
+            return gr.Gallery.update(value=[], visible=True), gr.Gallery.update(value=[], visible=True) # error triggered by option change, won't pop up warning
+        
     if base_model_index is None:
         raise gr.Error('请选择基模型(Please select the base model)!')
     if user_model is None:
@@ -696,7 +700,7 @@ def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None
     if not os.path.exists(save_dir):
         return gr.Gallery.update(value=[], visible=True), gr.Gallery.update(value=[], visible=True)
     
-    if deal_type == "load":
+    if deal_type == "load" or deal_type == "update":
         single_dir = os.path.join(save_dir, 'single')
         concat_dir = os.path.join(save_dir, 'concat')
         single_imgs = []
@@ -892,19 +896,36 @@ def inference_input():
             with gr.Row():
                 single_history = gr.Gallery(label='单张图片(Single image history)')
                 batch_history = gr.Gallery(label='图片组(Batch image history)')
+                
+        update_history_text = gr.Text("update", visible=False)
         
         gallery.select(select_function, None, style_model, queue=False)
         lora_choice.change(fn=change_lora_choice, inputs=[lora_choice, base_model_index], outputs=[gallery, style_model], queue=False)
+        lora_choice.change(fn=deal_history,
+                           inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
+                           outputs=[single_history, batch_history])
         
         lora_file.upload(fn=upload_lora_file, inputs=[uuid, lora_file], outputs=[lora_choice], queue=False)
         lora_file.clear(fn=clear_lora_file, inputs=[uuid, lora_file], outputs=[lora_choice], queue=False)
         
         style_model.change(update_prompt, style_model, [pos_prompt, multiplier_style, multiplier_human], queue=False)
+        style_model.change(fn=deal_history,
+                           inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
+                           outputs=[single_history, batch_history])
+        
         pose_image.change(update_pose_model, [pose_image, pose_model], [pose_model, pose_res_image])
         base_model_index.change(fn=flash_model_list,
                                 inputs=[uuid, base_model_index, lora_choice],
                                 outputs=[user_model, gallery, style_model, lora_choice, lora_file],
                                 queue=False)
+        base_model_index.change(fn=deal_history,
+                                inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
+                                outputs=[single_history, batch_history])
+        
+        user_model.change(fn=deal_history,
+                          inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
+                          outputs=[single_history, batch_history])
+        
         update_button.click(fn=update_output_model,
                       inputs=[uuid, base_model_index],
                       outputs=[user_model],
