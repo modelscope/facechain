@@ -35,7 +35,7 @@ multiplier_human = 0.85
 base_model_sub_dir = 'film/film'
 train_output_dir = './output'
 output_dir = './generated'
-style = styles[0]
+style = styles[23]
 model_id = style['model_id']
 
 if model_id == None:

@@ -1,1 +1,8 @@
 *.safetensors filter=lfs diff=lfs merge=lfs -text
+style_image filter=lfs diff=lfs merge=lfs -text
+wedding filter=lfs diff=lfs merge=lfs -text
+facechain filter=lfs diff=lfs merge=lfs -text
+flame filter=lfs diff=lfs merge=lfs -text
+imgs filter=lfs diff=lfs merge=lfs -text
+poses filter=lfs diff=lfs merge=lfs -text
+results filter=lfs diff=lfs merge=lfs -text
