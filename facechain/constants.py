@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '贵族公主风(Princess costum)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)']},
 ]
 
 styles = [
@@ -193,6 +193,14 @@ styles = [
      'multiplier_style': 0.45,
      'multiplier_human': 0.95,
      'add_prompt_style': 'white_cheongsam, photography, warm light, Chinese classical indoor scene, close-up, front view, earrings, hairpin, serenity, elegant, facing the camera with a smile, beautiful chinese embroidery, symmetrical short sleeves'},
+    {'name': '日系和服风(Kimono Style)',
+     'img': './style_image/Kimono.jpg',
+     'model_id': 'ZackWang123/filmvelvia_lora',
+     'revision': 'v1.0.0',
+     'bin_file': 'FilmVelvia3.safetensors',
+     'multiplier_style': 0.45,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'outdoor, (linen:1.4), cute japanese model girl, kimono, floral print, hair ornament, looking at viewer, hair flower, brown eyes, bangs, realistic'},
     {'name': '贵族公主风(Princess costum)',
      'img': './style_image/Princess_style.jpg',
      'model_id': 'AzilyModelScope/facechain_lora',
