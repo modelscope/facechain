@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)']},
 ]
 
 styles = [
@@ -201,6 +201,14 @@ styles = [
      'multiplier_style': 0.45,
      'multiplier_human': 0.95,
      'add_prompt_style': 'outdoor, (linen:1.4), cute japanese model girl, kimono, floral print, hair ornament, looking at viewer, hair flower, brown eyes, bangs, realistic'},
+    {'name': '贵族公主风(Princess costum)',
+     'img': './style_image/Princess_style.jpg',
+     'model_id': 'AzilyModelScope/facechain_lora',
+     'revision': 'v1.0.0',
+     'bin_file': 'foreign_princess_costum.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'fantasy girl, close-up, Waist shot, long hair, jewelry, earrings, looking at viewer, white dress, cathedral background, crown, (detailed face, perfect face, perfect eyes, realistic eyes), (clear face), high detail, sharp focus, dramatic, beautiful girl'},
 ]
 
 pose_models = [
