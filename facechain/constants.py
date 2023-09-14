@@ -219,7 +219,7 @@ styles = [
      'add_prompt_style': 'Best Quality,Masterpiece,Ultra High Resolution,(Realisticity:1.4),Original Photo,Cinematic Lighting,1Girl,light rays,Tyndall effect,<lora:Tyndall effect_Light v1.1:0.6>,masterpiece, best quality, highly detailed,outdoor,soft light'},
     {'name': '哥特洛丽塔(Gothic Lolita)',
      'img': './style_image/li.jpg',
-     'model_id': '/mnt/workspace/facechain',
+     'model_id': 'Cleaner/lo_dress_gothic_style2_v2',
      'revision': 'v1.0.0',
      'bin_file': 'lo_dress_gothic_style2_v2.safetensors',
      'multiplier_style': 0.4,
