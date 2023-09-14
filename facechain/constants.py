@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '漫游宇航员(Roaming Astronaut)', '复古军装风(Retro military uniform)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '漫游宇航员(Roaming Astronaut)', '复古军装风(Retro military uniform)', '海港船长风(Sea Captain)']},
 ]
 
 styles = [
@@ -201,7 +201,7 @@ styles = [
      'multiplier_style': 0.65,
      'multiplier_human': 0.9,
      'add_prompt_style': 'fall, wall behind, blurry, blurry background, depth of field, gloves, hat,  realistic, solo, uniform, black hair, long sleeves, black gloves, cape, military, black headwear, military uniform, peaked cap, military hat, outfit, looking at viewer,front view'},
-    {'name': '海港船长风',
+    {'name': '海港船长风(Sea Captain)',
      'img': './style_image/hai_feng.jpg',
      'model_id': 'idlepiggy/zju_16FC',
      'revision': 'v2.0',
@@ -209,8 +209,7 @@ styles = [
      'multiplier_style': 0.75,
      'multiplier_human': 0.9,
      'add_prompt_style': 'Professional,ultra-fine painting,black hair,standing,outdoors,uniform11,police uniform,hat,cloud,sky,seaside background,looking at viewer,slim body with large breast',
-     'add_neg_prompt':'hand',
-    },
+     'add_neg_prompt':'hand'},
 ]
 
 pose_models = [
