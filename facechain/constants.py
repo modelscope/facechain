@@ -32,7 +32,7 @@ styles = [
      'bin_file': 'zhongqiu.safetensors',
      'multiplier_style': 0.45,
      'multiplier_human': 0.95,
-     'add_prompt_style': 'solo,hair ornament,plait,jewelry,dress,earrings,flower,necklace,long sleeves,hair flower,holding,chinese clothes,hanfu,makeup,lipstick,hair bun,looking at viewer,bun'},
+     'add_prompt_style': 'solo,hair ornament,plait,jewelry,dress,earrings,flower,necklace,long sleeves,hair flower,holding,chinese clothes,hanfu,makeup,lipstick,hair bun,looking at viewer,bun,moon background'},
     {'name': '盔甲风(Armor)',
      'img': './style_image/Armor.jpg',
      'model_id': None,
