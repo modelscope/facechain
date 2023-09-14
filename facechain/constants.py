@@ -242,6 +242,14 @@ styles = [
      'multiplier_style': 0.5,
      'multiplier_human': 0.95,
     'add_prompt_style':'(masterpiece, best quality, hires:1.2),Zangzu, 1girl,solo,crown,gem,solo,red_lips,upper_bode,solo_focus,jewery,necklace,pearl_necklace,snow,snowing,looking at viewer'},
+{'name': 'red',
+     'img': './style_image/redstyle.jpg',
+     'model_id': 'Tekhne/red',
+     'revision': 'v1.0.0',
+     'bin_file': 'edgAyre_AC6.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.95,
+    'add_prompt_style':'Masterpiece, best quality,edgQuality,smirk,smug, edgAyre, red hair,red eyes,dress,Haute_Couture, feathered top,woman wearing a Haute_Couture dress'},
 ]
 
 pose_models = [
