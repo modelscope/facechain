@@ -105,8 +105,9 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             subprocess.run(command, check=True)
         except subprocess.CalledProcessError as e:
             print(f"Error executing the command: {e}")
+            raise gr.Error("训练失败 (Training failed)")
     else:
-        os.system(
+        res = os.system(
             f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py '
             f'--pretrained_model_name_or_path={base_model_path} '
             f'--revision={revision} '
@@ -128,6 +129,8 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_text_encoder_r=32 '
             f'--lora_text_encoder_alpha=32 '
             f'--resume_from_checkpoint="fromfacecommon"')
+        if res != 0:
+            raise gr.Error("训练失败 (Training failed)")
 
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model in base_models[0]['style_list'][:-1] or style_model is None:
