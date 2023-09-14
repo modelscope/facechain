@@ -1,5 +1,5 @@
 neg_prompt = '(nsfw:2), paintings, sketches, (worst quality:2), (low quality:2), ' \
-             'lowers, normal quality, ((monochrome)), ((grayscale)), signature, logo, word, character, bad hand'
+             'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character, bad hand, tattoo, (username, watermark, signature, time signature, timestamp, artist name, copyright name, copyright)'
 pos_prompt_with_cloth = 'raw photo, masterpiece, chinese, {}, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality'
 pos_prompt_with_style = '{}, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'
 
@@ -160,15 +160,15 @@ styles = [
      'bin_file': 'MoXinV1.safetensors',
      'multiplier_style': 0.3,
      'multiplier_human': 0.95,
-     'add_prompt_style': '(ultra high res face, face ultra zoom, highres, best quality, ultra detailed, cinematic lighting, portrait, Chinese traditional ink painting:1.2), sfw, shuimobysim, song, anxiang, hanfu, Ultra HD, wuchangshuo, detailed background, looking at viewer, serenity, peace'},
+     'add_prompt_style': '(best quality, hanfu, Chinese traditional ink painting:1.8), close-up, song, anxiang, chinese_clothes, ornaments, topknot, perfect eyes, perfect face, soft smile'},
     {'name': '壮族服装风(Zhuang style)',
      'img': './style_image/Zhuang_style.jpg',
      'model_id': 'iotang/lora_testing',
      'revision': 'v5',
      'bin_file': 'zhuangnv.safetensors',
-     'multiplier_style': 0.7,
+     'multiplier_style': 0.75,
      'multiplier_human': 0.95,
-     'add_prompt_style': '(masterpiece, ultra high res face, face ultra zoom, highres, best quality, ultra detailed, cinematic lighting, portrait:1.2), sfw, facing the camera with a smile, zhuangzunv, ornaments, jewelry, headwear, beautiful embroidery, floral print, marvelous design, ancient Chinese traditional clothing'},
+     'add_prompt_style': '((best quality)), close-up, portrait, ((zhuangzunv)), ornaments, jewelry, headwear, ((beautiful embroidery, floral print, marvelous design)), perfect eyes, perfect face, gentle black hair, smile'},
     {'name': '欧式田野风(European fields)',
      'img': './style_image/European_fields.jpg',
      'model_id': 'iotang/lora_testing',
@@ -176,7 +176,7 @@ styles = [
      'bin_file': 'edgEuropean_Vintage.safetensors',
      'multiplier_style': 0.55,
      'multiplier_human': 0.95,
-     'add_prompt_style': '(masterpiece, ultra high res face, face ultra zoom, highres, best quality, ultra detailed, detailed background, cinematic lighting, portrait:1.2), sfw, focused, edgEV, wearing edgEV_vintage dress, field, natural lighting, windy hair, gentle hair, clean'},
+     'add_prompt_style': 'focused, (edgEV, wearing edgEV_vintage dress), (field, natural lighting, detailed background, cinematic lighting), (gentle hair:1.1), windy hair, perfect eyes, perfect face'},
     {'name': '雪山羽绒服风(Jacket in Snow Mountain)',
      'img': './style_image/Jacket_in_Snow_Mountain.jpg',
      'model_id': 'iotang/lora_testing',
