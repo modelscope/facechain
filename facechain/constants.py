@@ -13,7 +13,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '绿野仙踪(Wizard of Oz)']},
 ]
 
 styles = [
@@ -193,6 +193,14 @@ styles = [
      'multiplier_style': 0.45,
      'multiplier_human': 0.95,
      'add_prompt_style': 'white_cheongsam, photography, warm light, Chinese classical indoor scene, close-up, front view, earrings, hairpin, serenity, elegant, facing the camera with a smile, beautiful chinese embroidery, symmetrical short sleeves'},
+    {'name': '绿野仙踪(Wizard of Oz)',
+     'img': './style_image/Wizard_of_Oz.jpg',
+     'model_id': 'Rechycs/Wizard_lora',
+     'revision': 'v1.0.0',
+     'bin_file': 'Wizard_of_Oz.safetensors',
+     'multiplier_style': 0.3,
+     'multiplier_human': 0.8,
+     'add_prompt_style': 'OIL PAINTING,IMPRESSIONISM,medium full view, amidst the ancient woodland, the image captures the ethereal beauty of a young dryad. her long, braided red hair cascades like flames, entwining with (vines and flowers that form her ornate dress:1.2), the air is filled with colorful petals, and dappled sunlight paints a mesmerizing tapestry on the forest floor, dense foliage, gnarled roots and branches, beams of sunlight, ethereal, mysterious, wondrous, chiaroscuro, masterpiece, best quality,<lora:bichu-v0612 :0.6> BICHU,'},
 
 ]
 
