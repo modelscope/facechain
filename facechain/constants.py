@@ -208,7 +208,7 @@ styles = [
      'bin_file': 'uniform11.safetensors',
      'multiplier_style': 0.75,
      'multiplier_human': 0.9,
-     'add_prompt_style': 'Professional,ultra-fine painting,black hair,standing,outdoors,uniform11,police uniform,hat,cloud,sky,seaside background,looking at viewer,slim body with large breast',
+     'add_prompt_style': 'Professional,ultra-fine painting,black hair,standing,outdoors,uniform11,police uniform,hat,cloud,sky,seaside background,looking at viewer,slim body',
      'add_neg_prompt':'hand'},
 ]
 
