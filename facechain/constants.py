@@ -282,6 +282,14 @@ styles = [
      'multiplier_style': 0.25,
      'multiplier_human': 0.95,
      'add_prompt_style': 'purple hair, ponytail, wearing slip skirt,looking straight into the camera with shoulders parallel to the frame, light purple background'},
+    {'name': '火红少女风(Flame Red Style)',
+     'img': './style_image/flame_red_style.png',
+     'model_id': 'Hswich/wlop_offset',
+     'revision': 'v1.0.0',
+     'bin_file': 'wlop_offset.safetensors',
+     'multiplier_style': 0.6,
+     'multiplier_human': 0.6,
+     'add_prompt_style': 'wlop, 1girl, black gloves, black jacket, character request, commentary, earrings, ghostblade, gloves, hand up, jacket, jewelry, long hair, looking down, red hair, solo, ((masterpiece)) <lora:wlop_offset:1>,ruthlessness,golden ACC,locomotive'},
 ]
 
 pose_models = [
