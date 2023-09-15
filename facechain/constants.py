@@ -192,7 +192,7 @@ styles = [
      'bin_file': 'chinese.safetensors',
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
-     'add_prompt_style': 'traditional chinese suit, clean, different colors, vivid colors, sunny, HDR, studio lighting, highly detailed, traditional chinese park background'},
+     'add_prompt_style': 'traditional chinese suit, face shot, clean, different colors, (natural collar:1.5), tidy clothing, close-up, full head, stduio lighting, Bokeh, vivid colors, sunny, HDR, studio lighting, highly detailed, traditional chinese park background'},
     {'name': '西部风(wild west style)',
      'img': './style_image/wild_west.jpg',
      'model_id': 'StigXI/zju_01_LoRA',
@@ -208,7 +208,7 @@ styles = [
      'bin_file': 'scific.safetensors',
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
-     'add_prompt_style': 'science fiction style suit, photography, Neon, vivid colors, highly detailed, UHD, professional, cyber punk street background'}
+     'add_prompt_style': 'science fiction style suit,tidy face, photography, clean, vivid colors, (clean face:1.5), highly detailed, UHD, professional, cyber punk street background'},
 ]
 
 pose_models = [
