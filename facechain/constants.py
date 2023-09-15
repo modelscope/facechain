@@ -14,7 +14,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)', '民国风(MinGuo)']},
 ]
 
 styles = [
@@ -234,6 +234,14 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
      'add_prompt_style': 'Manhuanan,jewelry,1boy,<lora:Manhuanan_20230827182922-000009:1>,half body photo,white hair,at the coffee shop,blurred background,CG,UE5'},
+    {'name': '，民国风(MinGuo)',
+     'img': './style_image/Minguo.jpg',
+     'model_id': 'HowardB/facechain_zju_19_lora',
+     'revision': 'v1.0.6',
+     'bin_file': 'minguo_final.safetensors',
+     'multiplier_style': 0.4,
+     'multiplier_human': 1,
+     'add_prompt_style': '{straight_hair : 2},mg_set,blue shirt,Chinese traditional clothes, photography, warm light, soft lighting, outdoor scene,{close-up:2},{faceshot:2},front view,Bokeh,braids,bangs,reserved, serenity, smart, facing the camera with a smile, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'},
 ]
 
 pose_models = [
