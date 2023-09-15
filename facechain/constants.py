@@ -282,6 +282,14 @@ styles = [
      'multiplier_style': 0.25,
      'multiplier_human': 0.95,
      'add_prompt_style': 'purple hair, ponytail, wearing slip skirt,looking straight into the camera with shoulders parallel to the frame, light purple background'},
+    {'name': '圣诞风(Christmas)',
+     'img': './style_image/Christmas.jpg',
+     'model_id': 'mowunian/christmas',
+     'revision': 'v1.0.0',
+     'bin_file': 'christmas.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'christmas, christmas tree, dress, sweater, snowing, gift, gift box, bell, santa hat'},
 ]
 
 pose_models = [
