@@ -291,7 +291,7 @@ styles = [
      'multiplier_human': 0.95,
      'add_prompt_style': 'summer vibe,(ocean, rock, seawave, palm tree) sunshine,rim lighting, two tone light,  professional photoportait, beautiful eyes, beautiful face, ocean background, Style by NTY:1.3, (detailed face, perfect face, perfect eyes, realistic eyes)'},
     {'name': '欧式贵族风(Royal style)',
-     'img': './style_image/Chinese_traditional_gorgeous_suit.jpg',
+     'img': './style_image/Royal_Crown.png',
      'model_id': None,
      'revision': None,
      'bin_file': None,
