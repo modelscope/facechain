@@ -333,7 +333,7 @@ styles = [
     {'name': '中国新年风(Chinese New Year Style)',
      'img': './style_image/Chinese_New_Year.jpg',
      'model_id': 'houpeiran/mymodel',
-     'revision': 'v1.0.0',
+     'revision': 'v2',
      'bin_file': 'aki.safetensors',
      'multiplier_style': 0.2,
      'multiplier_human': 0.95,
