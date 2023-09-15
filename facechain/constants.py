@@ -282,6 +282,14 @@ styles = [
      'multiplier_style': 0.25,
      'multiplier_human': 0.95,
      'add_prompt_style': 'purple hair, ponytail, wearing slip skirt,looking straight into the camera with shoulders parallel to the frame, light purple background'},
+    {'name': '复古风(Retro Style)',
+     'img': './style_image/Retro_style.jpg',
+     'model_id': 'HanYixuan1/Retro_style',
+     'revision': 'v1.0.0',
+     'bin_file': 'Retro_style.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.8,
+     'add_prompt_style': '1990s, <lora:RetroFusion v1.0.0:1>,  1girl, woman looking out window, against glass, clothes,gray white and black ,black hair,misty beauty,glimmer,warm-toned,soft,sense of depth，Gauze texture，Solid fabric，low pixel，thin， face focusing，rough cloth，fit，Slight yellowing，autochrome photography，light and shade  contrast，dim，pale，color fading，Monastic dress，Drop hands naturally，no hands，Exclude hands，Blur the old city background'},
 ]
 
 pose_models = [
