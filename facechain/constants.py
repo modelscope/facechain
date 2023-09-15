@@ -14,7 +14,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','夏日海滩风(Summer Ocean Vibe)','西部牛仔风(Cowboy style)', '炫彩少女风(Colorful rainbow style)', '京剧名旦风(Female role in Peking opera)', '自然清冷风(Cool tones)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','夏日海滩风(Summer Ocean Vibe)','西部牛仔风(Cowboy style)', '炫彩少女风(Colorful rainbow style)', '京剧名旦风(Female role in Peking opera)', '自然清冷风(Cool tones)', '中国新年风(Chinese New Year Style)']},
 ]
 
 styles = [
@@ -330,6 +330,14 @@ styles = [
      'multiplier_style': 0.25,
      'multiplier_human': 0.95,
      'add_prompt_style': 'standing, coloured glaze, Polychromatic prism effect, rainbowcore, iridescence/opalescence, glowing colors, aluminum foil, Glowing ambiance, (portrait:1.5), black starry night background, close-up to head, wearing camisole'},
+    {'name': '中国新年风(Chinese New Year Style)',
+     'img': './style_image/Chinese_New_Year.jpg',
+     'model_id': 'houpeiran/mymodel',
+     'revision': 'v1.0.0',
+     'bin_file': 'aki.safetensors',
+     'multiplier_style': 0.2,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'Chinese New Year, perfect red hanfu, long sleeves, standing, intricat bright red background, many Chinese laterns in background, red flowers, casual, clear lines'},
 ]
 
 pose_models = [
