@@ -297,7 +297,7 @@ styles = [
      'bin_file': 'lo_dress_gothic_style2_v2.safetensors',
      'multiplier_style': 0.4,
      'multiplier_human': 0.95,
-     'add_prompt_style': 'Lolita dress, Gothic Lolita style, Clothes in black or burgundy tones, 1 girl, solo, realistic, photorealistic, masterpiece, best quality, ultra detailed, looking at viewer, standing, natural lighting, depth of field, Gothic castle, Park, Garden, Sky, masterpiece, best quality, slim, long hair, dynamic pose, detailed background, lace-trimmed, with bowknot'},
+     'add_prompt_style': 'Lolita dress, Gothic Lolita style, Clothes in black or burgundy tones, 1 girl, solo, realistic, photorealistic, masterpiece, best quality, ultra detailed, looking at viewer, standing, natural lighting, depth of field, Gothic castle, Medieval painting, Medieval murals, masterpiece, best quality, slim, long hair, dynamic pose, detailed background, lace-trimmed, with bowknot, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic,Large glass windows, European monumental architecture'},
 ]
 
 pose_models = [
