@@ -297,8 +297,7 @@ styles = [
      'bin_file': None,
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
-     'add_prompt_style': 'summer vibe,(ocean, rock, seawave, palm tree) sunshine,rim lighting, two tone light,  professional photoportait, beautiful eyes, beautiful face, ocean background, Style by NTY:1.3, (detailed face, perfect face, perfect eyes, realistic eyes)'},
-
+     'add_prompt_style': 'queen, royal, luxury, England Royal Crown,white luxury dress, raw photo, masterpiece, chinese,  sacred, high-class palace background, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, slim body, photorealistic, best quality,  peaceful'},
 ]
 
 pose_models = [
