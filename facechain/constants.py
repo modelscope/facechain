@@ -292,7 +292,7 @@ styles = [
      'multiplier_human': 0.95,
      'add_prompt_style': 'wear indian style costume, gold ornament, gorgeous background, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality, indian dance, indian street, street photography'},
     {'name': '海洋风(ocean)',
-     'img': './style_image/DreamyOcean.png',
+     'img': './style_image/DreamyOcean.jpg',
      'model_id': 'MushroomLyn/artist',
      'revision': 'v2.0.0',
      'bin_file': 'mine.safetensors',
