@@ -283,7 +283,7 @@ styles = [
      'multiplier_human': 0.95,
      'add_prompt_style': 'purple hair, ponytail, wearing slip skirt,looking straight into the camera with shoulders parallel to the frame, light purple background'},
     {'name': '火红少女风(Flame Red Style)',
-     'img': './style_image/flame_red_style.png',
+     'img': './style_image/flame_red_style.jpg',
      'model_id': 'Hswich/wlop_offset',
      'revision': 'v1.0.0',
      'bin_file': 'wlop_offset.safetensors',
