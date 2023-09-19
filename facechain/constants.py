@@ -14,7 +14,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','绿野仙踪(Wizard of Oz)','藏族风(ZangZu Style)','红发礼服风(Red Style)','多巴胺风格(Colourful Style)','国风(GuoFeng Style)','复古风(Retro Style)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','绿野仙踪(Wizard of Oz)','藏族风(ZangZu Style)','红发礼服风(Red Style)','多巴胺风格(Colourful Style)','国风(GuoFeng Style)','复古风(Retro Style)','印度风(India)','海洋风(ocean)','花园风(flowers)']},
 ]
 
 styles = [
@@ -330,6 +330,30 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.8,
      'add_prompt_style': '1990s, <lora:RetroFusion v1.0.0:1>,  1girl, woman looking out window, against glass, clothes,gray white and black ,black hair,misty beauty,glimmer,warm-toned,soft,sense of depth，Gauze texture，Solid fabric，low pixel，thin， face focusing，rough cloth，fit，Slight yellowing，autochrome photography，light and shade  contrast，dim，pale，color fading，Monastic dress，Drop hands naturally，no hands，Exclude hands，Blur the old city background'},
+    {'name': '印度风(India)',
+     'img': './style_image/india.jpg',
+     'model_id': 'lljjcc/IndianSarres',
+     'revision':'v1.0.0',
+     'bin_file': 'Indian saree.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'wear indian style costume, gold ornament, gorgeous background, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality, indian dance, indian street, street photography'},
+    {'name': '海洋风(ocean)',
+     'img': './style_image/DreamyOcean.jpg',
+     'model_id': 'MushroomLyn/artist',
+     'revision': 'v2.0.0',
+     'bin_file': 'mine.safetensors',
+     'multiplier_style': 0.5,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'delicate, gentle eye, ocean, white shirt, sunlit, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'},
+     {'name': '花园风(flowers)',
+     'img': './style_image/outdoor.jpg',
+     'model_id': 'lljjcc/outdoor',
+     'revision': 'v1.0.0',
+     'bin_file': 'outdoor photo_v2.0.safetensors',
+     'multiplier_style': 0.86,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'girl,flower, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, slim body, photorealistic, best quality'},
 ]
 
 pose_models = [
