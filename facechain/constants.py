@@ -14,7 +14,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','绿野仙踪(Wizard of Oz)','藏族风(ZangZu Style)','红发礼服风(Red Style)','多巴胺风格(Colourful Style)','国风(GuoFeng Style)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','绿野仙踪(Wizard of Oz)','藏族风(ZangZu Style)','红发礼服风(Red Style)','多巴胺风格(Colourful Style)','国风(GuoFeng Style)','复古风(Retro Style)']},
 ]
 
 styles = [
@@ -322,6 +322,14 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
     'add_prompt_style':'(masterpiece, best quality, hires:1.2),GuoFeng, 1girl,solo,linen cloth,red_lips,solo_focus, standing,looking at viewer, ethereal background'},
+      {'name': '复古风(Retro Style)',
+     'img': './style_image/Retro_style.jpg',
+     'model_id': 'HanYixuan1/Retro_style',
+     'revision': 'v1.0.0',
+     'bin_file': 'Retro_style.safetensors',
+     'multiplier_style': 0.35,
+     'multiplier_human': 0.8,
+     'add_prompt_style': '1990s, <lora:RetroFusion v1.0.0:1>,  1girl, woman looking out window, against glass, clothes,gray white and black ,black hair,misty beauty,glimmer,warm-toned,soft,sense of depth，Gauze texture，Solid fabric，low pixel，thin， face focusing，rough cloth，fit，Slight yellowing，autochrome photography，light and shade  contrast，dim，pale，color fading，Monastic dress，Drop hands naturally，no hands，Exclude hands，Blur the old city background'},
 ]
 
 pose_models = [
