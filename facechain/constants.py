@@ -283,7 +283,7 @@ styles = [
      'multiplier_human': 0.95,
      'add_prompt_style': 'purple hair, ponytail, wearing slip skirt,looking straight into the camera with shoulders parallel to the frame, light purple background'},
     {'name': '湖景汉服风(Lake view Hanfu)',
-     'img': './style_image/lake_hanfu.jpeg',
+     'img': './style_image/lake_hanfu.jpg',
      'model_id': 'kkksx114/Han4',
      'revision': 'v1.0.0',
      'bin_file': 'Han4.safetensors',
