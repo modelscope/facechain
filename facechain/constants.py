@@ -14,7 +14,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','绿野仙踪(Wizard of Oz)','藏族风(ZangZu Style)','红发礼服风(Red Style)','多巴胺风格(Colourful Style)','国风(GuoFeng Style)','复古风(Retro Style)','印度风(India)','海洋风(ocean)','花园风(flowers)','主题乐园风(Disneyland)','绿茵球场风(Soccer Field)','中华刺绣风(Embroidery)','蒙古草原风(Mongolian)','梦幻深海风(Sea World)','火红少女风(Flame Red Style)', '藏族服饰风(tibetan clothing style)', '萧瑟秋天风(bleak autumn style)', '秋日胡杨风(autumn populus euphratica style)', '丁达尔风(Tyndall Light)', '哥特洛丽塔(Gothic Lolita)', '复古风(retro style)', '绅士风(gentleman style)','西部牛仔风(west cowboy)', '嘻哈风(hiphop style)', '洛丽塔(lolita)', '女巫风(witch style)', '女仆风(maid style)','圣诞风(Christmas)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','绿野仙踪(Wizard of Oz)','藏族风(ZangZu Style)','红发礼服风(Red Style)','多巴胺风格(Colourful Style)','国风(GuoFeng Style)','复古风(Retro Style)','印度风(India)','海洋风(ocean)','花园风(flowers)','主题乐园风(Disneyland)','绿茵球场风(Soccer Field)','中华刺绣风(Embroidery)','蒙古草原风(Mongolian)','梦幻深海风(Sea World)','火红少女风(Flame Red Style)', '藏族服饰风(tibetan clothing style)', '萧瑟秋天风(bleak autumn style)', '秋日胡杨风(autumn populus euphratica style)', '丁达尔风(Tyndall Light)', '哥特洛丽塔(Gothic Lolita)', '复古风(retro style)', '绅士风(gentleman style)','西部牛仔风(west cowboy)', '嘻哈风(hiphop style)', '洛丽塔(lolita)', '女巫风(witch style)', '女仆风(maid style)','圣诞风(Christmas)', '敦煌风(Dunhuang)']},
 ]
 
 styles = [
@@ -498,7 +498,7 @@ styles = [
      'multiplier_style': 0.3,
      'multiplier_human': 0.95,
      'add_prompt_style': '1girl, black or white short dresses, lace edges, aprons, bows, lace gloves, neckties, cuffs, twin-tails, light makeup, pink blush, pink lipsticks, gentle, considerate, cafe background'},
-     {'name': '圣诞风(Christmas)',
+    {'name': '圣诞风(Christmas)',
      'img': './style_image/Christmas.jpg',
      'model_id': 'mowunian/christmas',
      'revision': 'v1.0.0',
@@ -506,6 +506,14 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
      'add_prompt_style': 'christmas, christmas tree, dress, sweater, snowing, gift, gift box, bell'},
+    {'name': '敦煌风(Dunhuang)',
+     'img': './style_image/Dunhuang.jpg',
+     'model_id': 'PaperCloud/zju19_dunhuang_style_lora',
+     'revision': 'v2',
+     'bin_file': 'dunhuangV3.safetensors',
+     'multiplier_style': 0.45,
+     'multiplier_human': 1.05,
+     'add_prompt_style':'(close-up),(((faceshort))),black long hair, (clean face), dunhuang, Chinese ancient style, clean skin, organza_lace, Dunhuang wind, Art deco, Necklace, jewelry, Bracelet, Earrings, dunhuang_style, see-through_dress, Expressionism, looking towards the camera'},
 ]
 
 pose_models = [
