@@ -14,7 +14,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','绿野仙踪(Wizard of Oz)','藏族风(ZangZu Style)','红发礼服风(Red Style)','多巴胺风格(Colourful Style)','国风(GuoFeng Style)','复古风(Retro Style)','印度风(India)','海洋风(ocean)','花园风(flowers)','主题乐园风(Disneyland)','绿茵球场风(Soccer Field)','中华刺绣风(Embroidery)','蒙古草原风(Mongolian)','梦幻深海风(Sea World)','火红少女风(Flame Red Style)', '藏族服饰风(tibetan clothing style)', '萧瑟秋天风(bleak autumn style)', '秋日胡杨风(autumn populus euphratica style)', '丁达尔风(Tyndall Light)', '哥特洛丽塔(Gothic Lolita)', '复古风(retro style)', '绅士风(gentleman style)','西部牛仔风(west cowboy)', '嘻哈风(hiphop style)', '洛丽塔(lolita)', '女巫风(witch style)', '女仆风(maid style)','圣诞风(Christmas)', '敦煌风(Dunhuang)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','绿野仙踪(Wizard of Oz)','藏族风(ZangZu Style)','红发礼服风(Red Style)','多巴胺风格(Colourful Style)','国风(GuoFeng Style)','复古风(Retro Style)','印度风(India)','海洋风(ocean)','花园风(flowers)','主题乐园风(Disneyland)','绿茵球场风(Soccer Field)','中华刺绣风(Embroidery)','蒙古草原风(Mongolian)','梦幻深海风(Sea World)','火红少女风(Flame Red Style)', '藏族服饰风(tibetan clothing style)', '萧瑟秋天风(bleak autumn style)', '秋日胡杨风(autumn populus euphratica style)', '丁达尔风(Tyndall Light)', '哥特洛丽塔(Gothic Lolita)', '复古风(retro style)', '绅士风(gentleman style)','西部牛仔风(west cowboy)', '嘻哈风(hiphop style)', '洛丽塔(lolita)', '女巫风(witch style)', '女仆风(maid style)','圣诞风(Christmas)','敦煌风(Dunhuang)','苗族服装风(Miao style)','时尚墨镜风(fashionglasses)']},
 ]
 
 styles = [
@@ -514,6 +514,22 @@ styles = [
      'multiplier_style': 0.45,
      'multiplier_human': 1.05,
      'add_prompt_style':'(close-up),(((faceshort))),black long hair, (clean face), dunhuang, Chinese ancient style, clean skin, organza_lace, Dunhuang wind, Art deco, Necklace, jewelry, Bracelet, Earrings, dunhuang_style, see-through_dress, Expressionism, looking towards the camera'},
+    {'name': '苗族服装风(Miao style)',
+     'img': './style_image/miaozu.jpg',
+     'model_id': 'SoulNut/facechain_model',
+     'revision': 'v3.0',
+     'bin_file': 'miaozu.safetensors',
+     'multiplier_style': 0.45,
+     'multiplier_human': 0.9,
+     'add_prompt_style': '(masterpiece, ultra high res face, face ultra zoom, highres, best quality, ultra detailed, portrait:1.2), sfw, Miao nationality, smaller head, beautiful face, smaller face, ((intricate embroideries on clothes)), silver ornaments, ((intricate detailed headdresses)), (((extremely elaborate silver detailing))), exquisite and ornate headpiece featuring intricate filigree designs and delicate engravings, leaning against a stone archway, hands clasped behind, wear gloves, detailed fingers,  Miao Village background, flat chest, realistic'},
+    {'name': '时尚墨镜风(fashionglasses)',
+     'img': './style_image/fashionglasses.jpg',
+     'model_id': 'SoulNut/facechain_LoRA',
+     'revision': 'v1.1',
+     'bin_file': 'fashion_glasses.safetensors',
+     'multiplier_style': 0.6,
+     'multiplier_human': 0.95,
+     'add_prompt_style': '(masterpiece, ultra high res face, face ultra zoom, highres, best quality, ultra detailed, cinematic lighting, portrait:1.2), sfw, short hair, blonde-glasses,solo,close-up,red lips,facing aside, cityscape, detailed background, blonde Leather clothing, blonde theme'},
 ]
 
 pose_models = [
