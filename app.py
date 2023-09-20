@@ -18,7 +18,7 @@ from facechain.utils import snapshot_download
 from facechain.inference import preprocess_pose, GenPortrait
 from facechain.inference_inpaint import GenPortrait_inpaint
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
-from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, styles, \
+from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_prompt_with_style, styles, \
     pose_models, pose_examples, base_models
 
 training_done_count = 0
@@ -105,8 +105,9 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             subprocess.run(command, check=True)
         except subprocess.CalledProcessError as e:
             print(f"Error executing the command: {e}")
+            raise gr.Error("训练失败 (Training failed)")
     else:
-        os.system(
+        res = os.system(
             f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py '
             f'--pretrained_model_name_or_path={base_model_path} '
             f'--revision={revision} '
@@ -128,6 +129,8 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_text_encoder_r=32 '
             f'--lora_text_encoder_alpha=32 '
             f'--resume_from_checkpoint="fromfacecommon"')
+        if res != 0:
+            raise gr.Error("训练失败 (Training failed)")
 
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model in base_models[0]['style_list'][:-1] or style_model is None:
@@ -529,12 +532,12 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
     
     if not os.path.exists(folder_path):
         if lora_choice == 'preset':  
-            return gr.Radio.update(choices=[]), \
+            return gr.Radio.update(choices=[], value = None), \
                 gr.Gallery.update(value=[(item["img"], item["name"]) for item in sub_styles], visible=True), \
                 gr.Text.update(value=style_list[0], visible=True), \
                 gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
         else:
-            return gr.Radio.update(choices=[]), \
+            return gr.Radio.update(choices=[], value = None), \
                 gr.Gallery.update(visible=False), gr.Text.update(),\
                 gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
     else:
@@ -547,12 +550,12 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
                     folder_list.append(file)
     
     if lora_choice == 'preset':
-        return gr.Radio.update(choices=folder_list), \
+        return gr.Radio.update(choices=folder_list, value = None), \
             gr.Gallery.update(value=[(item["img"], item["name"]) for item in sub_styles], visible=True), \
             gr.Text.update(value=style_list[0], visible=True), \
             gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
     else:
-        return gr.Radio.update(choices=folder_list), \
+        return gr.Radio.update(choices=folder_list, value = None), \
             gr.Gallery.update(visible=False), gr.Text.update(), \
             gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
 
@@ -574,7 +577,7 @@ def update_output_model(uuid, base_model_index):
     folder_path = f"/tmp/{uuid}/{base_model_path}"
     folder_list = []
     if not os.path.exists(folder_path):
-        return gr.Radio.update(choices=[]),gr.Dropdown.update(choices=style_list)
+        return gr.Radio.update(choices=[], value = None)
     else:
         files = os.listdir(folder_path)
         for file in files:
@@ -603,7 +606,7 @@ def update_output_model_inpaint(uuid, base_model_index):
     folder_path = f"/tmp/{uuid}/{base_model_path}"
     folder_list = ['不重绘该人物(Do not inpaint this character)']
     if not os.path.exists(folder_path):
-        return gr.Radio.update(choices=[]), gr.Dropdown.update(choices=style_list)
+        return gr.Radio.update(choices=[], value = None), gr.Dropdown.update(choices=style_list)
     else:
         files = os.listdir(folder_path)
         for file in files:
@@ -673,7 +676,11 @@ def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None
             return "请登陆后使用! (Please login first)"
         else:
             uuid = 'qw'
-    
+            
+    if deal_type == "update":
+        if (base_model_index is None) or (user_model is None) or (lora_choice is None) or (style_model is None and lora_choice == 'preset'):
+            return gr.Gallery.update(value=[], visible=True), gr.Gallery.update(value=[], visible=True) # error triggered by option change, won't pop up warning
+        
     if base_model_index is None:
         raise gr.Error('请选择基模型(Please select the base model)!')
     if user_model is None:
@@ -696,7 +703,7 @@ def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None
     if not os.path.exists(save_dir):
         return gr.Gallery.update(value=[], visible=True), gr.Gallery.update(value=[], visible=True)
     
-    if deal_type == "load":
+    if deal_type == "load" or deal_type == "update":
         single_dir = os.path.join(save_dir, 'single')
         concat_dir = os.path.join(save_dir, 'concat')
         single_imgs = []
@@ -850,6 +857,8 @@ def inference_input():
                     neg_prompt = gr.Textbox(label="负向提示语(Negative Prompt)", lines=3,
                                             value="",
                                             interactive=True)
+                    if neg_prompt.value == '' :
+                        neg_prompt.value = neg
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')
                     multiplier_human = gr.Slider(minimum=0, maximum=1.2, value=0.95,
@@ -892,19 +901,36 @@ def inference_input():
             with gr.Row():
                 single_history = gr.Gallery(label='单张图片(Single image history)')
                 batch_history = gr.Gallery(label='图片组(Batch image history)')
+                
+        update_history_text = gr.Text("update", visible=False)
         
         gallery.select(select_function, None, style_model, queue=False)
-        lora_choice.change(fn=change_lora_choice, inputs=[lora_choice, base_model_index], outputs=[gallery, style_model], queue=False)
+        lora_choice.change(fn=change_lora_choice, inputs=[lora_choice, base_model_index], outputs=[gallery, style_model], queue=False).then(
+                           fn=deal_history,
+                           inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
+                           outputs=[single_history, batch_history])
         
         lora_file.upload(fn=upload_lora_file, inputs=[uuid, lora_file], outputs=[lora_choice], queue=False)
         lora_file.clear(fn=clear_lora_file, inputs=[uuid, lora_file], outputs=[lora_choice], queue=False)
         
-        style_model.change(update_prompt, style_model, [pos_prompt, multiplier_style, multiplier_human], queue=False)
+        style_model.change(update_prompt, style_model, [pos_prompt, multiplier_style, multiplier_human], queue=False).then(
+                           fn=deal_history,
+                           inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
+                           outputs=[single_history, batch_history])
+        
         pose_image.change(update_pose_model, [pose_image, pose_model], [pose_model, pose_res_image])
         base_model_index.change(fn=flash_model_list,
                                 inputs=[uuid, base_model_index, lora_choice],
                                 outputs=[user_model, gallery, style_model, lora_choice, lora_file],
-                                queue=False)
+                                queue=False).then(
+                                fn=deal_history,
+                                inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
+                                outputs=[single_history, batch_history])
+        
+        user_model.change(fn=deal_history,
+                          inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
+                          outputs=[single_history, batch_history])
+        
         update_button.click(fn=update_output_model,
                       inputs=[uuid, base_model_index],
                       outputs=[user_model],
