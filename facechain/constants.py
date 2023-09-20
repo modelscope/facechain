@@ -14,7 +14,7 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic",
-    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','绿野仙踪(Wizard of Oz)','藏族风(ZangZu Style)','红发礼服风(Red Style)','多巴胺风格(Colourful Style)','国风(GuoFeng Style)','复古风(Retro Style)','印度风(India)','海洋风(ocean)','花园风(flowers)','主题乐园风(Disneyland)','绿茵球场风(Soccer Field)','中华刺绣风(Embroidery)','蒙古草原风(Mongolian)','梦幻深海风(Sea World)','火红少女风(Flame Red Style)', '藏族服饰风(tibetan clothing style)', '萧瑟秋天风(bleak autumn style)', '秋日胡杨风(autumn populus euphratica style)', '丁达尔风(Tyndall Light)', '哥特洛丽塔(Gothic Lolita)', '复古风(retro style)', '绅士风(gentleman style)','西部牛仔风(west cowboy)', '嘻哈风(hiphop style)', '洛丽塔(lolita)', '女巫风(witch style)', '女仆风(maid style)','圣诞风(Christmas)','敦煌风(Dunhuang)','苗族服装风(Miao style)','时尚墨镜风(fashionglasses)','夏日海滩风(Summer Ocean Vibe)','西部牛仔风(Cowboy style)', '炫彩少女风(Colorful rainbow style)', '京剧名旦风(Female role in Peking opera)', '自然清冷风(Cool tones)', '中国新年风(Chinese New Year Style)', '男士西装风(Men\'s Suit)']},
+    'style_list': ['冬季汉服(Chinese winter hanfu)', '校服风(School uniform)', '婚纱风(Wedding dress)', '夜景港风(Hong Kong night style)', '雨夜(Rainy night)', '模特风(Model style)', '机车风(Motorcycle race style)', '婚纱风-2(Wedding dress 2)','拍立得风(Polaroid style)', '仙女风(Fairy style)', '古风(traditional chinese style)', '壮族服装风(Zhuang style)', '欧式田野风(European fields)', '雪山羽绒服风(Jacket in Snow Mountain)', '旗袍风(Cheongsam)', '日系和服风(Kimono Style)', '贵族公主风(Princess costum)','机械风(Mechanical)','林中鹿女风(deer girl)','漫画风(cartoon)','绿野仙踪(Wizard of Oz)','藏族风(ZangZu Style)','红发礼服风(Red Style)','多巴胺风格(Colourful Style)','国风(GuoFeng Style)','复古风(Retro Style)','印度风(India)','海洋风(ocean)','花园风(flowers)','主题乐园风(Disneyland)','绿茵球场风(Soccer Field)','中华刺绣风(Embroidery)','蒙古草原风(Mongolian)','梦幻深海风(Sea World)','火红少女风(Flame Red Style)', '藏族服饰风(tibetan clothing style)', '萧瑟秋天风(bleak autumn style)', '秋日胡杨风(autumn populus euphratica style)', '丁达尔风(Tyndall Light)', '哥特洛丽塔(Gothic Lolita)', '复古风(retro style)', '绅士风(gentleman style)','西部牛仔风(west cowboy)', '嘻哈风(hiphop style)', '洛丽塔(lolita)', '女巫风(witch style)', '女仆风(maid style)','圣诞风(Christmas)','敦煌风(Dunhuang)','苗族服装风(Miao style)','时尚墨镜风(fashionglasses)','夏日海滩风(Summer Ocean Vibe)','西部牛仔风(Cowboy style)', '炫彩少女风(Colorful rainbow style)', '京剧名旦风(Female role in Peking opera)', '自然清冷风(Cool tones)', '中国新年风(Chinese New Year Style)', '男士西装风(Men\'s Suit)', '漫游宇航员(Roaming Astronaut)', '复古军装风(Retro military uniform)', '花环洛丽塔(Flora Lolita)']},
 ]
 
 styles = [
@@ -618,6 +618,30 @@ styles = [
      'multiplier_style': 0.35,
      'multiplier_human': 0.95,
      'add_prompt_style': 'wild west style clothing, vivid colors, west countryside, front view, grassland, HDR, studio lighting, highly detailed, trending on artstation'},
+    {'name': '漫游宇航员(Roaming Astronaut)',
+     'img': './style_image/Roaming_Astronaut.png',
+     'model_id':'idlepiggy/zju_16FC',
+     'revision': 'v3.0.1',
+     'bin_file': 'firmamentV2.1.safetensors',
+     'multiplier_style': 0.7,
+     'multiplier_human': 0.9,
+     'add_prompt_style': 'firmament,space_helmet,background is universe with stars,moon,looking at viewer'},
+    {'name': '复古军装风(Retro military uniform)',
+     'img': './style_image/jun_zhuang.png',
+     'model_id': 'idlepiggy/zju_16FC',
+     'revision': 'v3.0.1',
+     'bin_file': 'minguojunzhuangv1.0.safetensors',
+     'multiplier_style': 0.65,
+     'multiplier_human': 0.9,
+     'add_prompt_style': 'fall, wall behind, blurry, blurry background, depth of field, gloves, hat,  realistic, solo, uniform, black hair, long sleeves, black gloves, cape, military, black headwear, military uniform, peaked cap, military hat, looking at viewer,front view'},
+    {'name': '花环洛丽塔(Flora Lolita)',
+     'img': './style_image/luolita.png',
+     'model_id': 'idlepiggy/zju_16FC',
+     'revision': 'v3.0.1',
+     'bin_file': 'lolitaV1.safetensors',
+     'multiplier_style': 0.6,
+     'multiplier_human': 0.95,
+     'add_prompt_style': 'lolita, warm sunlight, front view, jewelry,summer,purple eyes,long hair, white dress,backgound is sun and rainbow,faceing camera with a smile,beautiful flower on the head'},
 ]
 
 pose_models = [
