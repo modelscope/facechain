@@ -30,7 +30,7 @@ joblib==1.1.0
 scikit-image==0.19.3
 basicsr==1.4.2
 facexlib==0.3.0
-gfpgan_patch # patch for official gfpgan
+gfpgan-patch # patch for official gfpgan
 av
 safetensors
 easydict
