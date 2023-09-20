@@ -280,7 +280,9 @@ The models used in FaceChain:
 
 [8]  Face fusion model：https://www.modelscope.cn/models/damo/cv_unet_face_fusion_torch
 
-[9]  Face recognition model RTS：https://modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts          
+[9]  Face recognition model RTS：https://modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts     
+
+[10] Talking head model：https://modelscope.cn/models/wwd123/sadtalker
 
 # More Information
 
