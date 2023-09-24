@@ -1,0 +1,10 @@
+{
+    "name": "萧瑟秋天风(Bleak autumn style)",
+    "img": "./style_image/Bleak_autumn.jpg",
+    "model_id": "PeiPeiY/style_lora",
+    "revision": "v1",
+    "bin_file": "bleak_autumn.safetensors",
+    "multiplier_style": 0.55,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "extremely delicate and beautiful girls, (bleak autumn scenary), asia, brown hair, close-up"
+}

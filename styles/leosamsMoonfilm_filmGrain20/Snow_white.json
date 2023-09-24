@@ -1,0 +1,10 @@
+{
+    "name": "白雪公主(Snow White)",
+    "img": "./style_image/Snow_white.jpg",
+    "model_id": "houpeiran/mymodel",
+    "revision": "v1.0.0",
+    "bin_file": "blancanievesV2.safetensors",
+    "multiplier_style": 0.3,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "snow white, princess, blue skirt, 1girl, medium breast, looking at viewer, close-up to head, smile, short hair, black hair, standing, brown eyes, hair bow, hairband, red bow, forest background"
+}

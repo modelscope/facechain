@@ -1,0 +1,10 @@
+{
+    "name": "优雅公主(Elegant Princess)",
+    "img": "./style_image/Elegant_Princess.jpg",
+    "model_id": "theRealSlimShady/AI_portraits",
+    "revision": "v2",
+    "bin_file": "blancanievesV2.safetensors",
+    "multiplier_style": 0.25,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "short black wavy hair, pale complexion, white lace, sky-blue dress, puff sleeves, earings, necklace, happy expression, simple pure color background"
+}

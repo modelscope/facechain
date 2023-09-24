@@ -1,0 +1,10 @@
+{
+    "name": "街拍风(Street style)",
+    "img": "./style_image/Street_style.jpg",
+    "model_id": "Licht000/retro_style_lora",
+    "revision": "v1.0.0",
+    "bin_file": "lijiaxin.safetensors",
+    "multiplier_style": 0.3,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "1girl, close-up, face shot, broad-shouldered blue jackets, high-waisted pants, black curly hair, dim yellow light, old movie filters, shallow depth of field, playful smiles, (naturally blurred background, shabby street:2), Yellowed photos, blurry figure"
+}

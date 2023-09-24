@@ -1,0 +1,10 @@
+{
+    "name": "西部风(Wild west style)",
+    "img": "./style_image/Wild_west.jpg",
+    "model_id": "StigXI/zju_01_LoRA",
+    "revision": "v1.0.0",
+    "bin_file": "west.safetensors",
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "wild west style clothing, vivid colors, west countryside, front view, grassland, HDR, studio lighting, highly detailed, trending on artstation"
+}

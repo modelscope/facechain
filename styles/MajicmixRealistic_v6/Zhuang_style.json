@@ -1,0 +1,10 @@
+{
+    "name": "壮族服装风(Zhuang style)",
+    "img": "./style_image/Zhuang_style.jpg",
+    "model_id": "iotang/lora_testing",
+    "revision": "v5",
+    "bin_file": "zhuangnv.safetensors",
+    "multiplier_style": 0.75,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "((best quality)), close-up, portrait, ((zhuangzunv)), ornaments, jewelry, headwear, ((beautiful embroidery, floral print, marvelous design)), perfect eyes, perfect face, gentle black hair, smile"
+}

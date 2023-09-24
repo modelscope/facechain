@@ -1,0 +1,10 @@
+{
+    "name": "机械风(Mechanical)",
+    "img": "./style_image/Mechnical.jpg",
+    "model_id": "rewfueranro/Mechanical_lora",
+    "revision": "v1.0.0",
+    "bin_file": "reelmech1v2.safetensors",
+    "multiplier_style": 0.8,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "looking to the camera, clean face, top quality, official art, beautiful and aesthetic,  a futuristic dystopian city,  scrapper,  intricate, elegant, highly detailed, cyberpunk, luminescence, transparency,  8K, stunning art, hyper-realistic art, mechanical woman, art by Genevieve Valentine, Nikon D850, F/8, reelmech, demonic, expressive, delicate, perfect shading, HDR"
+}

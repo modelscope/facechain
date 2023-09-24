@@ -1,0 +1,10 @@
+{
+    "name": "圣诞风(Christmas)",
+    "img": "./style_image/Christmas.jpg",
+    "model_id": "mowunian/christmas",
+    "revision": "v1.0.0",
+    "bin_file": "christmas.safetensors",
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "1girl, close-up, face shot, standing, drooping arm, christmas, christmas tree, dress, sweater, snowing, bell"
+}

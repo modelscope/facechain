@@ -1,0 +1,10 @@
+{
+    "name": "时尚墨镜风(Fashion glasses)",
+    "img": "./style_image/Fashion_glasses.jpg",
+    "model_id": "SoulNut/facechain_LoRA",
+    "revision": "v1.1",
+    "bin_file": "fashion_glasses.safetensors",
+    "multiplier_style": 0.6,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "(masterpiece, ultra high res face, face ultra zoom, highres, best quality, ultra detailed, cinematic lighting, portrait:1.2), sfw, short hair, black glasses, black lens, sunglasses, close-up, red lips, facing aside, cityscape, detailed background, blonde Leather clothing"
+}

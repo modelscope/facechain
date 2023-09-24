@@ -1,0 +1,10 @@
+{
+    "name": "多巴胺风格(Colourful Style)",
+    "img": "./style_image/Duobaan.jpg",
+    "model_id": "Tekhne/dubaan",
+    "revision": "v1.0.0",
+    "bin_file": "colorfashionstyle_v1.safetensors",
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "colorfashionstyle,light smile, orange and blue and red theme"
+}

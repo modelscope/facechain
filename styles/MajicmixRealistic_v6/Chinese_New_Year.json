@@ -1,0 +1,10 @@
+{
+    "name": "中国新年风(Chinese New Year Style)",
+    "img": "./style_image/Chinese_New_Year.jpg",
+    "model_id": "houpeiran/mymodel",
+    "revision": "v2",
+    "bin_file": "aki.safetensors",
+    "multiplier_style": 0.2,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "Chinese New Year, close-up, perfect red hanfu, long sleeves, standing, intricat bright red background, many Chinese laterns in background, red flowers, casual, clear lines"
+}

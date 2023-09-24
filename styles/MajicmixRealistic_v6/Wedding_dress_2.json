@@ -1,0 +1,10 @@
+{
+    "name": "婚纱风-2(Wedding dress 2)",
+    "img": "./style_image/Wedding_dress_2.jpg",
+    "model_id": "YorickHe/polaroid_lora",
+    "revision": "v1.0.0",
+    "bin_file": "InstantPhotoX3.safetensors",
+    "multiplier_style": 0.4,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "1girl, close-up, wearing wedding dress, white, film grain, sunlight, sun flare, lens flare, field of white roses, high fashion, top model"
+}

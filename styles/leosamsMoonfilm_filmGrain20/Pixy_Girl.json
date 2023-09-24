@@ -1,0 +1,10 @@
+{
+    "name": "鬼马少女(Pixy Girl)",
+    "img": "./style_image/Pixy_Girl.jpg",
+    "model_id": "theRealSlimShady/AI_portraits",
+    "revision": "v2",
+    "bin_file": "VidiaTinkerbellDisney-08.safetensors",
+    "multiplier_style": 0.25,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "purple hair, ponytail, wearing slip skirt,looking straight into the camera with shoulders parallel to the frame, light purple background"
+}

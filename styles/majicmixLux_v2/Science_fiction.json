@@ -1,0 +1,10 @@
+{
+    "name": "科幻风(Science fiction style)",
+    "img": "./style_image/Science_fiction.jpg",
+    "model_id": "StigXI/zju_01_LoRA",
+    "revision": "v1.0.0",
+    "bin_file": "scific.safetensors",
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "science fiction style suit,tidy face, photography, clean, vivid colors, (clean face:1.5), highly detailed, UHD, professional, cyber punk street background"
+}

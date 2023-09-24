@@ -1,0 +1,10 @@
+{
+    "name": "雨夜(Rainy night)",
+    "img": "./style_image/Rainy_night.jpg",
+    "model_id": "YorickHe/polaroid_lora",
+    "revision": "v1.0.0",
+    "bin_file": "InstantPhotoX3.safetensors",
+    "multiplier_style": 0.45,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "standing in the rain, wet, wet clothes, wet hair, face Shot, front view, close-up, cityscape, cold lighting, realistic, cinematic lighting, photon mapping, radiosity, physically-based rendering"
+}
