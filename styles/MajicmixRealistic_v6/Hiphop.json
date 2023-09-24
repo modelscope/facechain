@@ -1,0 +1,10 @@
+{
+    "name": "嘻哈风(Hiphop style)",
+    "img": "./style_image/Hiphop.jpg",
+    "model_id": "Licht000/hiphop",
+    "revision": "v1.0.1",
+    "bin_file": "edg90hh.safetensors",
+    "multiplier_style": 0.3,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "1male, hiphop style, baggy hoodies, sweatshirts, jeans, baseball caps, chunky gold chains, sunglasses, hoop earrings, braids, dreadlocks, graffiti wall background, street"
+}

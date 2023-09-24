@@ -1,0 +1,10 @@
+{
+    "name": "苗族服装风(Miao style)",
+    "img": "./style_image/Miaozu.jpg",
+    "model_id": "SoulNut/facechain_model",
+    "revision": "v3.0",
+    "bin_file": "miaozu.safetensors",
+    "multiplier_style": 0.45,
+    "multiplier_human": 0.9,
+    "add_prompt_style": "(masterpiece, ultra high res face, face ultra zoom, highres, best quality, ultra detailed, portrait:1.2), sfw, Miao nationality, smaller head, beautiful face, smaller face, ((intricate embroideries on clothes)), silver ornaments, ((intricate detailed headdresses)), (((extremely elaborate silver detailing))), exquisite and ornate headpiece featuring intricate filigree designs and delicate engravings, leaning against a stone archway, hands clasped behind, wear gloves, detailed fingers,  Miao Village background, flat chest, realistic"
+}

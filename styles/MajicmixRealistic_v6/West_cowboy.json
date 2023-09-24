@@ -1,0 +1,10 @@
+{
+    "name": "西部牛仔风(West cowboy)",
+    "img": "./style_image/West_cowboy.jpg",
+    "model_id": "Licht000/cowboy",
+    "revision": "v1.0.0",
+    "bin_file": "James West-000196.safetensors",
+    "multiplier_style": 0.3,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "1male, face shot, Denim jackets, West style, checkered shirts, leather vests, yellow wide-brimmed hats, bandanas, leather belts with silver buckles, short hair, tough, desert background"
+}

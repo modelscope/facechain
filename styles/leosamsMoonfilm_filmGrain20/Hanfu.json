@@ -1,0 +1,10 @@
+{
+    "name": "汉服风(Hanfu)",
+    "img": "./style_image/Hanfu.jpg",
+    "model_id": null,
+    "revision": null,
+    "bin_file": null,
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "wearing beautiful traditional hanfu, upper_body, simple background, high-class pure color background"
+}

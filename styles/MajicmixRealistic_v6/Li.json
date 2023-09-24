@@ -1,0 +1,10 @@
+{
+    "name": "哥特洛丽塔(Gothic Lolita)",
+    "img": "./style_image/Li.jpg",
+    "model_id": "Cleaner/lo_dress_gothic_style2_v2",
+    "revision": "v1.0.0",
+    "bin_file": "lo_dress_gothic_style2_v2.safetensors",
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "Lolita dress, Gothic Lolita style, Clothes in black or burgundy tones, 1 girl, indoor, looking at viewer, standing, natural lighting, depth of field, Gothic castle, Medieval painting, Medieval murals, long hair, dynamic pose, detailed background, lace-trimmed, with bowknot, Large glass windows, European monumental architecture"
+}

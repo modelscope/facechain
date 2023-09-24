@@ -1,0 +1,10 @@
+{
+    "name": "西部牛仔风(Cowboy style)",
+    "img": "./style_image/Cowboy.jpg",
+    "model_id": "houpeiran/mymodel",
+    "revision": "v1.0.0",
+    "bin_file": "style_niuzai768.safetensors",
+    "multiplier_style": 0.7,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "western cowboy style,photography,best quality, realistic, photorealistic, intricate details, cinematic light,  clear line, ultra high res, short hair"
+}

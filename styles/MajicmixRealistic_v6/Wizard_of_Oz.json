@@ -1,0 +1,10 @@
+{
+    "name": "绿野仙踪(Wizard of Oz)",
+    "img": "./style_image/Wizard_of_Oz.jpg",
+    "model_id": "Rechycs/Wizard_lora",
+    "revision": "v1.0.0",
+    "bin_file": "Wizard_of_Oz.safetensors",
+    "multiplier_style": 0.3,
+    "multiplier_human": 0.8,
+    "add_prompt_style": "OIL PAINTING, IMPRESSIONISM, medium full view, amidst the ancient woodland, the image captures the ethereal beauty of a young dryad. her long, braided red hair cascades like flames, entwining with vines and flowers that form her ornate dress, the air is filled with colorful petals, and dappled sunlight paints a mesmerizing tapestry on the forest floor, dense foliage, gnarled roots and branches, beams of sunlight, ethereal, mysterious, wondrous, chiaroscuro"
+}
