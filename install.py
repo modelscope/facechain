@@ -6,7 +6,7 @@ import os
 if not launch.is_installed("slugify"):
     print("--installing slugify...")
     launch.run_pip("install slugify", "requirements for slugify")
-    launch.run_pip("pip install python-slugify==8.0.1", "requirements for python-slugify")
+    launch.run_pip("install python-slugify==8.0.1", "requirements for python-slugify")
 
 if not launch.is_installed("modelscope"):
     print("--installing modelscope...")
