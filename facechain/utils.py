@@ -2,6 +2,7 @@
 
 import time
 from modelscope import snapshot_download as ms_snapshot_download
+import multiprocessing as mp
 
 
 def max_retries(max_attempts):
@@ -35,3 +36,10 @@ def pre_download_models():
     snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo', revision='v1.0.0')
     snapshot_download('Cherrytest/rot_bgr', revision='v1.0.0')
     snapshot_download('damo/face_frombase_c4', revision='v1.0.0')
+
+
+def set_spawn_method():
+    try:
+        mp.set_start_method('spawn')
+    except RuntimeError:
+        print("spawn method already set")

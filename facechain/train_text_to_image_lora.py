@@ -53,6 +53,11 @@ from diffusers.optimization import get_scheduler
 from diffusers.utils import check_min_version, is_wandb_available
 from diffusers.utils.import_utils import is_xformers_available
 from huggingface_hub import create_repo, upload_folder
+
+import sys
+parent_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if parent_path not in sys.path:
+    sys.path.append(parent_path)
 from facechain.utils import snapshot_download
 
 from packaging import version

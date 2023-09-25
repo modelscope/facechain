@@ -13,7 +13,7 @@ import torch
 from glob import glob
 import platform
 import subprocess
-from facechain.utils import snapshot_download
+from facechain.utils import snapshot_download, set_spawn_method
 
 from facechain.inference import preprocess_pose, GenPortrait
 from facechain.inference_inpaint import GenPortrait_inpaint
@@ -107,8 +107,9 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             print(f"Error executing the command: {e}")
             raise gr.Error("训练失败 (Training failed)")
     else:
+        project_dir = os.path.dirname(os.path.abspath(__file__))
         res = os.system(
-            f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py '
+            f'PYTHONPATH=. accelerate launch {project_dir}/facechain/train_text_to_image_lora.py '
             f'--pretrained_model_name_or_path={base_model_path} '
             f'--revision={revision} '
             f'--sub_path={sub_path} '
@@ -443,6 +444,7 @@ class Trainer:
             base_model_index: int,
             output_model_name: str,
     ) -> str:
+        set_spawn_method()
         # Check Cuda
         if not torch.cuda.is_available():
             raise gr.Error('CUDA不可用(CUDA not available)')
@@ -949,7 +951,8 @@ def inference_input():
     return demo
 
 def inference_inpaint():
-    preset_template = glob(os.path.join('resources/inpaint_template/*.jpg'))
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+    preset_template = glob(os.path.join(f'{project_dir}/resources/inpaint_template/*.jpg'))
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         # Initialize the GUI
@@ -1030,5 +1033,5 @@ with gr.Blocks(css='style.css') as demo:
             inference_inpaint()
 
 if __name__ == "__main__":
-    multiprocessing.set_start_method('spawn')
+    set_spawn_method()
     demo.queue(status_update_rate=1).launch(share=True)

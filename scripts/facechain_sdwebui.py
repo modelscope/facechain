@@ -3,24 +3,17 @@ import gradio as gr
 import os
 
 from modules import script_callbacks
-
+from modules import shared
+import sys
 
 def on_ui_tabs():
     # TODO initialize facechain UI here
     with gr.Blocks(analytics_enabled=False) as ui_component:
-        with gr.Row():
-            angle = gr.Slider(
-                minimum=0.0,
-                maximum=360.0,
-                step=1,
-                value=0,
-                label="Angle"
-            )
-            checkbox = gr.Checkbox(
-                False,
-                label="Checkbox"
-            )
-            # TODO: add more UI components (cf. https://gradio.app/docs/#components)
+        parent_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if parent_path not in sys.path:
+            sys.path.append(parent_path)
+        from app import inference_input
+        inference_input()
         return [(ui_component, "FaceChain", "FaceChain_tab")]
 
 def on_ui_settings():
@@ -39,7 +32,10 @@ def on_ui_settings():
 
 
 # register setting
-script_callbacks.on_ui_tabs(on_ui_settings)
+# script_callbacks.on_ui_tabs(on_ui_settings)
 
 # register ui
 script_callbacks.on_ui_tabs(on_ui_tabs)
+
+# register setting
+script_callbacks.on_ui_settings(on_ui_settings)
