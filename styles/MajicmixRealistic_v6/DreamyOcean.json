@@ -1,0 +1,10 @@
+{
+    "name": "海洋风(Ocean)",
+    "img": "./style_image/DreamyOcean.jpg",
+    "model_id": "MushroomLyn/artist",
+    "revision": "v2.0.0",
+    "bin_file": "mine.safetensors",
+    "multiplier_style": 0.5,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "delicate, gentle eye, ocean, white shirt, sunlit"
+}

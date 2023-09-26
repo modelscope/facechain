@@ -1,0 +1,10 @@
+{
+    "name": "蒙古草原风(Mongolian)",
+    "img": "./style_image/Mongolian.jpg",
+    "model_id": "rtxxxx/zju_05",
+    "revision": "v1.0.0",
+    "bin_file": "mongolian.safetensors",
+    "multiplier_style": 0.6,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "1girl, mongolian style, mongolian traditional clothes, close-up, smile, linen, mongolian hair ornament, grass, prairie background, hills, sunlight, warm light, front view"
+}

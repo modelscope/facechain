@@ -1,0 +1,10 @@
+{
+    "name": "白月光(Innocent Girl in White Dress)",
+    "img": "./style_image/Innocent_Girl_in_White_Dress.jpg",
+    "model_id": null,
+    "revision": null,
+    "bin_file": null,
+    "multiplier_style": 0.25,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "wearing elegant white dress, simple pure color background, face located in the center of the picture, long black hair, inquisitive eyes, innocent expression, lips"
+}

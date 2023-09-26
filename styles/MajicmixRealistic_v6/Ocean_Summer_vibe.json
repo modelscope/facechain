@@ -1,0 +1,10 @@
+{
+    "name": "夏日海滩风(Summer Ocean Vibe)",
+    "img": "./style_image/Ocean_Summer_vibe.jpg",
+    "model_id": "JeffVan/Oil_Paint_Style_LORA",
+    "revision": "v1.0.0",
+    "bin_file": "OilPaint.safetensors",
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "summer vibe, ocean, rock, sea wave, palm tree,  sunshine, rim lighting, two tone light,  professional photo portrait, beautiful eyes, beautiful face, ocean background, Style by NTY"
+}

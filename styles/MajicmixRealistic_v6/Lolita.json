@@ -1,0 +1,10 @@
+{
+    "name": "洛丽塔(Lolita)",
+    "img": "./style_image/Lolita.jpg",
+    "model_id": "Licht000/lolita",
+    "revision": "v1.0.0",
+    "bin_file": "lolitaV1.safetensors",
+    "multiplier_style": 0.3,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "1girl, puffy dresses, lace edges, high-waist skirts, lace gloves, brooches, curled hair, braids, adorned with bows, rosy blush, pink lipsticks, reserved, sweet, girlish, garden background"
+}

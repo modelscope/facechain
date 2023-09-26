@@ -672,7 +672,6 @@ def main():
             lora_attn_procs[name] = LoRAAttnProcessor(hidden_size=hidden_size, cross_attention_dim=cross_attention_dim, rank=args.lora_r)
 
         unet.set_attn_processor(lora_attn_procs)
-        lora_layers = AttnProcsLayers(unet.attn_processors)
 
     # Move unet, vae and text_encoder to device and cast to weight_dtype
     vae.to(accelerator.device, dtype=weight_dtype)
@@ -730,6 +729,7 @@ def main():
             eps=args.adam_epsilon,
         )
     else:
+        lora_layers = AttnProcsLayers(unet.attn_processors)
         optimizer = optimizer_cls(
             lora_layers.parameters(),
             lr=args.learning_rate,

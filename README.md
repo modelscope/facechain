@@ -171,6 +171,7 @@ python3 app.py
 2. install mmcv-full by pip: pip3 install mmcv-full
 ```
 
+If you want to use the `Audio Driven Talking Head` tab, please refer to the installation guide in [installation_for_talkinghead](doc/installation_for_talkinghead.md).
 
 ### 4. Colab notebook
 

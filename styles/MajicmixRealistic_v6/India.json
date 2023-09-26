@@ -1,0 +1,10 @@
+{
+    "name": "印度风(India)",
+    "img": "./style_image/India.jpg",
+    "model_id": "lljjcc/IndianSarres",
+    "revision": "v1.0.0",
+    "bin_file": "Indian saree.safetensors",
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "wear indian style costume, gold ornament, gorgeous background, dynamic, Indian clothes, Indian Palace, jewelry, Indian style background, clean face"
+}

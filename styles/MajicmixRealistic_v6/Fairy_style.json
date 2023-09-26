@@ -1,0 +1,10 @@
+{
+    "name": "仙女风(Fairy style)",
+    "img": "./style_image/Fairy_style.jpg",
+    "model_id": "YorickHe/fairy_lora",
+    "revision": "v1.0.0",
+    "bin_file": "fairy.safetensors",
+    "multiplier_style": 0.25,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "a beautiful fairy standing in the middle of a flower field, petals, close-up, warm light, light green atmosphere, white atmosphere, in the style of celebrity photography, soft, romantic scenes, flowing fabrics, light white and light orange, high resolution"
+}

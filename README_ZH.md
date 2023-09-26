@@ -171,6 +171,9 @@ python3 app.py
 # 2. pip方式安装mmcv-full: pip3 install mmcv-full
 ```
 
+如果您需要使用人物说话视频生成标签页的功能，请参考[installation_for_talkinghead_ZH](doc/installation_for_talkinghead_ZH.md)里的安装使用教程。
+
+
 ### 4. colab运行
 
 | Colab | Info

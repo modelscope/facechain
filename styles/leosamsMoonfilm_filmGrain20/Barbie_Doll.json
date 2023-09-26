@@ -1,0 +1,10 @@
+{
+    "name": "芭比娃娃(Barbie Doll)",
+    "img": "./style_image/Barbie_Doll.jpg",
+    "model_id": "theRealSlimShady/AI_portraits",
+    "revision": "v2",
+    "bin_file": "PinkBarbie.safetensors",
+    "multiplier_style": 0.25,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "golden blond hair, wearing frilly dress, bow and ponytail, exquisite background, pure color background, delicate earrings and necklace, solo, happy expression"
+}
