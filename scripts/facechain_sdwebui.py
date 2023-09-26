@@ -13,7 +13,6 @@ def on_ui_tabs():
         if parent_path not in sys.path:
             sys.path.append(parent_path)
         from app import inference_input
-        inference_input()
         return [(ui_component, "FaceChain", "FaceChain_tab")]
 
 def on_ui_settings():

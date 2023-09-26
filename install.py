@@ -28,3 +28,7 @@ if not launch.is_installed("mmcv"):
 if not launch.is_installed("mmdet"):
     print("--installing mmdet...")
     launch.run_pip("install mmdet==2.26.0", "requirements for mmdet")
+
+if not launch.is_installed("mediapipe"):
+    print("--installing mmdet...")
+    launch.run_pip("install mediapipe==0.10.3", "requirements for mediapipe")

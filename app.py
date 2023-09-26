@@ -166,7 +166,7 @@ def launch_pipeline(uuid,
     # Check base model
     if base_model_index == None:
         raise gr.Error('请选择基模型(Please select the base model)!')
-    
+    set_spawn_method()
     # Check character LoRA
     base_model_path = base_models[base_model_index]['model_id']
     folder_path = f"/tmp/{uuid}/{base_model_path}"
@@ -816,9 +816,10 @@ def inference_input():
             with gr.Column():
                 base_model_list = []
                 for base_model in base_models:
+                    base_model['name'] = base_model['name']+'.'
                     base_model_list.append(base_model['name'])
 
-                base_model_index = gr.Radio(label="基模型选择(Base model list)", choices=base_model_list, type="index")
+                base_model_index = gr.Radio(label="基模型选择(Base model list)", choices=base_model_list, type="index", value=None)
                 
                 with gr.Row():
                     with gr.Column(scale=2):
