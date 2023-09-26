@@ -171,7 +171,7 @@ def launch_pipeline(uuid,
         raise gr.Error('请选择基模型(Please select the base model)!')
     
     # Check character LoRA
-    folder_path = f"./{uuid}/{character_model}"
+    folder_path = f"/tmp/{uuid}/{character_model}"
     folder_list = []
     if os.path.exists(folder_path):
         files = os.listdir(folder_path)
@@ -214,7 +214,7 @@ def launch_pipeline(uuid,
             style_model_path = os.path.join(model_dir, matched['bin_file'])
     else:
         print(f'uuid: {uuid}')
-        temp_lora_dir = f"./{uuid}/temp_lora"
+        temp_lora_dir = f"/tmp/{uuid}/temp_lora"
         file_name = lora_choice
         print(lora_choice.split('.')[-1], os.path.join(temp_lora_dir, file_name))
         if lora_choice.split('.')[-1] != 'safetensors' or not os.path.exists(os.path.join(temp_lora_dir, file_name)):
@@ -240,8 +240,8 @@ def launch_pipeline(uuid,
     use_post_process = True
     use_stylization = False
 
-    instance_data_dir = os.path.join('./', uuid, 'training_data', character_model, user_model)
-    lora_model_path = f'./{uuid}/{character_model}/{user_model}/'
+    instance_data_dir = os.path.join('/tmp/', uuid, 'training_data', character_model, user_model)
+    lora_model_path = f'/tmp/{uuid}/{character_model}/{user_model}/'
 
     gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, 
                                multiplier_style, multiplier_human, use_main_model,
@@ -269,7 +269,7 @@ def launch_pipeline(uuid,
     for out_tmp in outputs:
         outputs_RGB.append(cv2.cvtColor(out_tmp, cv2.COLOR_BGR2RGB))
         
-    save_dir = os.path.join('./', uuid, 'inference_result', base_model, user_model)
+    save_dir = os.path.join('/tmp/', uuid, 'inference_result', base_model, user_model)
     if lora_choice == 'preset':
         save_dir = os.path.join(save_dir, 'style_' + style_model)
     else:
@@ -317,7 +317,7 @@ def launch_pipeline_inpaint(uuid,
         raise gr.Error('请选择基模型(Please select the base model)！')
 
     # Check character LoRA
-    folder_path = f"./{uuid}/{character_model}"
+    folder_path = f"/tmp/{uuid}/{character_model}"
     folder_list = []
     if os.path.exists(folder_path):
         files = os.listdir(folder_path)
@@ -363,14 +363,14 @@ def launch_pipeline_inpaint(uuid,
         user_model_B = None
            
     if user_model_A is not None:
-        instance_data_dir_A = os.path.join('./', uuid, 'training_data', character_model, user_model_A)
-        lora_model_path_A = f'./{uuid}/{character_model}/{user_model_A}/'
+        instance_data_dir_A = os.path.join('/tmp/', uuid, 'training_data', character_model, user_model_A)
+        lora_model_path_A = f'/tmp/{uuid}/{character_model}/{user_model_A}/'
     else:
         instance_data_dir_A = None
         lora_model_path_A = None
     if user_model_B is not None:
-        instance_data_dir_B = os.path.join('./', uuid, 'training_data', character_model, user_model_B)
-        lora_model_path_B = f'./{uuid}/{character_model}/{user_model_B}/'
+        instance_data_dir_B = os.path.join('/tmp/', uuid, 'training_data', character_model, user_model_B)
+        lora_model_path_B = f'/tmp/{uuid}/{character_model}/{user_model_B}/'
     else:
         instance_data_dir_B = None
         lora_model_path_B = None
@@ -458,12 +458,12 @@ class Trainer:
         output_model_name = slugify.slugify(output_model_name)
 
         # mv user upload data to target dir
-        instance_data_dir = os.path.join('./', uuid, 'training_data', base_model_path, output_model_name)
+        instance_data_dir = os.path.join('/tmp/', uuid, 'training_data', base_model_path, output_model_name)
         print("--------uuid: ", uuid)
 
-        if not os.path.exists(f"./{uuid}"):
-            os.makedirs(f"./{uuid}")
-        work_dir = f"./{uuid}/{base_model_path}/{output_model_name}"
+        if not os.path.exists(f"/tmp/{uuid}"):
+            os.makedirs(f"/tmp/{uuid}")
+        work_dir = f"/tmp/{uuid}/{base_model_path}/{output_model_name}"
 
         if os.path.exists(work_dir):
             raise gr.Error("人物lora名称已存在。(This character lora name already exists.)")
@@ -507,9 +507,9 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
         else:
             uuid = 'qw'
 
-    folder_path = f"./{uuid}/{character_model}"
+    folder_path = f"/tmp/{uuid}/{character_model}"
     folder_list = []
-    lora_save_path = f"./{uuid}/temp_lora"
+    lora_save_path = f"/tmp/{uuid}/temp_lora"
     if not os.path.exists(lora_save_path):
         lora_list = ['preset']
     else:
@@ -553,7 +553,7 @@ def update_output_model(uuid):
         else:
             uuid = 'qw'
 
-    folder_path = f"./{uuid}/{character_model}"
+    folder_path = f"/tmp/{uuid}/{character_model}"
     folder_list = []
     if not os.path.exists(folder_path):
         return gr.Radio.update(choices=[], value = None)
@@ -575,7 +575,7 @@ def update_output_model_inpaint(uuid):
         else:
             uuid = 'qw'
 
-    folder_path = f"./{uuid}/{character_model}"
+    folder_path = f"/tmp/{uuid}/{character_model}"
     folder_list = ['不重绘该人物(Do not inpaint this character)']
     if not os.path.exists(folder_path):
         return gr.Radio.update(choices=[], value = None), gr.Dropdown.update(choices=style_list)
@@ -607,7 +607,7 @@ def upload_lora_file(uuid, lora_file):
         else:
             uuid = 'qw'
     print("uuid: ", uuid)
-    temp_lora_dir = f"./{uuid}/temp_lora"
+    temp_lora_dir = f"/tmp/{uuid}/temp_lora"
     if not os.path.exists(temp_lora_dir):
         os.makedirs(temp_lora_dir)
     shutil.copy(lora_file.name, temp_lora_dir)
@@ -666,7 +666,7 @@ def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None
     matched = list(filter(lambda item: style_model == item['name'], styles))
     style_model = matched[0]['name']
 
-    save_dir = os.path.join('./', uuid, 'inference_result', base_model, user_model)
+    save_dir = os.path.join('/tmp/', uuid, 'inference_result', base_model, user_model)
     if lora_choice == 'preset':
         save_dir = os.path.join(save_dir, 'style_' + style_model)
     else:
