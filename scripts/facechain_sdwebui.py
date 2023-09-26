@@ -12,7 +12,7 @@ def on_ui_tabs():
         parent_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         if parent_path not in sys.path:
             sys.path.append(parent_path)
-        from app import inference_input
+        import app
         return [(ui_component, "FaceChain", "FaceChain_tab")]
 
 def on_ui_settings():
