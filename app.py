@@ -429,10 +429,12 @@ def get_previous_image_result(uuid):
         else:
             uuid = 'qw'
 
-    save_dir = os.path.join('/tmp', uuid, 'inference_result')
+    save_dir_old = os.path.join('/tmp', uuid, 'inference_result')
+    image_results_old = glob(os.path.join(save_dir_old, '**/single/*.png'), recursive=True)
+    save_dir = os.path.join('.', uuid, 'inference_result')
     image_results = glob(os.path.join(save_dir, '**/single/*.png'), recursive=True)
     # print(f"==>> image_results: {image_results}")
-    return image_results
+    return image_results_old+image_results
     
 
 def launch_pipeline_talkinghead(uuid, source_image, driven_audio, preprocess='crop', 

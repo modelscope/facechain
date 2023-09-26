@@ -16,7 +16,7 @@ pip install -U modelscope
 ```
 Or install via source code:
 ```
-pip uninstall modelscope
+pip uninstall modelscope -y
 pip install -r https://raw.githubusercontent.com/modelscope/modelscope/master/requirements/framework.txt
 pip install git+https://github.com/modelscope/modelscope.git
 ```

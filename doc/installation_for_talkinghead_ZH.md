@@ -16,7 +16,9 @@ pip install -U modelscope
 ```
 或者通过源码安装：
 ```
-
+pip uninstall modelscope -y
+pip install -r https://raw.githubusercontent.com/modelscope/modelscope/master/requirements/framework.txt
+pip install git+https://github.com/modelscope/modelscope.git
 ```
 
 ## 2.安装python依赖包
