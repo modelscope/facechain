@@ -741,7 +741,7 @@ def train_input():
                     
                     optional_style = '\n'.join(base_models[0]['style_list'])
                     
-                    optional_styles = gr.Textbox(label="该基模型支持的风格(Styles supported by this base model.)", max_lines=5,
+                    optional_styles = gr.Textbox(label="该基模型支持的风格(Styles supported by this base model.)", lines=5,
                                         value=optional_style, interactive=False)
                     
                     output_model_name = gr.Textbox(label="人物lora名称(Character lora name)", value='person1', lines=1)
