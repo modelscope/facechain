@@ -1,0 +1,32 @@
+{
+    "modelscope_text-address": {
+        "url": "https://api-inference.modelscope.cn/api-inference/v1/models/damo/mgeo_geographic_elements_tagging_chinese_base"
+    },
+    "modelscope_text-ner": {
+        "url": "https://api-inference.modelscope.cn/api-inference/v1/models/damo/nlp_raner_named-entity-recognition_chinese-base-cmeee"
+    },
+    "modelscope_text-ie": {
+        "url": "https://api-inference.modelscope.cn/api-inference/v1/models/damo/nlp_structbert_siamese-uie_chinese-base"
+    },
+    "modelscope_speech-generation": {
+        "url": "https://api-inference.modelscope.cn/api-inference/v1/models/damo/speech_sambert-hifigan_tts_zh-cn_16k"
+    },
+    "modelscope_video-generation": {
+        "url": "https://api-inference.modelscope.cn/api-inference/v1/models/damo/text-to-video-synthesis"
+    },
+    "modelscope_image-chat": {
+        "url": "https://api-inference.modelscope.cn/api-inference/v1/models/damo/multi-modal_mplug_owl_multimodal-dialogue_7b"
+    },
+    "modelscope_text-translation-en2zh": {
+        "url": "https://api-inference.modelscope.cn/api-inference/v1/models/damo/nlp_csanmt_translation_en2zh"
+    },
+    "modelscope_text-translation-zh2en": {
+        "url": "https://api-inference.modelscope.cn/api-inference/v1/models/damo/nlp_csanmt_translation_zh2en"
+    },
+    "modelscope_image-generation": {
+        "url": "https://api-inference.modelscope.cn/api-inference/v1/models/AI-ModelScope/stable-diffusion-xl-base-1.0",
+        "pipeline_params": {
+            "use_safetensors": true
+        }
+    }
+}
