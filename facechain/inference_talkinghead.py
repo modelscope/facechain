@@ -15,7 +15,8 @@ class SadTalker():
             else:
                 uuid = 'qw'
 
-        self.save_dir = os.path.join('/tmp', uuid, 'sythesized_video')
+        # self.save_dir = os.path.join('/tmp', uuid, 'sythesized_video') # deprecated
+        self.save_dir = os.path.join('.', uuid, 'sythesized_video')
 
     def __call__(self, *args, **kwargs) -> Any:
         # two required arguments
