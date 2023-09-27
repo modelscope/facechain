@@ -1047,7 +1047,8 @@ def inference_talkinghead():
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         image_result_list = get_previous_image_result(uuid.value)
         state_image_list = gr.State(value=image_result_list)
-        gr.Markdown("<div align='center'> <a style='font-size:18px;color: #0f0f0f' href='https://sadtalker.github.io'>SadTalker</a> </div>")
+        gr.Markdown("""该标签页的功能基于[SadTalker](https://sadtalker.github.io)实现，要使用该标签页，请按照[教程](https://github.com/modelscope/facechain/tree/main/doc/installation_for_talkinghead_ZH.md)安装相关依赖。\n
+                    The function of this tab is implemented based on [SadTalker](https://sadtalker.github.io), to use this tab, you should follow the installation [guide](https://github.com/modelscope/facechain/tree/main/doc/installation_for_talkinghead.md) """)
         
         with gr.Row().style(equal_height=False):
             with gr.Column(variant='panel'):

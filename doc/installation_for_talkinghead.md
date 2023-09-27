@@ -17,8 +17,10 @@ pip install -U modelscope
 Or install via source code:
 ```
 pip uninstall modelscope -y
-pip install -r https://raw.githubusercontent.com/modelscope/modelscope/master/requirements/framework.txt
-pip install git+https://github.com/modelscope/modelscope.git
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/modelscope.git
+cd modelscope
+pip install -r requirements.txt
+pip install .
 ```
 
 ## 2. Install python dependencies
