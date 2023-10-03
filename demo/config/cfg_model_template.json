@@ -1,0 +1,24 @@
+{
+    "ms_gpt": {
+        "model": "modelscope-agent-llm-v1",
+        "generate_cfg": {
+            "parameters":{
+                "use_raw_prompt": true,
+                "top_p": 0.8,
+                "top_k": 10,
+                "seed": 123,
+                "debug": false
+            }
+        }
+    },
+    "openai": {
+        "model": "gpt-3.5-turbo-0613"
+    },
+    "modelscope-agent-qwen-7b":{
+        "model_id": "damo/MSAgent-Qwen-7B",
+        "model_revision": "v1.0.1",
+        "use_raw_generation_config": true,
+        "custom_chat": true
+    }
+
+}
