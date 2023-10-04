@@ -30,19 +30,20 @@ class FaceChainFineTuneTool(Tool):
         self.base_model_path = 'ly261666/cv_portrait_model'
         self.revision = 'v2.0'
         self.sub_path = "film/film"
+        # 这里固定了Lora的名字,重新训练会覆盖原来的
+        self.lora_name = "person1"
 
     def _remote_call(self, *args, **kwargs):
         pass
 
     def _local_call(self, *args, **kwargs):
-        lora_name = kwargs['lora_name']
-        uuid = kwargs['uuid']
+        uuid = gr.Text(label="modelscope_uuid", visible=False)
         instance_images = kwargs['instance_images']
 
         # train lora
-        _train_lora(uuid, lora_name, instance_images, self.base_model_path, self.revision, self.sub_path)
+        _train_lora(uuid, self.lora_name, instance_images, self.base_model_path, self.revision, self.sub_path)
 
-        result = {'lora_name': lora_name, 'msg': "训练完成"}
+        result = {'lora_name': self.lora_name, 'uuid': uuid, 'msg': "训练完成"}
         return {'result': result}
 
 
@@ -56,8 +57,8 @@ def _train_lora(uuid, output_model_name, instance_images, base_model_path, revis
         os.makedirs(f"./{uuid}")
     work_dir = f"./{uuid}/{base_model_path}/{output_model_name}"
 
-    if os.path.exists(work_dir):
-        raise gr.Error("人物lora名称已存在。(This character lora name already exists.)")
+    # if os.path.exists(work_dir):
+    #     raise gr.Error("人物lora名称已存在。(This character lora name already exists.)")
 
     shutil.rmtree(work_dir, ignore_errors=True)
     shutil.rmtree(instance_data_dir, ignore_errors=True)
@@ -74,7 +75,6 @@ def _train_lora(uuid, output_model_name, instance_images, base_model_path, revis
     return base_model_path, revision, sub_path, instance_data_dir, work_dir
 
 
-
 SYSTEM_PROMPT = """<|system|>: 你现在扮演一个Facechain Agent，帮助用户画图，先询问用户绘图风格，然后要求用户上传原始图片，再根据用户所传图片生成用户lora。当前对话可以使用的插件信息如下，请自行判断是否需要调用tool来解决当前用户问题。若需要调用插件，则需要将插件调用请求按照json格式给出，必须包含api_name、parameters字段，并在其前后使用<|startofthink|>和<|endofthink|>作为标志。然后你需要根据插件API调用结果生成合理的答复。
 \n<tool_list>\n"""
 KEY_TEMPLATE = """（注意：请参照上述的多轮对话历史流程，但不要生成多轮对话，回复不要包含<|user|>的内容。）"""
@@ -86,18 +86,12 @@ Assistant: 我需要你提供1-3张照片，用于训练你的数字分身，然
 
 Human: 已经上传
 
-Assistant: 现在还需要你提供lora的名字
-
-Human: lora的名字叫 Williams
-
-Assistant: 收到，我需要10分钟训练并生成，你可以过10分钟再回来界面。正在训练中：<|startofthink|>```JSON\n{\n   "api_name": "facechain_finetune_tool",\n    "parameters": {\n"lora_name": "lora_name_001", "uuid": "0", "instance_images": "pic_001"\n   }\n}\n```<|endofthink|>
-
+Assistant: 收到，我需要10分钟训练并生成，你可以过10分钟再回来界面。正在训练中：<|startofthink|>```JSON\n{\n   "api_name": "facechain_finetune_tool",\n    "parameters": {\n "uuid": "0", "instance_images": "pic_001"\n   }\n}\n```<|endofthink|>
 """
 
 os.environ['TOOL_CONFIG_FILE'] = '../../config/cfg_tool_template.json'
 os.environ['MODEL_CONFIG_FILE'] = '../../config/cfg_model_template.json'
 os.environ['OPENAI_API_KEY'] = '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'
-
 
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')
@@ -112,7 +106,7 @@ if __name__ == "__main__":
     llm = LLMFactory.build_llm(model_name, model_cfg)
 
     tool = FaceChainFineTuneTool()
-    tool._local_call(args=None, lora_name="will33333322", uuid="qw", instance_images=["/mnt/workspace/v.jpg"])
+    tool._local_call(args=None, instance_images=["/mnt/workspace/v.jpg"])
 
     tool_list = {
         tool.name: tool,
@@ -123,7 +117,6 @@ if __name__ == "__main__":
         instruction_template=INSTRUCTION_TEMPLATE)
 
     agent = AgentExecutor(llm, additional_tool_list=tool_list, prompt_generator=prompt_generator, tool_retrieval=False)
-    input1 = "请给我训练一个lora，名字叫做William1"
 
     while True:
         user_input = input("")
@@ -149,4 +142,3 @@ if __name__ == "__main__":
                 frame_text = llm_result
             response = f'{response}\n{frame_text}'
             print(frame)
-
