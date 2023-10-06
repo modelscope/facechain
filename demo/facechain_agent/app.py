@@ -169,14 +169,17 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
 
     # tools 
     style_path="facechain/styles/leosamsMoonfilm_filmGrain20"
+    model_id = 'damo/nlp_corom_sentence-embedding_chinese-base'
+    filepath="/home/wsco/wyj2/modelscope-agent-1/demo/story_agent/style.txt"
+    style_search_tool=StyleSearchTool(style_path)
     # print_story_tool = PrintStoryTool()
     # show_img_example_tool = ShowExampleTool(IMAGE_TEMPLATE_PATH)
     # image_generation_tool = ImageGenerationTool(output_image, output_text, tool_cfg)
-    style_search_tool=StyleSearchTool(style_path)
+    style_search_tool=StyleSearchTool(filepath,model_id)
     additional_tool_list = {
         # print_story_tool.name: print_story_tool,
         # show_img_example_tool.name: show_img_example_tool,
-        # image_generation_tool.name: image_generation_tool,
+        #image_generation_tool.name: image_generation_tool,
         style_search_tool.name: style_search_tool
     }
 
