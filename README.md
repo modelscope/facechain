@@ -20,8 +20,6 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 ![image](resources/git_cover.jpg)
-![image](resources/git_cover_1.jpg)
-![image](resources/git_cover_2.jpg)
 
 
 # News
