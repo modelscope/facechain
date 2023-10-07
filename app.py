@@ -18,10 +18,10 @@ import subprocess
 from facechain.utils import snapshot_download, check_ffmpeg
 from facechain.inference import preprocess_pose, GenPortrait
 from facechain.inference_inpaint import GenPortrait_inpaint
-from facechain.inference_talkinghead import SadTalker
+from facechain.inference_talkinghead import SadTalker, text_to_speech_edge
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_prompt_with_style, \
-    pose_models, pose_examples, base_models
+    pose_models, pose_examples, base_models, tts_speakers_map
 
 training_done_count = 0
 inference_done_count = 0
@@ -1050,13 +1050,17 @@ def inference_talkinghead():
         gr.Markdown("""该标签页的功能基于[SadTalker](https://sadtalker.github.io)实现，要使用该标签页，请按照[教程](https://github.com/modelscope/facechain/tree/main/doc/installation_for_talkinghead_ZH.md)安装相关依赖。\n
                     The function of this tab is implemented based on [SadTalker](https://sadtalker.github.io), to use this tab, you should follow the installation [guide](https://github.com/modelscope/facechain/tree/main/doc/installation_for_talkinghead.md) """)
         
-        with gr.Row().style(equal_height=False):
+        with gr.Row(equal_height=False):
             with gr.Column(variant='panel'):
                 source_image = gr.Image(label="源图片(source image)", source="upload", type="filepath")
                 image_results = gr.Gallery(value=image_result_list, label='之前的合成图片(previous generated images)', allow_preview=False, columns=6, height=250)
                 update_button = gr.Button('刷新之前合成的图片(Refresh previous generated images)')
                 driven_audio = gr.Audio(label="驱动音频(driven audio)", source="upload", type="filepath")
-                                               
+                input_text = gr.Textbox(label="用文本生成音频(Generating audio from text)", lines=1, value="大家好，欢迎大家使用阿里达摩院开源的facechain项目！")
+                speaker = gr.Dropdown(choices=list(tts_speakers_map.keys()), value="普通话(中国大陆)-Xiaoxiao-女", label="请根据输入文本选择对应的语言和说话人(Select speaker according the language of input text)")
+                tts = gr.Button('生成音频(Generate audio)')
+                tts.click(fn=text_to_speech_edge, inputs=[input_text, speaker], outputs=[driven_audio])
+                                
             with gr.Column(variant='panel'): 
                 with gr.Box():
                     gr.Markdown("设置(Settings)")
@@ -1073,7 +1077,7 @@ def inference_talkinghead():
                         submit = gr.Button('生成(Generate)', variant='primary')
                 with gr.Box():
                         infer_progress = gr.Textbox(value="当前无任务(No task currently)", show_label=False, interactive=False)
-                        gen_video = gr.Video(label="Generated video", format="mp4").style(width=256)
+                        gen_video = gr.Video(label="Generated video", format="mp4", width=256)
 
         submit.click(fn=launch_pipeline_talkinghead, inputs=[uuid, source_image, driven_audio, preprocess_type,
                     is_still_mode, enhancer, batch_size, size_of_image, pose_style, exp_weight], 

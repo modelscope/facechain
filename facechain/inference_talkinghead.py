@@ -1,11 +1,11 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
-from modelscope.pipelines import pipeline
-from modelscope.utils.constant import Tasks
 import os
 import sys
-
 from typing import Any
-
+import edge_tts
+import tempfile
+from modelscope.pipelines import pipeline
+from facechain.constants import tts_speakers_map
 
 class SadTalker():
     def __init__(self, uuid):
@@ -37,3 +37,14 @@ class SadTalker():
         print("initialized sadtalker pipeline")
         video_path = inference(source_image, driven_audio=driven_audio, **kwargs)
         return video_path
+
+
+async def text_to_speech_edge(text, speaker):
+    voice = tts_speakers_map[speaker]
+    communicate = edge_tts.Communicate(text, voice)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
+        tmp_path = tmp_file.name
+
+    await communicate.save(tmp_path)
+
+    return tmp_path

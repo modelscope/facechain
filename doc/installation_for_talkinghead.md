@@ -48,6 +48,7 @@ pip install gfpgan-patch
 pip install av
 pip install safetensors
 pip install easydict
+pip install edge-tts
 ```
 
 ## 3. Install ffmpeg
