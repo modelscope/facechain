@@ -170,6 +170,9 @@ python3 app.py
 # 2. pip方式安装mmcv-full: pip3 install mmcv-full
 ```
 
+**如果您想要使用"人物说话视频生成"标签页的功能，请参考[installation_for_talkinghead_ZH](doc/installation_for_talkinghead_ZH.md)里的安装使用教程。**
+
+
 ### 4. colab运行
 
 | Colab | Info
@@ -280,7 +283,9 @@ python run_inference.py
 
 [8]  人脸融合模型：https://www.modelscope.cn/models/damo/cv_unet_face_fusion_torch
 
-[9]  人脸识别模型RTS：https://modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts                                  
+[9]  人脸识别模型RTS：https://modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts      
+
+[10] 人脸说话模型：https://modelscope.cn/models/wwd123/sadtalker
 
 # 更多信息
 
