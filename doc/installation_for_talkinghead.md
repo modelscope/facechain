@@ -4,9 +4,9 @@
 
 web UI of Audio Driven Talking Head Tab:
 
-! [image](https://user-images.githubusercontent.com/43233772/269477215-af10a90b-6491-4278-8920-e852fa42e112.png)
+![image](https://user-images.githubusercontent.com/43233772/273356969-27117625-06f7-4b51-af99-3d2bec56c7b6.jpeg)
 
-The function of this tab is to realize the audio drives face in the image to talking based on [SadTalker] (https://github.com/OpenTalker/SadTalker).
+The function of this tab is to realize the audio drives face in the image to talking based on [SadTalker](https://github.com/OpenTalker/SadTalker).
 
 ## 1. Install the newest modelscope
 
@@ -40,7 +40,6 @@ pip install kornia==0.6.8
 pip install yacs==0.1.8
 pip install pyyaml
 pip install joblib==1.1.0
-pip install scikit-image==0.19.3
 pip install basicsr==1.4.2
 pip install facexlib==0.3.0
 pip install gradio
@@ -86,7 +85,7 @@ For all of above three installations, you can run the `fmpeg-version` command in
 
 1. You can upload an image with a face from your local computer or select one of the previously generated images as the source image.
 
-2. Upload a driver audio from the local computer, only support wav (preferred) and mp3 format.
+2. You can either upload a driver audio from your local computer in .wav (preferred) and .mp3 formats only, or you can enter text and then generate audio using TTS.
 
 3. In the right pane, set parameters.
 

@@ -1110,7 +1110,7 @@ for base_model in base_models:
     files.sort()
     for file in files:
         file_path = os.path.join(folder_path, file)
-        with open(file_path, "r") as f:
+        with open(file_path, "r", encoding='utf-8') as f:
             data = json.load(f)
             style_in_base.append(data['name'])
             styles.append(data)
