@@ -77,8 +77,9 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
     max_train_steps = min(photo_num * 200, 800)
 
     if platform.system() == 'Windows':
+        project_dir = os.path.dirname(os.path.abspath(__file__))
         command = [
-            'accelerate', 'launch', 'facechain/train_text_to_image_lora.py',
+            'accelerate', 'launch', f'{project_dir}facechain/train_text_to_image_lora.py',
             f'--pretrained_model_name_or_path={base_model_path}',
             f'--revision={revision}',
             f'--sub_path={sub_path}',
@@ -98,7 +99,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_alpha={lora_alpha}',
             '--lora_text_encoder_r=32',
             '--lora_text_encoder_alpha=32',
-            '--resume_from_checkpoint="fromfacecommon"'
+            '--resume_from_checkpoint=fromfacecommon'
         ]
 
         try:
