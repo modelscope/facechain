@@ -14,7 +14,7 @@ import torch
 from glob import glob
 import platform
 import subprocess
-from facechain.utils import snapshot_download, check_ffmpeg, set_spawn_method
+from facechain.utils import snapshot_download, check_ffmpeg, set_spawn_method, project_dir
 from facechain.inference import preprocess_pose, GenPortrait
 from facechain.inference_inpaint import GenPortrait_inpaint
 from facechain.inference_talkinghead import SadTalker, text_to_speech_edge
@@ -81,7 +81,6 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
     max_train_steps = min(photo_num * 200, 800)
 
     if platform.system() == 'Windows':
-        project_dir = os.path.dirname(os.path.abspath(__file__))
         command = [
             'accelerate', 'launch', f'{project_dir}facechain/train_text_to_image_lora.py',
             f'--pretrained_model_name_or_path={base_model_path}',
@@ -112,7 +111,6 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             print(f"Error executing the command: {e}")
             raise gr.Error("训练失败 (Training failed)")
     else:
-        project_dir = os.path.dirname(os.path.abspath(__file__))
         res = os.system(
             f'PYTHONPATH=. accelerate launch {project_dir}/facechain/train_text_to_image_lora.py '
             f'--pretrained_model_name_or_path={base_model_path} '
@@ -975,7 +973,6 @@ def inference_input():
     return demo
 
 def inference_inpaint():
-    project_dir = os.path.dirname(os.path.abspath(__file__))
     preset_template = glob(os.path.join(f'{project_dir}/resources/inpaint_template/*.jpg'))
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)

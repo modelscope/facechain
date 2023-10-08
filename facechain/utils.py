@@ -4,6 +4,8 @@ import time
 import subprocess
 from modelscope import snapshot_download as ms_snapshot_download
 import multiprocessing as mp
+import os
+project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def max_retries(max_attempts):
@@ -41,7 +43,7 @@ def pre_download_models():
 
 def set_spawn_method():
     try:
-        mp.set_start_method('spawn')
+        mp.set_start_method('spawn', force=True)
     except RuntimeError:
         print("spawn method already set")
 
