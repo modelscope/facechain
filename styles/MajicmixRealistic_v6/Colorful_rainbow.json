@@ -1,0 +1,10 @@
+{
+    "name": "炫彩少女风(Colorful rainbow style)",
+    "img": "./style_image/Colorful_rainbow.jpg",
+    "model_id": "houpeiran/mymodel",
+    "revision": "v1.0.0",
+    "bin_file": "liuli2.safetensors",
+    "multiplier_style": 0.25,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "standing, coloured glaze, Polychromatic prism effect, rainbowcore, iridescence/opalescence, glowing colors, aluminum foil, Glowing ambiance, (portrait:1.5), black starry night background, close-up to head, wearing camisole"
+}

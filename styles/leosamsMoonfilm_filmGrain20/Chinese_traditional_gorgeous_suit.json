@@ -1,0 +1,10 @@
+{
+    "name": "凤冠霞帔(Chinese traditional gorgeous suit)",
+    "img": "./style_image/Chinese_traditional_gorgeous_suit.jpg",
+    "model_id": "ly261666/civitai_xiapei_lora",
+    "revision": "v1.0.0",
+    "bin_file": "xiapei.safetensors",
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "red, hanfu, tiara, crown"
+}

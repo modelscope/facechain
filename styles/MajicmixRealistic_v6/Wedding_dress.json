@@ -1,0 +1,10 @@
+{
+    "name": "婚纱风(Wedding dress)",
+    "img": "./style_image/Wedding_dress.jpg",
+    "model_id": "YorickHe/outdoor_photo_lora",
+    "revision": "v1.0.0",
+    "bin_file": "outdoor_photo_v2.0.safetensors",
+    "multiplier_style": 0.3,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "white wedding dress, 1girl, summer, flower, happy atmosphere, sunlight, Waist Shot"
+}

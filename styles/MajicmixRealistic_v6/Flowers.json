@@ -1,0 +1,10 @@
+{
+    "name": "花园风(Flowers)",
+    "img": "./style_image/Flowers.jpg",
+    "model_id": "lljjcc/outdoor",
+    "revision": "v1.0.0",
+    "bin_file": "outdoor photo_v2.0.safetensors",
+    "multiplier_style": 0.65,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "1 girl, flower, close-up, beautiful face, outdoor, sunlight, warm light"
+}

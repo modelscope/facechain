@@ -1,0 +1,10 @@
+{
+    "name": "校服风(School uniform)",
+    "img": "./style_image/School_uniform.jpg",
+    "model_id": "YorickHe/JK_uniform_lora",
+    "revision": "v1.0.0",
+    "bin_file": "jk_uniform.safetensors",
+    "multiplier_style": 0.2,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "JK_style, white short-sleeved JK_shirt, dark blue JK_skirt, bow JK_tie, close-up, looking at viewer, sweet smile, night, Tokyo street, night city scape"
+}

@@ -273,7 +273,7 @@ def main_diffusion_inference_inpaint(inpaint_image, strength, output_img_size, p
     attr_idx = np.argmax(cnts_trigger)
     trigger_styles = ['a boy, children, ', 'a girl, children, ', 'a handsome man, ', 'a beautiful woman, ',
                       'a mature man, ', 'a mature woman, ']
-    trigger_style = '<fcsks>, ' + trigger_styles[attr_idx]
+    trigger_style = '(<fcsks>:10), ' + trigger_styles[attr_idx]
     if attr_idx == 2 or attr_idx == 4:
         neg_prompt += ', children'
 
@@ -445,7 +445,7 @@ def main_diffusion_inference_inpaint_multi(inpaint_images, strength, output_img_
     attr_idx = np.argmax(cnts_trigger)
     trigger_styles = ['a boy, children, ', 'a girl, children, ', 'a handsome man, ', 'a beautiful woman, ',
                       'a mature man, ', 'a mature woman, ']
-    trigger_style = '<fcsks>, ' + trigger_styles[attr_idx]
+    trigger_style = '(<fcsks>:10), ' + trigger_styles[attr_idx]
     if attr_idx == 2 or attr_idx == 4:
         neg_prompt += ', children'
 

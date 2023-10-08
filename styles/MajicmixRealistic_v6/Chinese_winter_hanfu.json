@@ -1,0 +1,10 @@
+{
+    "name": "冬季汉服(Chinese winter hanfu)",
+    "img": "./style_image/Chinese_winter_hanfu.jpg",
+    "model_id": "YorickHe/Winter_hanfu_lora",
+    "revision": "v1.0.0",
+    "bin_file": "Winter_Hanfu.safetensors",
+    "multiplier_style": 0.3,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "red hanfu, winter hanfu, cloak, photography, warm light, sunlight, majestic snow scene,  close-up, front view, soft falling snowflakes, jewelry, enchanted winter wonderland"
+}

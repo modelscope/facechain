@@ -1,0 +1,10 @@
+{
+    "name": "女仆风(Maid style)",
+    "img": "./style_image/Maid.jpg",
+    "model_id": "Licht000/maid",
+    "revision": "v1.0.0",
+    "bin_file": "maid_attire_v2.safetensors",
+    "multiplier_style": 0.3,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "1girl, black or white short dresses, lace edges, aprons, bows, lace gloves, neckties, cuffs, twin-tails, light makeup, pink blush, pink lipsticks, gentle, considerate, cafe background"
+}

@@ -1,0 +1,10 @@
+{
+    "name": "京剧名旦风(Female role in Peking opera)",
+    "img": "./style_image/PekingOpera_female_role.jpg",
+    "model_id": "houpeiran/mymodel",
+    "revision": "v1.0.0",
+    "bin_file": "PekingOperaR.safetensors",
+    "multiplier_style": 0.45,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "portraits,standing, (photorealistic:1.4), official art, unity 8k wallpaper, ultra detailed, beautiful and aesthetic, masterpiece, (fractal art), 1girl, bust, wide aperture, Peking Opera, light makeup, Close-up of the face, the face is clear, no headdress, standing, black hair, each hand has five fingers"
+}

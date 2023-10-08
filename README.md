@@ -20,8 +20,6 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 ![image](resources/git_cover.jpg)
-![image](resources/git_cover_1.jpg)
-![image](resources/git_cover_2.jpg)
 
 
 # News
@@ -171,6 +169,7 @@ python3 app.py
 2. install mmcv-full by pip: pip3 install mmcv-full
 ```
 
+**If you want to use the `Audio Driven Talking Head` tab, please refer to the installation guide in [installation_for_talkinghead](doc/installation_for_talkinghead.md).**
 
 ### 4. Colab notebook
 
@@ -280,7 +279,9 @@ The models used in FaceChain:
 
 [8]  Face fusion model：https://www.modelscope.cn/models/damo/cv_unet_face_fusion_torch
 
-[9]  Face recognition model RTS：https://modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts          
+[9]  Face recognition model RTS：https://modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts     
+
+[10] Talking head model：https://modelscope.cn/models/wwd123/sadtalker
 
 # More Information
 

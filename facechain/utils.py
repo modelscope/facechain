@@ -1,6 +1,7 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
 import time
+import subprocess
 from modelscope import snapshot_download as ms_snapshot_download
 import multiprocessing as mp
 
@@ -43,3 +44,16 @@ def set_spawn_method():
         mp.set_start_method('spawn')
     except RuntimeError:
         print("spawn method already set")
+
+def check_install(*args):
+    try:
+        subprocess.check_output(args, stderr=subprocess.STDOUT)
+        return True
+    except OSError as e:
+        return False
+
+def check_ffmpeg():
+    """
+    Check if ffmpeg is installed.
+    """
+    return check_install("ffmpeg", "-version")

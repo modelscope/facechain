@@ -1,0 +1,10 @@
+{
+    "name": "花环洛丽塔(Flora Lolita)",
+    "img": "./style_image/Luolita.jpg",
+    "model_id": "idlepiggy/zju_16FC",
+    "revision": "v3.0.1",
+    "bin_file": "lolitaV1.safetensors",
+    "multiplier_style": 0.6,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "lolita, warm sunlight, front view, jewelry,summer,purple eyes,long hair, white dress,backgound is sun and rainbow,faceing camera with a smile,beautiful flower on the head"
+}
