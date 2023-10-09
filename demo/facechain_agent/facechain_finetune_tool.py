@@ -1,6 +1,8 @@
 import os
+import random
 import shutil
-import gradio as gr
+import time
+
 from modelscope.utils.config import Config
 from modelscope_agent.agent import AgentExecutor
 from modelscope_agent.llm import LLMFactory
@@ -37,7 +39,7 @@ class FaceChainFineTuneTool(Tool):
         pass
 
     def _local_call(self, *args, **kwargs):
-        uuid = gr.Text(label="modelscope_uuid", visible=False)
+        uuid = generate_id()
         instance_images = kwargs['instance_images']
 
         # train lora
@@ -74,7 +76,13 @@ def _train_lora(uuid, output_model_name, instance_images, base_model_path, revis
 
     return base_model_path, revision, sub_path, instance_data_dir, work_dir
 
+# 生成uuid
+def generate_id():
+    timestamp = str(int(time.time()))
+    random_num = ''.join([str(random.randint(0, 9)) for _ in range(8)])
+    return timestamp + random_num
 
+#  合代码的时候，下面这些测试代码可删掉
 SYSTEM_PROMPT = """<|system|>: 你现在扮演一个Facechain Agent，帮助用户画图，先询问用户绘图风格，然后要求用户上传原始图片，再根据用户所传图片生成用户lora。当前对话可以使用的插件信息如下，请自行判断是否需要调用tool来解决当前用户问题。若需要调用插件，则需要将插件调用请求按照json格式给出，必须包含api_name、parameters字段，并在其前后使用<|startofthink|>和<|endofthink|>作为标志。然后你需要根据插件API调用结果生成合理的答复。
 \n<tool_list>\n"""
 KEY_TEMPLATE = """（注意：请参照上述的多轮对话历史流程，但不要生成多轮对话，回复不要包含<|user|>的内容。）"""
