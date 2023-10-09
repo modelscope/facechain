@@ -32,3 +32,7 @@ if not launch.is_installed("mmdet"):
 if not launch.is_installed("mediapipe"):
     print("--installing mmdet...")
     launch.run_pip("install mediapipe==0.10.3", "requirements for mediapipe")
+
+if not launch.is_installed("edge_tts"):
+    print("--installing edge_tts...")
+    launch.run_pip("install edge_tts", "requirements for mediapipe")

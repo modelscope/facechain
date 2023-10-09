@@ -1086,13 +1086,13 @@ def inference_talkinghead():
         update_button.click(fn=update_output_image_result, inputs=[uuid], outputs=[image_results, state_image_list])
         with gr.Row():
             examples = [
-                [   'resources/source_image/man.png',
-                    'resources/driven_audio/chinese_poem1.wav',
+                [   f'{project_dir}/resources/source_image/man.png',
+                    f'{project_dir}/resources/driven_audio/chinese_poem1.wav',
                     'full',
                     True,
                     False],
-                [   'resources/source_image/women.png',
-                    'resources/driven_audio/chinese_poem2.wav',
+                [   f'{project_dir}/resources/source_image/women.png',
+                    f'{project_dir}/resources/driven_audio/chinese_poem2.wav',
                     'full',
                     True,
                     False],
@@ -1112,6 +1112,8 @@ for base_model in base_models:
         file_path = os.path.join(folder_path, file)
         with open(file_path, "r") as f:
             data = json.load(f)
+            if data['img'][:2] == './':
+                data['img'] = f"{project_dir}/{data['img'][2:]}"
             style_in_base.append(data['name'])
             styles.append(data)
     base_model['style_list'] = style_in_base
