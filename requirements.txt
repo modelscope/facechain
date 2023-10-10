@@ -16,6 +16,7 @@ gradio
 controlnet_aux==0.0.6
 mediapipe
 python-slugify
+edge-tts
 #tensorflow==2.8.0
 #tensorflow-cpu  # slower but no cuda conflicts
 

@@ -1053,7 +1053,7 @@ def inference_talkinghead():
         with gr.Row(equal_height=False):
             with gr.Column(variant='panel'):
                 source_image = gr.Image(label="源图片(source image)", source="upload", type="filepath")
-                image_results = gr.Gallery(value=image_result_list, label='之前的合成图片(previous generated images)', allow_preview=False, columns=6, height=250)
+                image_results = gr.Gallery(value=image_result_list, label='之前合成的图片(previous generated images)', allow_preview=False, columns=6, height=250)
                 update_button = gr.Button('刷新之前合成的图片(Refresh previous generated images)')
                 driven_audio = gr.Audio(label="驱动音频(driven audio)", source="upload", type="filepath")
                 input_text = gr.Textbox(label="用文本生成音频(Generating audio from text)", lines=1, value="大家好，欢迎大家使用阿里达摩院开源的facechain项目！")
