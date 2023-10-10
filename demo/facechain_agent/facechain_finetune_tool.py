@@ -1,22 +1,22 @@
 import os
+import platform
 import random
 import shutil
+import slugify
+import subprocess
 import time
+import torch
 
 from modelscope.utils.config import Config
 from modelscope_agent.agent import AgentExecutor
 from modelscope_agent.llm import LLMFactory
 from modelscope_agent.prompt import MSPromptGenerator
-
-import app
-
-import slugify
-
 from modelscope_agent.tools import Tool
 
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 
 from torch import multiprocessing
+
 
 class FaceChainFineTuneTool(Tool):
     description = "模型微调工具，根据用户提供的图片训练出Lora"
@@ -49,6 +49,70 @@ class FaceChainFineTuneTool(Tool):
         return {'result': result}
 
 
+def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img_dir=None, work_dir=None, photo_num=0):
+    torch.cuda.empty_cache()
+
+    lora_r = 4
+    lora_alpha = 32
+    max_train_steps = min(photo_num * 200, 800)
+
+    if platform.system() == 'Windows':
+        command = [
+            'accelerate', 'launch', 'facechain/train_text_to_image_lora.py',
+            f'--pretrained_model_name_or_path={base_model_path}',
+            f'--revision={revision}',
+            f'--sub_path={sub_path}',
+            f'--output_dataset_name={output_img_dir}',
+            '--caption_column=text',
+            '--resolution=512',
+            '--random_flip',
+            '--train_batch_size=1',
+            '--num_train_epochs=200',
+            '--checkpointing_steps=5000',
+            '--learning_rate=1.5e-04',
+            '--lr_scheduler=cosine',
+            '--lr_warmup_steps=0',
+            '--seed=42',
+            f'--output_dir={work_dir}',
+            f'--lora_r={lora_r}',
+            f'--lora_alpha={lora_alpha}',
+            '--lora_text_encoder_r=32',
+            '--lora_text_encoder_alpha=32',
+            '--resume_from_checkpoint="fromfacecommon"'
+        ]
+
+        try:
+            subprocess.run(command, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error executing the command: {e}")
+            raise RuntimeError("训练失败 (Training failed)")
+    else:
+        res = os.system(
+            f'PYTHONPATH=. accelerate launch facechain/train_text_to_image_lora.py '
+            f'--pretrained_model_name_or_path={base_model_path} '
+            f'--revision={revision} '
+            f'--sub_path={sub_path} '
+            f'--output_dataset_name={output_img_dir} '
+            f'--caption_column="text" '
+            f'--resolution=512 '
+            f'--random_flip '
+            f'--train_batch_size=1 '
+            f'--num_train_epochs=200 '
+            f'--checkpointing_steps=5000 '
+            f'--learning_rate=1.5e-04 '
+            f'--lr_scheduler="cosine" '
+            f'--lr_warmup_steps=0 '
+            f'--seed=42 '
+            f'--output_dir={work_dir} '
+            f'--lora_r={lora_r} '
+            f'--lora_alpha={lora_alpha} '
+            f'--lora_text_encoder_r=32 '
+            f'--lora_text_encoder_alpha=32 '
+            f'--resume_from_checkpoint="fromfacecommon"')
+        if res != 0:
+            raise RuntimeError("训练失败 (Training failed)")
+
+
 def _train_lora(uuid, output_model_name, instance_images, base_model_path, revision, sub_path):
     output_model_name = slugify.slugify(output_model_name)
 
@@ -67,20 +131,24 @@ def _train_lora(uuid, output_model_name, instance_images, base_model_path, revis
     prepare_dataset([img for img in instance_images], output_dataset_dir=instance_data_dir)
     data_process_fn(instance_data_dir, True)
 
-    app.train_lora_fn(base_model_path=base_model_path,
-                      revision=revision,
-                      sub_path=sub_path,
-                      output_img_dir=instance_data_dir,
-                      work_dir=work_dir,
-                      photo_num=len(instance_data_dir))
+    train_lora_fn(
+        base_model_path=base_model_path,
+        revision=revision,
+        sub_path=sub_path,
+        output_img_dir=instance_data_dir,
+        work_dir=work_dir,
+        photo_num=len(instance_data_dir)
+    )
 
     return base_model_path, revision, sub_path, instance_data_dir, work_dir
+
 
 # 生成uuid
 def generate_id():
     timestamp = str(int(time.time()))
     random_num = ''.join([str(random.randint(0, 9)) for _ in range(8)])
     return timestamp + random_num
+
 
 #  合代码的时候，下面这些测试代码可删掉
 SYSTEM_PROMPT = """<|system|>: 你现在扮演一个Facechain Agent，帮助用户画图，先询问用户绘图风格，然后要求用户上传原始图片，再根据用户所传图片生成用户lora。当前对话可以使用的插件信息如下，请自行判断是否需要调用tool来解决当前用户问题。若需要调用插件，则需要将插件调用请求按照json格式给出，必须包含api_name、parameters字段，并在其前后使用<|startofthink|>和<|endofthink|>作为标志。然后你需要根据插件API调用结果生成合理的答复。
