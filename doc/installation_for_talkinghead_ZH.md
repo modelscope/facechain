@@ -4,7 +4,7 @@
 
 人物视频生成标签页可视化界面：
 
-![image](https://user-images.githubusercontent.com/43233772/269477215-af10a90b-6491-4278-8920-e852fa42e112.png)
+![image](https://user-images.githubusercontent.com/43233772/273356969-27117625-06f7-4b51-af99-3d2bec56c7b6.jpeg)
 
 该标签页的功能主要是基于[SadTalker](https://github.com/OpenTalker/SadTalker)实现音频驱动图片中的人脸说话。
 
@@ -40,7 +40,6 @@ pip install kornia==0.6.8
 pip install yacs==0.1.8
 pip install pyyaml  
 pip install joblib==1.1.0
-pip install scikit-image==0.19.3
 pip install basicsr==1.4.2
 pip install facexlib==0.3.0
 pip install gradio
@@ -87,7 +86,7 @@ ffmpeg -version
 
 1. 您可以从本地电脑上传带有人脸的图片或者从之前生成的图片中选择一张作为源图片。
 
-2. 从本地电脑上传一段驱动音频，仅支持wav（首选）和mp3格式。
+2. 您既可以从本地电脑上传一段驱动音频，仅支持wav（首选）和mp3格式，或者也可以输入文本，然后使用TTS合成音频。
 
 3. 在右侧面板配置参数。
 

@@ -2,10 +2,13 @@
 import os
 import sys
 from typing import Any
-import edge_tts
 import tempfile
 from modelscope.pipelines import pipeline
 from facechain.constants import tts_speakers_map
+try:
+    import edge_tts
+except ImportError:
+    print("警告：未找到edge_tts模块，语音合成功能将无法使用。您可以通过`pip install edge-tts`安装它。\n Warning: The edge_tts module is not found, so the speech synthesis function will not be available. You can install it by 'pip install edge-tts'.")
 
 class SadTalker():
     def __init__(self, uuid):
