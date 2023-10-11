@@ -59,3 +59,17 @@ def check_ffmpeg():
     Check if ffmpeg is installed.
     """
     return check_install("ffmpeg", "-version")
+
+
+def get_worker_data_dir() -> str:
+    """
+    Get the worker data directory.
+    """
+    return os.path.join(project_dir, "worker_data")
+
+
+def join_worker_data_dir(*kwargs) -> str:
+    """
+    Join the worker data directory with the specified sub directory.
+    """
+    return os.path.join(get_worker_data_dir(), *kwargs)
