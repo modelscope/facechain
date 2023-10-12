@@ -203,6 +203,7 @@ class Blipv2():
     def __init__(self):
         self.model = DeepDanbooru()
         self.skin_retouching = pipeline('skin-retouching-torch', model='damo/cv_unet_skin_retouching_torch', model_revision='v1.0.1')
+        # ToDo: face detection
         self.face_detection = pipeline(task=Tasks.face_detection, model='damo/cv_ddsar_face-detection_iclr23-damofd', model_revision='v1.1')
         # self.mog_face_detection_func = pipeline(Tasks.face_detection, 'damo/cv_resnet101_face-detection_cvpr22papermogface')
         self.segmentation_pipeline = pipeline(Tasks.image_segmentation,
