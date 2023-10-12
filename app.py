@@ -82,7 +82,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
 
     if platform.system() == 'Windows':
         command = [
-            'accelerate', 'launch', f'{project_dir}facechain/train_text_to_image_lora.py',
+            'accelerate', 'launch', f'{project_dir}/facechain/train_text_to_image_lora.py',
             f'--pretrained_model_name_or_path={base_model_path}',
             f'--revision={revision}',
             f'--sub_path={sub_path}',
@@ -1111,7 +1111,7 @@ for base_model in base_models:
     files.sort()
     for file in files:
         file_path = os.path.join(folder_path, file)
-        with open(file_path, "r") as f:
+        with open(file_path, "r", encoding='utf-8') as f:
             data = json.load(f)
             if data['img'][:2] == './':
                 data['img'] = f"{project_dir}/{data['img'][2:]}"
