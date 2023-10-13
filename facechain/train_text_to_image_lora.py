@@ -1192,6 +1192,9 @@ def main():
         from swift import Swift
         pipeline = pipeline.to(accelerator.device)
         pipeline.unet = Swift.from_pretrained(pipeline.unet, os.path.join(args.output_dir, 'unet'))
+
+        if args.train_text_encoder:
+            pipeline.text_encoder = Swift.from_pretrained(pipeline.text_encoder, os.path.join(args.output_dir, 'text_encoder'))
     else:
         pipeline = pipeline.to(accelerator.device)
         # load attention processors
