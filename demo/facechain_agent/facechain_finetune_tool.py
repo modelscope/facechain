@@ -132,6 +132,7 @@ def _train_lora(uuid, output_model_name, instance_images, base_model_path, revis
     shutil.rmtree(instance_data_dir, ignore_errors=True)
     prepare_dataset([img for img in instance_images], output_dataset_dir=instance_data_dir)
     data_process_fn(instance_data_dir, True)
+    #print("########",instance_data_dir)
 
     train_lora_fn(
         base_model_path=base_model_path,

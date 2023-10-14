@@ -1,20 +1,19 @@
+import sys
+sys.path.append("../../")
 from modelscope_agent.tools import Tool
 from facechain.utils import snapshot_download
-
-character_model = 'ly261666/cv_portrait_model'
 import os
 import json
-
 import time
 from concurrent.futures import ProcessPoolExecutor
 from torch import multiprocessing
 import cv2
 import numpy as np
-
-
+import gradio as gr
 from facechain.inference import GenPortrait
 
-styles = []
+training_done_count = 0
+inference_done_count = 0
 base_models = [
     {'name': 'leosamsMoonfilm_filmGrain20',
      'model_id': 'ly261666/cv_portrait_model',
@@ -25,26 +24,11 @@ base_models = [
      'revision': 'v1.0.0',
      'sub_path': "realistic"},
 ]
-for base_model in base_models:
-    style_in_base = []
-    folder_path = f"{os.path.dirname(os.path.abspath(__file__))}/styles/{base_model['name']}"
-    files = os.listdir(folder_path)
-    files.sort()
-    for file in files:
-        file_path = os.path.join(folder_path, file)
-        with open(file_path, "r", encoding='utf-8') as f:
-            data = json.load(f)
-            style_in_base.append(data['name'])
-            styles.append(data)
-    base_model['style_list'] = style_in_base
-atraining_done_count = 0
-inference_done_count = 0
-character_model = 'ly261666/cv_portrait_model'
-BASE_MODEL_MAP = {
-    "leosamsMoonfilm_filmGrain20": "写实模型(Realistic model)",
-    "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic model)",
-}
-
+neg_prompt = '(nsfw:2), paintings, sketches, (worst quality:2), (low quality:2), ' \
+             'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character, bad hand, tattoo, (username, watermark, signature, time signature, timestamp, artist name, copyright name, copyright),'\
+             'low res, ((monochrome)), ((grayscale)), skin spots, acnes, skin blemishes, age spot, glans, extra fingers, fewer fingers, strange fingers, bad hand, mole, ((extra legs)), ((extra hands))'
+pos_prompt_with_cloth = 'raw photo, masterpiece, chinese, {}, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, photorealistic, best quality'
+pos_prompt_with_style = '{}, upper_body, raw photo, masterpiece, solo, medium shot, high detail face, photorealistic, best quality'
 
 def concatenate_images(images):
     heights = [img.shape[0] for img in images]
@@ -56,42 +40,23 @@ def concatenate_images(images):
         concatenated_image[0:img.shape[0], x_offset:x_offset + img.shape[1], :] = img
         x_offset += img.shape[1]
     return concatenated_image
-
-
-def launch(uuid,
+def launch_pipeline(uuid,
            pos_prompt,
+           matched,
+           num_images,
            neg_prompt=None,
-           base_model_index=None,
+           base_model_index=0,
            user_model=None,
-           num_images=1,
            lora_choice=None,
-           style_model=None,
            multiplier_style=0.35,
            multiplier_human=0.95,
            pose_model=None,
-           pose_image=None
+           pose_image=None,
            ):
-    print("-------uuid: ", uuid)
-    print("-------pos_prompt: ", pos_prompt)
-    print("-------neg_prompt: ", neg_prompt)
-    print("-------base_model_index: ", base_model_index)
-    print("-------user_model: ", user_model)
-    print("-------num_images: ", num_images)
-    print("-------lora_choice: ", lora_choice)
-    print("-------style_model: ", style_model)
-    print("-------multiplier_style: ", multiplier_style)
-    print("-------multiplier_human: ", multiplier_human)
-    print("-------pose_model: ", pose_model)
-    print("-------pose_image: ", pose_image)
-
     uuid = 'qw'
-
-    # Check base model
-    if base_model_index == None:
-        raise '请选择基模型(Please select the base model)！'
-
+    character_model='ly261666/cv_portrait_model'#(base_model)
     # Check character LoRA
-    folder_path = f"../../{uuid}/{character_model}"
+    folder_path = f"./{uuid}/{character_model}"
     folder_list = []
     if os.path.exists(folder_path):
         files = os.listdir(folder_path)
@@ -108,11 +73,10 @@ def launch(uuid,
     if user_model is None:
         raise '请选择人物LoRA(Please select the character LoRA)！'
     # Check lora choice
-    # if lora_choice != 'preset':
+    # if lora_choice == None:
     #     raise '请选择LoRA模型(Please select the LoRA model)!'
     # Check style model
-    if style_model is None and lora_choice == 'preset':
-        raise '请选择风格模型(Please select the style model)!'
+    
 
     base_model = base_models[base_model_index]['model_id']
     revision = base_models[base_model_index]['revision']
@@ -120,27 +84,15 @@ def launch(uuid,
 
     before_queue_size = 0
     before_done_count = inference_done_count
-    matched = list(filter(lambda item: style_model == item['name'], styles))
-    if len(matched) == 0:
-        raise ValueError(f'styles not found: {style_model}')
-    matched = matched[0]
+
     style_model = matched['name']
 
-    if lora_choice == 'preset':
-        if matched['model_id'] is None:
-            style_model_path = None
-        else:
-            model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
-            style_model_path = os.path.join(model_dir, matched['bin_file'])
+    if matched['model_id'] is None:
+        style_model_path = None
     else:
-        print(f'uuid: {uuid}')
-        temp_lora_dir = f"./{uuid}/temp_lora"
-        file_name = lora_choice
-        print(lora_choice.split('.')[-1], os.path.join(temp_lora_dir, file_name))
-        if lora_choice.split('.')[-1] != 'safetensors' or not os.path.exists(os.path.join(temp_lora_dir, file_name)):
-            raise ValueError(f'Invalid lora file: {file_name}')
-        style_model_path = os.path.join(temp_lora_dir, file_name)
-
+        model_dir = snapshot_download(matched['model_id'], revision=matched['revision'])
+        style_model_path = os.path.join(model_dir, matched['bin_file'])
+    
     if pose_image is None or pose_model == 0:
         pose_model_path = None
         use_depth_control = False
@@ -153,16 +105,16 @@ def launch(uuid,
         else:
             use_depth_control = False
 
-    print("-------user_model: ", user_model)
+    print("-------user_model(也就是人物lora name): ", user_model)
 
     use_main_model = True
     use_face_swap = True
     use_post_process = True
     use_stylization = False
-
+#user_model就是人物lora的name
     instance_data_dir = os.path.join('./', uuid, 'training_data', character_model, user_model)
     lora_model_path = f'./{uuid}/{character_model}/{user_model}/'
-    print('----------======================')
+    #print('----------======================')
     gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path,
                                multiplier_style, multiplier_human, use_main_model,
                                use_face_swap, use_post_process,
@@ -211,25 +163,36 @@ def launch(uuid,
             os.makedirs(os.path.join(save_dir, 'concat'))
         num = len(os.listdir(os.path.join(save_dir, 'concat')))
         image_path = os.path.join(save_dir, 'concat', str(num) + '.png')
-        cv2.imwrite(image_path, result)
+        cv2.imwrite(image_path, result)#整体图像
 
-        print("生成完毕(Generation done)!", outputs_RGB)
-        return
+        return ("生成完毕(Generation done)!", outputs_RGB)
     else:
-        print("生成失败, 请重试(Generation failed, please retry)!", outputs_RGB)
-        return
+        return ("生成失败, 请重试(Generation failed, please retry)!", outputs_RGB)
 
-
+def generate_pos_prompt(matched_style_file, prompt_cloth):
+    if matched_style_file is not None:
+        # matched = list(filter(lambda style: style_model == style['name'], styles))
+        # if len(matched) == 0:
+        #     raise ValueError(f'styles not found: {style_model}')
+        
+        if matched_style_file['model_id'] is None:
+            pos_prompt = pos_prompt_with_cloth.format(prompt_cloth)
+        else:
+            pos_prompt = pos_prompt_with_style.format(matched_style_file['add_prompt_style'])
+    else:
+        pos_prompt = pos_prompt_with_cloth.format(prompt_cloth)
+    return pos_prompt
 class FaceChainInferenceTool(Tool):
     description = "模型微调推理，根据用户人脸Lora以及输入的期望风格输出图片"
-    name = "facechain_Inference_tool"
+    name = "facechain_inference_tool"
     parameters: list = [{
-        'name': 'text',
+        'name': 'matched_style_file',
         'description': '用户输入的文本信息',
         'required': True
     }]
 
-    def __init__(self):
+    def __init__(self,user_model:str):
+        self.user_model = user_model
         super().__init__()
         # self.base_model_path = 'ly261666/cv_portrait_model'
         # self.revision = 'v2.0'
@@ -237,28 +200,45 @@ class FaceChainInferenceTool(Tool):
         # # 这里固定了Lora的名字,重新训练会覆盖原来的
         # self.lora_name = "person1"
 
-    def _remote_call(self, *args, **kwargs):
-        pass
-
-    def _local_call(self, pos_prompt, neg_prompt, base_model_index,
-                    user_model, num_images, style_model):
-        launch(uuid=None, pos_prompt=pos_prompt,
-               neg_prompt=neg_prompt, base_model_index=base_model_index,
-               user_model=user_model, num_images=num_images,
-               style_model=style_model, multiplier_style=0.35,
-               multiplier_human=0.95, pose_model=0,
+    def _remote_call(self, matched_style_file_path:str):
+        with open (matched_style_file_path,'r') as f:
+            matched_style_file = json.load(f)
+        pos_prompt = generate_pos_prompt(matched_style_file, matched_style_file['add_prompt_style'])
+        (infer_progress,output_images)=launch_pipeline(uuid='qw',matched=matched_style_file,pos_prompt=pos_prompt,
+               neg_prompt=neg_prompt, base_model_index=0,
+               user_model=self.user_model, num_images=3,
+                multiplier_style=0.35,
+               multiplier_human=0.95, pose_model=None,
                pose_image=None, lora_choice='preset'
                )
+        return infer_progress,output_images
 
-
+    def _local_call(self, matched_style_file_path:str):
+        with open (matched_style_file_path,'r') as f:
+            matched_style_file = json.load(f)
+        pos_prompt = generate_pos_prompt(matched_style_file, matched_style_file['add_prompt_style'])
+        (infer_progress,output_images)=launch_pipeline(uuid='qw',matched=matched_style_file,pos_prompt=pos_prompt,
+               neg_prompt=neg_prompt, base_model_index=0,
+               user_model=self.user_model, num_images=3,
+                multiplier_style=0.35,
+               multiplier_human=0.95, pose_model=None,
+               pose_image=None, lora_choice='preset'
+               )
+        return infer_progress,output_images
+        
+with gr.Blocks() as demo:
+    display_button = gr.Button('开始生成(Start!)')  
+    with gr.Box():
+            infer_progress = gr.Textbox(label="生成进度(Progress)", value="当前无生成任务(No task)", interactive=False)
+    with gr.Box():
+        gr.Markdown('生成结果(Result)')
+        output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,object_fit="contain")
+    tool = FaceChainInferenceTool(user_model='person1')
+    with gr.Row():
+        matched_style_file_path=gr.Text(value='/home/wsco/wyj2/facechain-agent/styles/leosamsMoonfilm_filmGrain20/Chinese_traditional_gorgeous_suit.json',)
+    display_button.click(fn=tool._local_call,
+                             inputs=[matched_style_file_path],
+                             outputs=[infer_progress, output_images])        
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')
-    tool = FaceChainInferenceTool()
-    tool._local_call(
-        pos_prompt='raw photo, masterpiece, chinese, wearing silver armor, simple background, high-class pure color background, solo, medium shot, high detail face, looking straight into the camera with shoulders parallel to the frame, photorealistic, best quality'
-        ,
-        neg_prompt='(nsfw:2), paintings, sketches, (worst quality:2), (low quality:2), lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character, bad hand, tattoo, (username, watermark, signature, time signature, timestamp, artist name, copyright name, copyright),low res, ((monochrome)), ((grayscale)), skin spots, acnes, skin blemishes, age spot, glans, extra fingers, fewer fingers, strange fingers, bad hand, mole, ((extra legs)), ((extra hands))'
-        , base_model_index=0
-        , user_model='person1'
-        , num_images=1
-        , style_model='盔甲风(Armor)')
+    demo.queue(status_update_rate=1).launch(share=True)

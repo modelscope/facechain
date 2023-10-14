@@ -1,12 +1,14 @@
 from __future__ import annotations
 import os
+os.system('pip install modelscope_agent-0.1.0-py3-none-any.whl')
 import sys
 sys.path.append("../../")
-#sys.path.append("/home/wsco/wyj2/modelscope-agent-1")
 from functools import partial
 import json
 import shutil
 import slugify
+import glob
+from torch import multiprocessing
 import PIL.Image
 import gradio as gr
 from dotenv import load_dotenv
@@ -16,40 +18,52 @@ from modelscope_agent.prompt import MSPromptGenerator, PromptGenerator
 from modelscope_agent.retrieve import ToolRetrieval
 from gradio_chatbot import ChatBot
 #from mock_llm import MockLLM
-from help_tool import StyleSearchTool,FaceChainFineTuneTool
+from help_tool import StyleSearchTool,FaceChainFineTuneTool,FaceChainInferenceTool
 import copy
 from facechain.train_text_to_image_lora import prepare_dataset,data_process_fn,get_rot
 from modelscope.utils.config import Config
+import uuid
 
+# 生成随机的 UUID（和uuid=‘qw'不一样）
+random_uuid = uuid.uuid4()
+
+# 将 UUID 转换为字符串
+uuid_str = str(random_uuid)
+image_num = 3
 PROMPT_START = "你好！我是你的FacechainAgent，很高兴为你提供服务。首先，我想了解你对想要创作的写真照有什么大概的想法？"
-
 
 SYSTEM_PROMPT = """<|system|>: 你现在扮演一个Facechain Agent，不断和用户沟通创作想法，询问用户写真照风格，最后生成搜索到的风格类型返回给用户。当前对话可以使用的插件信息如下，请自行判断是否需要调用插件来解决当前用户问题。若需要调用插件，则需要将插件调用请求按照json格式给出，必须包含api_name、parameters字段，并在其前后使用<|startofthink|>和<|endofthink|>作为标志。然后你需要根据插件API调用结果生成合理的答复。
 \n<tool_list>\n"""
 
 INSTRUCTION_TEMPLATE = """【多轮对话历史】
 
-Human: 给我生成一个写真照。
+<|user|>: 给我生成一个写真照。
 
-Assistant: 好的，请问你想要什么风格的写真照？
+<|assistant|>: 好的，请问你想要什么风格的写真照？
 
-Human: 我想要赛博朋克风。
+<|user|>: 我想要赛博朋克风。
 
-Assistant: 明白了，我将为你找到需要的风格类型。
+<|assistant|>: 好的，我将为你找到这个风格类型。
 
-<|startofthink|>```JSON\n{\n   "api_name": "style_search_tool",\n    "parameters": {\n      "text": "我想要赛博朋克风。"\n   }\n}\n```<|endofthink|>
-我为你找到的风格类型名字是赛博朋克(Cybernetics punk)。
+正在搜索风格类型：<|startofthink|>```JSON\n{\n   "api_name": "style_search_tool",\n    "parameters": {\n      "text": "我想要赛博朋克风。"\n   }\n}\n```<|endofthink|>
+
+我为你找到的风格类型名字是赛博朋克(Cybernetics punk)。该文件的位置在/home/wsco/wyj2/facechain-agent/styles/leosamsMoonfilm_filmGrain20/Cybernetics_punk.json。
 
 现在我需要你提供1-3张照片，请点击图片上传按钮上传你的照片。上传完毕后在对话框里告诉我你已经上传好照片了。
 
-Human: 我的照片上传好了。
+<|user|>: 我的照片上传好了。
 
-Assistant: 收到，我需要10分钟训练并生成，你可以过10分钟再回来界面。
+<|assistant|>: 收到，我需要几分钟时间训练你上传的照片。
 
-正在训练人物lora中：<|startofthink|>```JSON\n{\n   "api_name": "facechain_finetune_tool",\n    "parameters": {\n \n   }\n}\n```<|endofthink|>
-人物lora训练完成。是否根据你刚才选的赛博朋克风格生成写真照？还是你要更换风格吗？
+正在训练人物lora中：<|startofthink|>```JSON\n{\n   "api_name": "facechain_finetune_tool",\n    "parameters": {}\n}\n```<|endofthink|>
+人物lora训练完成。你要使用你之前选择的赛博朋克(Cybernetics punk)风格生成写真照吗，还是你要更换风格？
 
+<|user|>: 不换，就用这个风格。
 
+<|assistant|>: 好的，我将为你生成赛博朋克(Cybernetics punk)风格的写真照。这将需要几分钟时间，请耐心等待。
+
+正在生成写真照中：<|startofthink|>```JSON\n{\n   "api_name": "facechain_inference_tool",\n    "parameters": {\n   "matched_style_file_path": "/home/wsco/wyj2/facechain-agent/styles/leosamsMoonfilm_filmGrain20/Cybernetics_punk.json"\n  }\n}\n```<|endofthink|>
+写真照已经生成完毕，如果喜欢赶紧下载打印吧！
 【角色扮演要求】
 上面多轮角色对话是提供的创作一个写真照风格要和用户沟通的样例，请按照上述的询问步骤来引导用户完成风格的生成，每次只回复对应的内容，不要生成多轮对话。记住只回复用户当前的提问，不要生成多轮对话，回复不要包含<|user|>后面的内容。
 
@@ -58,18 +72,15 @@ Assistant: 收到，我需要10分钟训练并生成，你可以过10分钟再�
 KEY_TEMPLATE = """（注意：请参照上述的多轮对话历史流程，但不要生成多轮对话，回复不要包含<|user|>的内容。）"""
 #KEY_TEMPLATE = ""
 
-
-
-load_dotenv('../../config/.env', override=True)
+load_dotenv('../config/.env', override=True)
 
 os.environ['TOOL_CONFIG_FILE'] = '../config/cfg_tool_template.json'
 os.environ['MODEL_CONFIG_FILE'] = '../config/cfg_model_template.json'
 os.environ['OUTPUT_FILE_DIRECTORY'] = './tmp'
-os.environ['MODELSCOPE_API_TOKEN'] = 'c70a097b-50bd-42da-9d45-23bed2121eab'
-os.environ['DASHSCOPE_API_KEY'] = 'uwjIui5vzfMXRGfWzdU5hkPdE0FJTFFW95425EAEDCCB11ED9809620D7200B5B8'
-os.environ['OPENAI_API_KEY'] = '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'
-
-style_path="/home/wsco/wyj2/facechain/styles/leosamsMoonfilm_filmGrain20"
+os.environ['MODELSCOPE_API_TOKEN'] = 'xxxxxxxx'
+os.environ['DASHSCOPE_API_KEY'] = 'xxxxxxx'
+os.environ['OPENAI_API_KEY'] = 'xxxxxxx'
+style_path="../../styles/leosamsMoonfilm_filmGrain20"
 styles=[]
 for filename in os.listdir(style_path):
     file_path = os.path.join(style_path, filename)
@@ -77,36 +88,25 @@ for filename in os.listdir(style_path):
         data=json.load(f)
         styles.append(data)
 
-
 with open(
         os.path.join(os.path.dirname(__file__), 'main.css'), "r",
         encoding="utf-8") as f:
     MAIN_CSS_CODE = f.read()
-def upload_file(files,current_files):
+def upload_file(files,current_files,output_model_name):
     
     file_paths = [file_d['name'] for file_d in current_files] + [file.name for file in files]
-    #prepare_dataset([img['name'] for img in instance_images], instance_data_dir=instance_data_dir)
-    for i, temp_path in enumerate(file_paths):
-        image = PIL.Image.open(temp_path)
-        image = image.convert('RGB')
-        image = get_rot(image)
-        # image = image.resize((new_w, new_h))
-        # image = image.resize((new_w, new_h), PIL.Image.ANTIALIAS)
-        uuid = 'qw'
-        shutil.rmtree(f"./{uuid}", ignore_errors=True)
-        base_model_path = 'ly261666/cv_portrait_model'
-        revision = 'v2.0'
-        sub_path = "film/film"
-        output_model_name='person1'
-        output_model_name = slugify.slugify(output_model_name)
-        # mv user upload data to target dir
-        instance_data_dir = os.path.join('./', uuid, 'training_data', base_model_path, output_model_name)
-        shutil.rmtree(instance_data_dir, ignore_errors=True)
-        if not os.path.exists(instance_data_dir):
-            os.makedirs(instance_data_dir)
-        out_path = f'{instance_data_dir}/{i:03d}.jpg'
-        image.save(out_path, format='JPEG', quality=100)
-    data_process_fn(instance_data_dir,True)
+    uuid = 'qw'
+    shutil.rmtree(f"./{uuid}", ignore_errors=True)
+    base_model_path = 'ly261666/cv_portrait_model'
+    revision = 'v2.0'
+    sub_path = "film/film"
+    output_model_name = uuid_str
+    output_model_name = slugify.slugify(output_model_name)
+  
+    instance_data_dir = os.path.join('./', uuid, 'training_data', base_model_path, output_model_name)
+    shutil.rmtree(instance_data_dir, ignore_errors=True)   
+    prepare_dataset(file_paths, instance_data_dir)
+    # data_process_fn(instance_data_dir,True)
 
     print(file_paths)
         
@@ -114,6 +114,7 @@ def upload_file(files,current_files):
 
 
 with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
+   
     uuid = gr.Text(label="modelscope_uuid", visible=False)
     with gr.Row():
         gr.HTML(
@@ -122,20 +123,27 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
         status_display = gr.HTML(
             "", elem_id="status_display", visible=False, show_label=False)
 
+
+    with gr.Row(min_width=470, scale=6, elem_id='settings'):
+        gr.Markdown(""" 🌈 🌈 🌈
+                    
+                    你好，我是FaceChain Agent，可以帮你生成写真照片。
+                    
+                    右图是各类风格的展示图，你在这里先挑选你喜欢的风格。
+                    
+                    然后在下方的聊天框里与我交流吧，一起来生成美妙的写真照！
+                    
+                    """)
+        gallery = gr.Gallery(value=[(os.path.join("../../",item["img"]), item["name"]) for item in styles],
+                                        label="风格(Style)",
+                                        allow_preview=False,
+                                        columns=5,
+                                        elem_id="gallery",
+                                        show_share_button=False,
+                                        object_fit="contain"
+                                        )
     with gr.Row(elem_id="container_row").style(equal_height=True):
-        
         with gr.Column(min_width=470, scale=6, elem_id='settings'):
-            gr.Markdown(""" 🌈 你好，我是FaceChain Agent，可以帮你生成写真照片。
-                        
-                        以下是各类风格的展示图，请挑选你喜欢的风格并在下方的聊天框里与我交流吧。""")
-            gallery = gr.Gallery(value=[(os.path.join("/home/wsco/wyj2/facechain",item["img"]), item["name"]) for item in styles],
-                                            label="风格(Style)",
-                                            allow_preview=False,
-                                            columns=5,
-                                            elem_id="gallery",
-                                            show_share_button=False,
-                                            object_fit="contain"
-                                            )
             chatbot = ChatBot(
                 elem_id="chatbot",
                 elem_classes=["markdown-body"],
@@ -156,18 +164,29 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
                     regenerate_button = gr.Button(
                         "重新生成", elem_id='regenerate_button')
                 gr.Examples(
-                examples=['我想要写真照','我想要凤冠霞帔风','我的照片上传好了'],
+                examples=['我想要写真照','我想要凤冠霞帔风','我的照片上传好了','不换，就用这个风格'],
                 inputs=[user_input],
                 label="示例",
                 elem_id="chat-examples")
-            with gr.Row():
-                instance_images = gr.Gallery()
-                with gr.Row(min_width=110, scale=1):
-                    upload_button = gr.UploadButton("📁上传图片", file_types=["image"],file_count="multiple")
-                    clear_button = gr.Button("清空图片(Clear photos)")
-            clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
-            upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images,
-                                        queue=False)
+                    
+            with gr.Column():
+                instance_images = gr.Gallery(label='用户上传的照片')
+                with gr.Row(min_width=70, scale=1):
+                    upload_button = gr.UploadButton("上传图片", file_types=["image"],file_count="multiple")
+                with gr.Row(min_width=70, scale=1):
+                    clear_button = gr.Button("清空图片")
+    with gr.Row():
+                output_image = [None] * image_num
+                for i in range(0,image_num):
+                        with gr.Column():
+                            output_image[i] = gr.Image(
+                                label=f'写真照{i + 1}',
+                                interactive=False,
+                                visible=True,
+                                show_progress=False)
+    clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
+    upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images,
+                                queue=False)
             
             #trainer = Trainer()
             # upload_button.click(fn=trainer.run,
@@ -204,14 +223,16 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
 
     # tools 
     
-    model_id = 'damo/nlp_corom_sentence-embedding_chinese-base'
-    filepath="/home/wsco/wyj2/modelscope-agent-1/demo/story_agent/style.txt"
+    #model_id = 'damo/nlp_corom_sentence-embedding_chinese-base'
+    #filepath="/home/wsco/wyj2/modelscope-agent-1/demo/story_agent/style.txt"
 
     style_search_tool=StyleSearchTool(style_path)
-    facechain_finetune_tool=FaceChainFineTuneTool()
+    facechain_finetune_tool=FaceChainFineTuneTool(uuid_str)#初始化lora_name,区分不同用户
+    facechain_inference_tool=FaceChainInferenceTool(uuid_str)
     additional_tool_list = {
         style_search_tool.name: style_search_tool,
-        facechain_finetune_tool.name:facechain_finetune_tool
+        facechain_finetune_tool.name: facechain_finetune_tool,
+        facechain_inference_tool.name: facechain_inference_tool
     }
 
     agent = AgentExecutor(
@@ -230,11 +251,27 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
         global agent
         user_input = inputs[0] 
         chatbot = inputs[1]
+        output_component = list(inputs[2:])
+        def reset_component():
+            for i in range(image_num):
+                output_component[i+1] = gr.Image.update(visible=False)
+        
         chatbot.append((user_input, None))
         #chatbotd(user_input)
-        yield chatbot
-        response = ''
+        yield chatbot,*output_component
         
+        def update_component(exec_result):
+            exec_result = exec_result['result']
+            name = exec_result.pop('name')
+            if name == 'facechain_inference_tool':
+                #print("#############-------------")
+                single_path = exec_result['single_path']
+                image_files = glob.glob(os.path.join(single_path, '*.jpg'))
+                image_files += glob.glob(os.path.join(single_path, '*.png'))
+                output_component[0] = gr.Image.update(image_files[0])
+                output_component[1] = gr.Image.update(image_files[1])
+                output_component[2] = gr.Image.update(image_files[2])          
+        response = ''        
         for frame in agent.stream_run(user_input+KEY_TEMPLATE, remote=True):
             is_final = frame.get("frame_is_final")
             llm_result = frame.get("llm_text", "")
@@ -242,31 +279,30 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
             #print(frame)
             llm_result = llm_result.split("<|user|>")[0].strip()
             if len(exec_result) != 0:
-                
+                update_component(exec_result)
+    
                 frame_text = " "
             else:
                 # action_exec_result
                 frame_text = llm_result
             response = f'{response}\n{frame_text}'
-            # chatbot[-1] = (user_input, response)
-            # yield chatbot
-        print("user_input: ",user_input)
-        print("response: ",response)
+            chatbot[-1] = (user_input, response)
+            yield chatbot,*copy.deepcopy(output_component)
+        # print("user_input: ",user_input)
+        # print("response: ",response)
         chatbot[-1] = (user_input, response)
-        yield chatbot
+        yield chatbot,*output_component
     
         
-        # chatbot[-1] = (user_input, response)
-        # yield chatbot
-    
+   
     # ---------- 事件 ---------------------
 
-    stream_predict_input = [user_input, chatbot]
-    stream_predict_output = [chatbot]
+    stream_predict_input = [user_input, chatbot,*output_image]
+    stream_predict_output = [chatbot,*output_image]
 
-    clean_outputs_start = ['', gr.update(value=[(None, PROMPT_START)])]
-    clean_outputs = ['', gr.update(value=[])] 
-    clean_outputs_target = [user_input, chatbot]
+    clean_outputs_start = ['', gr.update(value=[(None, PROMPT_START)])]+[None] * image_num + [''] * image_num
+    clean_outputs = ['', gr.update(value=[])]+[None] * image_num + [''] * image_num
+    clean_outputs_target = [user_input, chatbot,*output_image]
     user_input.submit(
         story_agent,
         inputs=stream_predict_input,
@@ -300,5 +336,6 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
   
     # chatbot.append((None, PROMPT_START))
 demo.title = "Facechian Agent 🎁"
-demo.queue(concurrency_count=10, status_update_rate='auto', api_open=False)
-demo.launch(show_api=False, share=False)
+if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
+    demo.queue(status_update_rate=1).launch(share=True)

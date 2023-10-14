@@ -170,12 +170,12 @@ class ChatBot(ChatBotBase):
             return []
         user_message, bot_message = message_pairs[-1]
 
-        if user_message and not user_message.endswith(
-                ALREADY_CONVERTED_MARK):
-            convert_md = self.convert_markdown(html.escape(user_message))
-            user_message = f"<p style=\"white-space:pre-wrap;\">{convert_md}</p>" + ALREADY_CONVERTED_MARK
-        if bot_message and not bot_message.endswith(
-                ALREADY_CONVERTED_MARK):
-            bot_message = self.convert_bot_message(bot_message)
+        # if user_message and not user_message.endswith(
+        #         ALREADY_CONVERTED_MARK):
+        #     convert_md = self.convert_markdown(html.escape(user_message))
+        #     user_message = f"<p style=\"white-space:pre-wrap;\">{convert_md}</p>" + ALREADY_CONVERTED_MARK
+        # if bot_message and not bot_message.endswith(
+        #         ALREADY_CONVERTED_MARK):
+        #     bot_message = self.convert_bot_message(bot_message)
         message_pairs[-1] = (user_message, bot_message)
         return message_pairs
