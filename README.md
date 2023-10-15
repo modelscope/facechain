@@ -23,6 +23,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+- Support FaceChain in stable-diffusion-webui. (October 13th, 2023 UTC)
 - High performance inpainting for single & double person, Simplify User Interface. (September 09th, 2023 UTC)
 - More Technology Details can be seen in [Paper](https://arxiv.org/abs/2308.14256). (August 30th, 2023 UTC)
 - Add validate & ensemble for Lora training, and InpaintTab(hide in gradio for now).  (August 28th, 2023 UTC)
@@ -177,6 +178,15 @@ python3 app.py
 | --- | --- |
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/modelscope/facechain/blob/main/facechain_demo.ipynb) | FaceChain Installation on Colab
 
+### 5. stable-diffusion-webui
+1. Select the `Extensions Tab`, then choose `Install From URL` (official plugin integration is u).
+   ![image](resources/sdwebui_install.png)
+
+2. Switch to `Installed`, check the FaceChain plugin, then click `Apply and restart UI`.
+   ![image](resources/sdwebui_restart.png)
+
+3. After the page refreshes, the appearance of the `FaceChain` Tab indicates a successful installation.
+   ![image](resources/sdwebui_success.png)
 
 
 # Script Execution
