@@ -432,8 +432,10 @@ def get_previous_image_result(uuid):
     image_results_old = glob(os.path.join(save_dir_old, '**/single/*.png'), recursive=True)
     save_dir = os.path.join('.', uuid, 'inference_result')
     image_results = glob(os.path.join(save_dir, '**/single/*.png'), recursive=True)
-    # print(f"==>> image_results: {image_results}")
-    return image_results_old+image_results
+    save_dir_new = join_worker_data_dir(uuid, 'inference_result')
+    image_results_new = glob(os.path.join(save_dir_new, '**/single/*.png'), recursive=True)
+    
+    return image_results_old + image_results + image_results_new
     
 
 def launch_pipeline_talkinghead(uuid, source_image, driven_audio, preprocess='crop', 
@@ -1057,7 +1059,7 @@ def inference_talkinghead():
                 image_results = gr.Gallery(value=image_result_list, label='之前合成的图片(previous generated images)', allow_preview=False, columns=6, height=250)
                 update_button = gr.Button('刷新之前合成的图片(Refresh previous generated images)')
                 driven_audio = gr.Audio(label="驱动音频(driven audio)", source="upload", type="filepath")
-                input_text = gr.Textbox(label="用文本生成音频(Generating audio from text)", lines=1, value="大家好，欢迎大家使用阿里达摩院开源的facechain项目！")
+                input_text = gr.Textbox(label="用文本生成音频(Generating audio from text)", lines=1, value="大家好，欢迎使用阿里达摩院开源的face chain项目！")
                 speaker = gr.Dropdown(choices=list(tts_speakers_map.keys()), value="普通话(中国大陆)-Xiaoxiao-女", label="请根据输入文本选择对应的语言和说话人(Select speaker according the language of input text)")
                 tts = gr.Button('生成音频(Generate audio)')
                 tts.click(fn=text_to_speech_edge, inputs=[input_text, speaker], outputs=[driven_audio])

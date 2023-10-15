@@ -5,6 +5,7 @@ from typing import Any
 import tempfile
 from modelscope.pipelines import pipeline
 from facechain.constants import tts_speakers_map
+from facechain.utils import join_worker_data_dir
 try:
     import edge_tts
 except ImportError:
@@ -19,7 +20,8 @@ class SadTalker():
                 uuid = 'qw'
 
         # self.save_dir = os.path.join('/tmp', uuid, 'sythesized_video') # deprecated
-        self.save_dir = os.path.join('.', uuid, 'sythesized_video')
+        # self.save_dir = os.path.join('.', uuid, 'sythesized_video') # deprecated
+        self.save_dir = join_worker_data_dir(uuid, 'sythesized_video')
 
     def __call__(self, *args, **kwargs) -> Any:
         # two required arguments
