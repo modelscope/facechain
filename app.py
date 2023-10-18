@@ -87,6 +87,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--revision={revision}',
             f'--sub_path={sub_path}',
             f'--output_dataset_name={output_img_dir}',
+            '--sdxl',
             '--caption_column=text',
             '--resolution=512',
             '--random_flip',
@@ -102,6 +103,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_alpha={lora_alpha}',
             '--lora_text_encoder_r=32',
             '--lora_text_encoder_alpha=32',
+            '--use_swift',
             '--resume_from_checkpoint=fromfacecommon'
         ]
 
@@ -117,6 +119,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--revision={revision} '
             f'--sub_path={sub_path} '
             f'--output_dataset_name={output_img_dir} '
+            f'--sdxl '
             f'--caption_column="text" '
             f'--resolution=512 '
             f'--random_flip '
@@ -132,6 +135,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_alpha={lora_alpha} '
             f'--lora_text_encoder_r=32 '
             f'--lora_text_encoder_alpha=32 '
+            '--use_swift ',
             f'--resume_from_checkpoint="fromfacecommon"')
         if res != 0:
             raise gr.Error("训练失败 (Training failed)")
