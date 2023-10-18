@@ -1130,7 +1130,7 @@ def main():
                 json.dump(lora_config, f)
         elif args.use_swift:
             unwarpped_unet = accelerator.unwrap_model(unet)
-            unwarpped_unet.save_pretrained(os.path.join(args.output_dir, 'unet'))
+            unwarpped_unet.save_pretrained(os.path.join(args.output_dir, 'swift'))
             if args.train_text_encoder:
                 unwarpped_text_encoder = accelerator.unwrap_model(text_encoder)
                 unwarpped_text_encoder.save_pretrained(os.path.join(args.output_dir, 'text_encoder'))
@@ -1196,7 +1196,7 @@ def main():
             )
         from swift import Swift
         pipeline = pipeline.to(accelerator.device)
-        pipeline.unet = Swift.from_pretrained(pipeline.unet, os.path.join(args.output_dir, 'unet'))
+        pipeline.unet = Swift.from_pretrained(pipeline.unet, os.path.join(args.output_dir, 'swift'))
 
         if args.train_text_encoder:
             pipeline.text_encoder = Swift.from_pretrained(pipeline.text_encoder, os.path.join(args.output_dir, 'text_encoder'))
