@@ -9,11 +9,11 @@
 
 # 介绍
 
-FaceChain是一个可以用来打造个人数字形象的深度学习模型工具。用户仅需要提供最低一张照片即可获得独属于自己的个人形象数字替身。FaceChain支持在gradio的界面中使用模型训练和推理能力，也支持资深开发者使用python脚本进行训练推理；同时，我们也欢迎开发者对本Repo进行继续开发和贡献。
+FaceChain是一个可以用来打造个人数字形象的深度学习模型工具。用户仅需要提供最低一张照片即可获得独属于自己的个人形象数字替身。FaceChain支持在gradio的界面中使用模型训练和推理能力、支持资深开发者使用python脚本进行训练推理，也支持在sd webui中安装插件使用；同时，我们也欢迎开发者对本Repo进行继续开发和贡献。
 FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开源模型社区提供支持。
 
 <p align="center">
-        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
+        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜ sd webui ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
 </p>
 <br>
 
@@ -22,6 +22,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # News
+- stable-diffusion-webui支持. (2023-10-13)
 - 高性能的(单人&双人)模版重绘功能，简化用户界面. (2023-09-09)
 - 更多技术细节可以在 [论文](https://arxiv.org/abs/2308.14256) 里查看. (2023-08-30)
 - 为Lora训练添加验证和根据face_id的融合，并添加InpaintTab（目前在Gradio界面上暂时默认隐藏）. (2023-08-28)
@@ -178,6 +179,18 @@ python3 app.py
 | Colab | Info
 | --- | --- |
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/modelscope/facechain/blob/main/facechain_demo.ipynb) | FaceChain Installation on Colab
+
+
+### 5. stable-diffusion-webui中运行
+1. 选择`Extensions Tab`， 选择`Install From URL`(官方插件集成中，先从URL安装)
+![image](resources/sdwebui_install.png)
+
+2. 切换到`Installed`，勾选FaceChain插件，点击`Apply and restart UI`
+![image](resources/sdwebui_restart.png)
+
+3. 页面刷新后，出现`FaceChain` Tab说明安装成功
+![image](resources/sdwebui_success.png)
+
 
 
 
