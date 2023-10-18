@@ -18,7 +18,7 @@ def merge_lora(pipeline, lora_path, multiplier, from_safetensor=False, device='c
                         'Please install swift by `pip install ms-swift` to use efficient_tuners.'
                     )
         from swift import Swift
-        Swift.from_pretrained(pipeline.unet, os.path.join(lora_path, 'swift'))
+        pipeline.unet = Swift.from_pretrained(pipeline.unet, os.path.join(lora_path, 'swift'))
         return pipeline
     else:
         if os.path.exists(os.path.join(lora_path, 'pytorch_lora_weights.bin')):
