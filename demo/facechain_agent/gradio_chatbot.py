@@ -106,18 +106,18 @@ class ChatBot(ChatBotBase):
                         think_node.get('plugin',
                                        think_node.get('api_name', 'unknown')))
                     summary = f'选择插件【{plugin_name}】，调用处理中...'
-                    
-                    think_node.pop('url', None)
+                    del think_node['url']
+                    #think_node.pop('url', None)
 
                     detail = f'```json\n\n{json.dumps(think_node,indent=3,ensure_ascii=False)}\n\n```'
                 except Exception:
-                    summary = '思考中...'
+                    summary = f'思考中...'
                     detail = think_content
                     # traceback.print_exc()
                     # detail += traceback.format_exc()
-                # result += '<details> <summary>' + summary + '</summary>' + self.convert_markdown(
-                #     detail) + '</details>'
-                print(f'detail:{detail}')
+                result += '<details> <summary>' + summary + '</summary>' + self.convert_markdown(
+                    detail) + '</details>'
+                #print(f'detail:{detail}')
                 start_pos = end_of_think_pos + len(END_OF_THINK_TAG)
             except Exception:
                 # result += traceback.format_exc()
@@ -139,7 +139,7 @@ class ChatBot(ChatBotBase):
                                            + len(START_OF_EXEC_TAG
                                                  ):end_of_exec_pos].strip()
                 try:
-                    summary = '完成插件调用.'
+                    summary = f'完成插件调用.'
                     detail = f'```json\n\n{exec_content}\n\n```'
                 except Exception:
                     pass
@@ -156,7 +156,7 @@ class ChatBot(ChatBotBase):
         result += ALREADY_CONVERTED_MARK
         return result
 
-    def postprocess(
+    def postprocess_old(
         self, message_pairs: List[Tuple[str | None, str | None]]
     ) -> List[Tuple[str | None, str | None]]:
         """
@@ -170,12 +170,39 @@ class ChatBot(ChatBotBase):
             return []
         user_message, bot_message = message_pairs[-1]
 
-        # if user_message and not user_message.endswith(
-        #         ALREADY_CONVERTED_MARK):
-        #     convert_md = self.convert_markdown(html.escape(user_message))
-        #     user_message = f"<p style=\"white-space:pre-wrap;\">{convert_md}</p>" + ALREADY_CONVERTED_MARK
-        # if bot_message and not bot_message.endswith(
-        #         ALREADY_CONVERTED_MARK):
-        #     bot_message = self.convert_bot_message(bot_message)
+        if user_message and not user_message.endswith(
+                ALREADY_CONVERTED_MARK):
+            convert_md = self.convert_markdown(html.escape(user_message))
+            user_message = f"<p style=\"white-space:pre-wrap;\">{convert_md}</p>" + ALREADY_CONVERTED_MARK
+        if bot_message and not bot_message.endswith(
+                ALREADY_CONVERTED_MARK):
+            bot_message = self.convert_bot_message(bot_message)
         message_pairs[-1] = (user_message, bot_message)
         return message_pairs
+    def postprocess(
+        self,
+        y: list[list[str | tuple[str] | tuple[str, str] | None] | tuple],
+    ) -> list[list[str | dict | None]]:
+        """
+        Parameters:
+            y: List of lists representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string or pathlib.Path filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
+        Returns:
+            List of lists representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information. Or None if the message is not to be displayed.
+        """
+        if y is None:
+            return []
+        processed_messages = []
+        for message_pair in y:
+            assert isinstance(
+                message_pair, (tuple, list)
+            ), f"Expected a list of lists or list of tuples. Received: {message_pair}"
+            assert (
+                len(message_pair) == 2
+            ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
+            processed_messages.append(
+                [
+                    self._postprocess_chat_messages(message_pair[0]),
+                    self._postprocess_chat_messages(message_pair[1]),
+                ]
+            )
+        return processed_messages

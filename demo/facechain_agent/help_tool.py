@@ -20,65 +20,12 @@ import time
 import torch
 import cv2
 import numpy as np
-#from facechain.facechain.train_text_to_image_lora import
+
 from facechain.inference import data_process_fn
 from facechain.utils import snapshot_download
 from concurrent.futures import ProcessPoolExecutor
 from facechain.inference import GenPortrait
-#from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
-from torch import multiprocessing
-from PIL import Image
-# class StyleSearchTool(Tool):
-#     description = '搜索风格类型'
-#     name = 'style_search'
-#     parameters: list = [{
-#         'name': 'text',
-#         'description': '用户输入的想要的风格文本',
-#         'required': True
-#     }]
-
-#     def __init__(self, stylepath: List[str], model_id: List[str]):
-#         self.embeddings = ModelScopeEmbeddings(model_id=model_id)  # 加载预训练的文本嵌入模型
-#         self.db = self.build_database(stylepath)  # 使用FAISS构建文档嵌入向量数据库
-#         #self.folder_path=folder_path
-#         super().__init__()
-
-#     def build_database(self,stylepath):
-#         list_of_documents = []
-#         # 获取指定文件夹下的所有 JSON 文件
-#         json_files = list(Path(stylepath).glob("*.json"))
-#         # 遍历每个 JSON 文件并读取内容
-#         for json_file in json_files:
-#             with open(json_file, "r", encoding="utf-8") as file:
-#                 json_data = json.load(file)             
-#                 # 获取 JSON 中的name字段
-#                 content = json_data.get("name", "")              
-#                 # 创建 Document 对象并添加到列表中
-#                 document = Document(page_content=content)
-#                 list_of_documents.append(document)
-#         # 使用FAISS.from_documents构建文档嵌入向量数据库
-#         db = FAISS.from_documents(list_of_documents, self.embeddings)
-#         # db.save_local("faiss_index")
-#         #db = FAISS.load_local("faiss_index", self.embeddings)
-#         #new_db = FAISS.load_local("faiss_index", embeddings)
-#         return db
-    
-#     def _local_call(self, text):
-#         docs = self.db.similarity_search(text,k=1)
-#         result = {
-#             'name': self.name,
-#             'best_match_name': docs[0].page_content
-#         }
-#         return {'result': result}
-    
-#     def _remote_call(self, text):
-#         docs = self.db.similarity_search(text,k=1)
-#         result = {
-#             'name': self.name,
-#             'best_match_name': docs[0].page_content
-#         }
-#         return {'result': result}
-    
+  
 class StyleSearchTool(Tool):
     description = ''
     name = 'style_search_tool'
@@ -171,7 +118,6 @@ class FaceChainFineTuneTool(Tool):
 
     def _remote_call(self):
         uuid = 'qw'
-        #multiprocessing.set_start_method('spawn')
         # train lora
         _train_lora(uuid, self.lora_name, self.base_model_path, self.revision, self.sub_path)
 
@@ -260,14 +206,7 @@ def _train_lora(uuid, output_model_name, base_model_path, revision, sub_path):
     if not os.path.exists(f"./{uuid}"):
         os.makedirs(f"./{uuid}")
     work_dir = f"./{uuid}/{base_model_path}/{output_model_name}"
-
-    # if os.path.exists(work_dir):
-    #     raise gr.Error("人物lora名称已存在。(This character lora name already exists.)")
-
     shutil.rmtree(work_dir, ignore_errors=True)
-    
-    #shutil.rmtree(instance_data_dir, ignore_errors=True)
-    #prepare_dataset([img['name'] for img in instance_images], output_dataset_dir=instance_data_dir)
     data_process_fn(instance_data_dir, True)
 
     train_lora_fn(
@@ -281,12 +220,6 @@ def _train_lora(uuid, output_model_name, base_model_path, revision, sub_path):
 
     return base_model_path, revision, sub_path, instance_data_dir, work_dir
 
-
-# 生成uuid
-def generate_id():
-    timestamp = str(int(time.time()))
-    random_num = ''.join([str(random.randint(0, 9)) for _ in range(8)])
-    return timestamp + random_num
 #--------------------------------------
 training_done_count = 0
 inference_done_count = 0
@@ -344,25 +277,15 @@ def launch_pipeline(uuid,
                     folder_list.append(file)
     if len(folder_list) == 0:
         raise '没有人物LoRA，请先训练(There is no character LoRA, please train first)!'
-
     # Check output model
     if user_model is None:
         raise '请选择人物LoRA(Please select the character LoRA)！'
-    # Check lora choice
-    # if lora_choice == None:
-    #     raise '请选择LoRA模型(Please select the LoRA model)!'
-    # Check style model
-    
-
     base_model = base_models[base_model_index]['model_id']
     revision = base_models[base_model_index]['revision']
     sub_path = base_models[base_model_index]['sub_path']
-
     before_queue_size = 0
     before_done_count = inference_done_count
-
     style_model = matched['name']
-
     if matched['model_id'] is None:
         style_model_path = None
     else:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os
-os.system('pip install modelscope_agent-0.1.0-py3-none-any.whl')
+#os.system('pip install modelscope_agent-0.1.0-py3-none-any.whl')
 import sys
 sys.path.append("../../")
 from functools import partial
@@ -20,9 +20,10 @@ from gradio_chatbot import ChatBot
 #from mock_llm import MockLLM
 from help_tool import StyleSearchTool,FaceChainFineTuneTool,FaceChainInferenceTool
 import copy
-from facechain.train_text_to_image_lora import prepare_dataset,data_process_fn,get_rot
+from facechain.train_text_to_image_lora import prepare_dataset
 from modelscope.utils.config import Config
 import uuid
+
 
 # 生成随机的 UUID（和uuid=‘qw'不一样）
 random_uuid = uuid.uuid4()
@@ -34,6 +35,44 @@ PROMPT_START = "你好！我是你的FacechainAgent，很高兴为你提供服�
 
 SYSTEM_PROMPT = """<|system|>: 你现在扮演一个Facechain Agent，不断和用户沟通创作想法，询问用户写真照风格，最后生成搜索到的风格类型返回给用户。当前对话可以使用的插件信息如下，请自行判断是否需要调用插件来解决当前用户问题。若需要调用插件，则需要将插件调用请求按照json格式给出，必须包含api_name、parameters字段，并在其前后使用<|startofthink|>和<|endofthink|>作为标志。然后你需要根据插件API调用结果生成合理的答复。
 \n<tool_list>\n"""
+
+# INSTRUCTION_TEMPLATE = """【多轮对话历史】
+
+# <|user|>: 给我生成一个写真照。
+
+# <|assistant|>: 好的，请问您想要什么风格的写真照？
+
+# <|user|>: 我想要赛博朋克风。
+
+# <|assistant|>: 好的，我将为您找到这个风格类型。
+
+# 正在搜索风格类型：<|startofthink|>```JSON\n{\n   "api_name": "style_search_tool",\n    "parameters": {\n      "text": "我想要赛博朋克风。"\n   }\n}\n```<|endofthink|>
+
+# 现在我需要你提供1-3张照片，请点击图片上传按钮上传你的照片。上传完毕后在对话框里告诉我你已经上传好照片了。
+
+# <|user|>: 我的照片上传好了。
+
+# <|assistant|>: 收到，我需要几分钟时间训练你上传的照片，然后再生成您的赛博朋克风格写真照。
+
+# 正在训练人物lora中：<|startofthink|>```JSON\n{\n   "api_name": "facechain_finetune_tool",\n    "parameters": {}\n}\n```<|endofthink|>
+
+# 人物lora训练完成。正在生成你选择的赛博朋克风格写真照中：<|startofthink|>```JSON\n{\n   "api_name": "facechain_inference_tool",\n    "parameters": {\n   "matched_style_file_path": "../../styles/leosamsMoonfilm_filmGrain20/Cybernetics_punk.json"\n  }\n}\n```<|endofthink|>
+
+# 写真照已经生成完毕，如果喜欢赶紧下载打印吧！你可以继续生成这类风格的照片或者跟我说换一个风格
+
+# <|user|>: 再换一个古风风格吧
+
+# <|assistant|>: 好的，我将首先搜索相关风格，然后再为您生成古风风格的写真
+
+# 正在搜索风格类型：<|startofthink|>```JSON\n{\n   "api_name": "style_search_tool",\n    "parameters": {\n      "text": "再换一个古风风格吧"\n   }\n}\n```<|endofthink|>
+
+# 正在生成古风风格写真照中：<|startofthink|>```JSON\n{\n   "api_name": "facechain_inference_tool",\n    "parameters": {\n   "matched_style_file_path": "../../styles/leosamsMoonfilm_filmGrain20/Old_style.json"\n  }\n}\n```<|endofthink|>
+
+# 古风写真已经生成完毕，赶紧下载打印吧！你还可以继续生成这类风格的照片或者跟我说换一个风格
+# 【角色扮演要求】
+# 上面多轮角色对话是提供的创作一个写真照风格要和用户沟通的样例，请按照上述的询问步骤来引导用户完成风格的生成，每次只回复对应的内容，不要生成多轮对话。记住只回复用户当前的提问，不要生成多轮对话，回复不要包含<|user|>后面的内容。
+
+# """
 
 INSTRUCTION_TEMPLATE = """【多轮对话历史】
 
@@ -47,15 +86,16 @@ INSTRUCTION_TEMPLATE = """【多轮对话历史】
 
 正在搜索风格类型：<|startofthink|>```JSON\n{\n   "api_name": "style_search_tool",\n    "parameters": {\n      "text": "我想要赛博朋克风。"\n   }\n}\n```<|endofthink|>
 
-我为你找到的风格类型名字是赛博朋克(Cybernetics punk)。该文件的位置在/home/wsco/wyj2/facechain-agent/styles/leosamsMoonfilm_filmGrain20/Cybernetics_punk.json。
+<|startofexec|>```JSON\n{"result": {"name": "style_search_tool", "value": "赛博朋克(Cybernetics punk)", file_path: "../../styles/leosamsMoonfilm_filmGrain20/Cybernetics_punk.json"}}\n```<|endofexec|>
 
-现在我需要你提供1-3张照片，请点击图片上传按钮上传你的照片。上传完毕后在对话框里告诉我你已经上传好照片了。
+我为你找到的风格类型名字是赛博朋克(Cybernetics punk)。现在我需要你提供1-3张照片，请点击图片上传按钮上传你的照片。上传完毕后在对话框里告诉我你已经上传好照片了。
 
 <|user|>: 我的照片上传好了。
 
 <|assistant|>: 收到，我需要几分钟时间训练你上传的照片。
 
 正在训练人物lora中：<|startofthink|>```JSON\n{\n   "api_name": "facechain_finetune_tool",\n    "parameters": {}\n}\n```<|endofthink|>
+
 人物lora训练完成。你要使用你之前选择的赛博朋克(Cybernetics punk)风格生成写真照吗，还是你要更换风格？
 
 <|user|>: 不换，就用这个风格。
@@ -63,6 +103,21 @@ INSTRUCTION_TEMPLATE = """【多轮对话历史】
 <|assistant|>: 好的，我将为你生成赛博朋克(Cybernetics punk)风格的写真照。这将需要几分钟时间，请耐心等待。
 
 正在生成写真照中：<|startofthink|>```JSON\n{\n   "api_name": "facechain_inference_tool",\n    "parameters": {\n   "matched_style_file_path": "/home/wsco/wyj2/facechain-agent/styles/leosamsMoonfilm_filmGrain20/Cybernetics_punk.json"\n  }\n}\n```<|endofthink|>
+
+写真照已经生成完毕，如果喜欢赶紧下载打印吧！
+
+<|user|>: 我现在想换个风格，我想要工作风。
+
+<|assistant|>:好的，我将更新你想要的风格类型。
+
+正在搜索风格类型：<|startofthink|>```JSON\n{\n   "api_name": "style_search_tool",\n    "parameters": {\n      "text": "我现在想换个风格，我想要工作风。"\n   }\n}\n```<|endofthink|>
+
+我为你找到的风格类型名字是工作服(Working suit)。
+
+我现在将用前面你上传的照片和新选择的风格生成写真照。
+
+正在生成写真照中：<|startofthink|>```JSON\n{\n   "api_name": "facechain_inference_tool",\n    "parameters": {\n   "matched_style_file_path": "/home/wsco/wyj2/facechain-agent/styles/leosamsMoonfilm_filmGrain20/Working_suit.json"\n  }\n}\n```<|endofthink|>
+
 写真照已经生成完毕，如果喜欢赶紧下载打印吧！
 【角色扮演要求】
 上面多轮角色对话是提供的创作一个写真照风格要和用户沟通的样例，请按照上述的询问步骤来引导用户完成风格的生成，每次只回复对应的内容，不要生成多轮对话。记住只回复用户当前的提问，不要生成多轮对话，回复不要包含<|user|>后面的内容。
@@ -77,9 +132,7 @@ load_dotenv('../config/.env', override=True)
 os.environ['TOOL_CONFIG_FILE'] = '../config/cfg_tool_template.json'
 os.environ['MODEL_CONFIG_FILE'] = '../config/cfg_model_template.json'
 os.environ['OUTPUT_FILE_DIRECTORY'] = './tmp'
-os.environ['MODELSCOPE_API_TOKEN'] = 'xxxxxxxx'
-os.environ['DASHSCOPE_API_KEY'] = 'xxxxxxx'
-os.environ['OPENAI_API_KEY'] = 'xxxxxxx'
+PUNCTUATION = "！？。＂＃＄％＆＇（）＊＋，－／：；＜＝＞＠［＼］＾＿｀｛｜｝～｟｠｢｣､、〃》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟〰〾〿–—‘’‛“”„‟…‧﹏."
 style_path="../../styles/leosamsMoonfilm_filmGrain20"
 styles=[]
 for filename in os.listdir(style_path):
@@ -102,16 +155,37 @@ def upload_file(files,current_files,output_model_name):
     sub_path = "film/film"
     output_model_name = uuid_str
     output_model_name = slugify.slugify(output_model_name)
-  
     instance_data_dir = os.path.join('./', uuid, 'training_data', base_model_path, output_model_name)
     shutil.rmtree(instance_data_dir, ignore_errors=True)   
     prepare_dataset(file_paths, instance_data_dir)
     # data_process_fn(instance_data_dir,True)
-
-    print(file_paths)
-        
+    print(file_paths)   
     return file_paths
 
+def add_file(history,files,task_history,output_model_name):
+        history = history+[((file.name,), None) for file in files]
+        task_history = task_history + [((file.name,), None) for file in files]
+        file_paths = []
+        filtered_list = []
+        print(history)
+        file_paths =[item[0][0] for item in history]
+        print("#####",file_paths)
+        filtered_list = [item for item in file_paths if '.jpg' in item or '.png' in item]
+        print("#####",filtered_list)
+        uuid = 'qw'
+        shutil.rmtree(f"./{uuid}", ignore_errors=True)
+        base_model_path = 'ly261666/cv_portrait_model'
+        revision = 'v2.0'
+        sub_path = "film/film"
+        output_model_name = uuid_str
+        output_model_name = slugify.slugify(output_model_name)
+    
+        instance_data_dir = os.path.join('./', uuid, 'training_data', base_model_path, output_model_name)
+        shutil.rmtree(instance_data_dir, ignore_errors=True)   
+        prepare_dataset(filtered_list, instance_data_dir)
+        return history,task_history
+def reset_user_input():
+        return gr.update(value="")
 
 with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
    
@@ -148,7 +222,9 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
                 elem_id="chatbot",
                 elem_classes=["markdown-body"],
                 show_label=True,
-                height=600)
+                height=600,
+                layout='bubble')
+            task_history = gr.State([])
             with gr.Row(elem_id="chat-bottom-container"):
                 with gr.Column(min_width=70, scale=1):
                     clear_session_button = gr.Button(
@@ -161,20 +237,17 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
                 with gr.Column(min_width=70, scale=1):
                     submitBtn = gr.Button("发送", variant="primary")
                 with gr.Column(min_width=110, scale=1):
+                    upload_button = gr.UploadButton("上传图片", file_types=["image"],file_count="multiple")
+                with gr.Column(min_width=110, scale=1):
                     regenerate_button = gr.Button(
                         "重新生成", elem_id='regenerate_button')
-                gr.Examples(
-                examples=['我想要写真照','我想要凤冠霞帔风','我的照片上传好了','不换，就用这个风格'],
-                inputs=[user_input],
-                label="示例",
-                elem_id="chat-examples")
                     
-            with gr.Column():
-                instance_images = gr.Gallery(label='用户上传的照片')
-                with gr.Row(min_width=70, scale=1):
-                    upload_button = gr.UploadButton("上传图片", file_types=["image"],file_count="multiple")
-                with gr.Row(min_width=70, scale=1):
-                    clear_button = gr.Button("清空图片")
+            gr.Examples(
+            examples=['我想要写真照','我想要凤冠霞帔风','我的照片上传好了','不换，就用这个风格','我现在想换个风格，我想要工作风'],
+            inputs=[user_input],
+            label="示例",
+            elem_id="chat-examples")
+                    
     with gr.Row():
                 output_image = [None] * image_num
                 for i in range(0,image_num):
@@ -184,10 +257,10 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
                                 interactive=False,
                                 visible=True,
                                 show_progress=False)
-    clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
-    upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images,
-                                queue=False)
-            
+    #clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
+    #upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images,
+     #                          queue=False)
+          
             #trainer = Trainer()
             # upload_button.click(fn=trainer.run,
             #                     inputs=[instance_images
@@ -204,6 +277,7 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
     model_cfg = Config.from_file(model_cfg_file)
 
     model_name = 'openai'
+    #model_name = 'modelscope-agent-7b'
     llm = LLMFactory.build_llm(model_name, model_cfg)
     #llm = MockLLM()
 
@@ -211,20 +285,9 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
         system_template=SYSTEM_PROMPT,
         instruction_template=INSTRUCTION_TEMPLATE)
 
-    # model_cfg = {
-    #     'modelscope-agent-qwen-7b': {
-    #         'model_id': 'damo/MSAgent-Qwen-7B',
-    #         'model_revision': 'v1.0.2',
-    #         'use_raw_generation_config': True,
-    #         'custom_chat': True
-    #     }
-    # }
 
 
     # tools 
-    
-    #model_id = 'damo/nlp_corom_sentence-embedding_chinese-base'
-    #filepath="/home/wsco/wyj2/modelscope-agent-1/demo/story_agent/style.txt"
 
     style_search_tool=StyleSearchTool(style_path)
     facechain_finetune_tool=FaceChainFineTuneTool(uuid_str)#初始化lora_name,区分不同用户
@@ -251,16 +314,18 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
         global agent
         user_input = inputs[0] 
         chatbot = inputs[1]
-        output_component = list(inputs[2:])
+        task_history = inputs[2]
+        output_component = list(inputs[3:])
         def reset_component():
             for i in range(image_num):
                 output_component[i+1] = gr.Image.update(visible=False)
         
         chatbot.append((user_input, None))
+        task_history.append((user_input, None))
         #chatbotd(user_input)
-        yield chatbot,*output_component
+        yield chatbot,*output_component,task_history
         
-        def update_component(exec_result):
+        def update_component(exec_result,history,task_history):
             exec_result = exec_result['result']
             name = exec_result.pop('name')
             if name == 'facechain_inference_tool':
@@ -270,55 +335,77 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
                 image_files += glob.glob(os.path.join(single_path, '*.png'))
                 output_component[0] = gr.Image.update(image_files[0])
                 output_component[1] = gr.Image.update(image_files[1])
-                output_component[2] = gr.Image.update(image_files[2])          
+                output_component[2] = gr.Image.update(image_files[2])
+                history = [(None,(file,)) for file in image_files] 
+                task_history  = task_history + [(None,(file,)) for file in image_files] 
+            else:
+                history = [] 
+                task_history  = task_history
+            return history,task_history       
         response = ''        
         for frame in agent.stream_run(user_input+KEY_TEMPLATE, remote=True):
             is_final = frame.get("frame_is_final")
             llm_result = frame.get("llm_text", "")
             exec_result = frame.get('exec_result', '') 
             #print(frame)
+            history = []
             llm_result = llm_result.split("<|user|>")[0].strip()
             if len(exec_result) != 0:
-                update_component(exec_result)
-    
+                [history,task_history]=update_component(exec_result,chatbot,task_history)
                 frame_text = " "
+                # response = f'{response}\n{frame_text}'
+                # chatbot[-1] = (user_input, response)
+                # task_history[-1] = (user_input, response)
             else:
                 # action_exec_result
                 frame_text = llm_result
-            response = f'{response}\n{frame_text}'
-            chatbot[-1] = (user_input, response)
-            yield chatbot,*copy.deepcopy(output_component)
+                response = f'{response}\n{frame_text}'
+                chatbot[-1] = (user_input, response)
+                task_history[-1] = (user_input, response)
+            if history != []:
+                 history_image = history
+            task_history = task_history[-10:]
+            yield chatbot,*copy.deepcopy(output_component),task_history
+        try:
+            if history_image != []:
+                print()
+                for item in history_image:
+                    chatbot.append(item)
+                    yield chatbot,*copy.deepcopy(output_component),task_history           
+        except:
+            pass
+
         # print("user_input: ",user_input)
         # print("response: ",response)
-        chatbot[-1] = (user_input, response)
-        yield chatbot,*output_component
+        # chatbot[-1] = (user_input, response)
+        # task_history[-1] = (user_input, response)
+        # task_history = task_history[-10:]
+        # yield chatbot,*output_component,task_history
     
         
    
     # ---------- 事件 ---------------------
 
-    stream_predict_input = [user_input, chatbot,*output_image]
-    stream_predict_output = [chatbot,*output_image]
+    stream_predict_input = [user_input, chatbot,task_history,*output_image]
+    stream_predict_output = [chatbot,*output_image,task_history]
 
     clean_outputs_start = ['', gr.update(value=[(None, PROMPT_START)])]+[None] * image_num + [''] * image_num
     clean_outputs = ['', gr.update(value=[])]+[None] * image_num + [''] * image_num
     clean_outputs_target = [user_input, chatbot,*output_image]
-    user_input.submit(
-        story_agent,
-        inputs=stream_predict_input,
-        outputs=stream_predict_output,
-        show_progress=True)
-    user_input.submit(
-        fn=lambda: clean_outputs, inputs=[], outputs=clean_outputs_target)
-
+    # user_input.submit(
+    #     story_agent,
+    #     inputs=stream_predict_input,
+    #     outputs=stream_predict_output,
+    #     show_progress=True)
+    # user_input.submit(
+    #     fn=lambda: clean_outputs, inputs=[], outputs=clean_outputs_target)
     submitBtn.click(
         story_agent,
         stream_predict_input,
         stream_predict_output,
-        show_progress=True)
-    submitBtn.click(
-        fn=lambda: clean_outputs, inputs=[], outputs=clean_outputs_target)
-
+        show_progress=True
+    )
+    submitBtn.click(reset_user_input, [], [user_input])
     regenerate_button.click(
         fn=lambda: clean_outputs, inputs=[], outputs=clean_outputs_target)
     regenerate_button.click(
@@ -333,9 +420,9 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
     clear_session_button.click(fn=clear_session, inputs=[], outputs=[])
     clear_session_button.click(
         fn=lambda: clean_outputs_start, inputs=[], outputs=clean_outputs_target)
-  
+    upload_button.upload(add_file, inputs=[chatbot,upload_button,task_history], outputs=[chatbot,task_history],show_progress=True) 
     # chatbot.append((None, PROMPT_START))
 demo.title = "Facechian Agent 🎁"
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')
-    demo.queue(status_update_rate=1).launch(share=True)
+    demo.queue(status_update_rate=1).launch()
