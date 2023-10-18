@@ -59,6 +59,7 @@ parent_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if parent_path not in sys.path:
     sys.path.append(parent_path)
 from facechain.utils import snapshot_download
+from modelscope.utils.import_utils import is_swift_available
 
 from packaging import version
 from PIL import Image
@@ -336,6 +337,7 @@ def parse_args():
 
     # lora args
     parser.add_argument("--use_peft", action="store_true", help="Whether to use peft to support lora")
+    parser.add_argument("--use_swift", action="store_true", help="Whether to use swift to support lora")
     parser.add_argument("--lora_r", type=int, default=4, help="Lora rank, only used if use_lora is True")
     parser.add_argument("--lora_alpha", type=int, default=32, help="Lora alpha, only used if lora is True")
     parser.add_argument("--lora_dropout", type=float, default=0.0, help="Lora dropout, only used if use_lora is True")
@@ -644,6 +646,39 @@ def main():
                 bias=args.lora_text_encoder_bias,
             )
             text_encoder = LoraModel(config, text_encoder)
+    elif args.use_swift:                
+        if not is_swift_available():
+            raise ValueError(
+                'Please install swift by `pip install ms-swift` to use efficient_tuners.'
+            )
+        from swift import LoRAConfig, Swift
+
+        UNET_TARGET_MODULES = ['to_q', 'to_k', 'to_v', 'query', 'key', 'value', 'to_out.0']
+        TEXT_ENCODER_TARGET_MODULES = ["q_proj", "v_proj"]
+
+        # freeze parameters of models to save more memory
+        unet.requires_grad_(False)
+        vae.requires_grad_(False)
+        text_encoder.requires_grad_(False)
+
+        lora_config = LoRAConfig(
+            r=args.lora_r,
+            lora_alpha=args.lora_alpha,
+            lora_dropout=args.lora_dropout,
+            bias=args.lora_bias,
+            target_modules=UNET_TARGET_MODULES)
+        unet = Swift.prepare_model(unet, lora_config)
+
+        if args.train_text_encoder:
+            lora_config = LoRAConfig(
+                r=args.lora_text_encoder_r,
+                lora_alpha=args.lora_text_encoder_alpha,
+                target_modules=TEXT_ENCODER_TARGET_MODULES,
+                lora_dropout=args.lora_text_encoder_dropout,
+                bias=args.lora_text_encoder_bias,
+            )
+            text_encoder = LoraModel(config, text_encoder)
+            text_encoder = Swift.prepare_model(text_encoder, lora_config)
     else:
         # freeze parameters of models to save more memory
         unet.requires_grad_(False)
@@ -722,7 +757,7 @@ def main():
     else:
         optimizer_cls = torch.optim.AdamW
 
-    if args.use_peft:
+    if args.use_peft or args.use_swift:
         # Optimizer creation
         params_to_optimize = (
             itertools.chain(unet.parameters(), text_encoder.parameters())
@@ -868,7 +903,7 @@ def main():
     )
 
     # Prepare everything with our `accelerator`.
-    if args.use_peft:
+    if args.use_peft or args.use_swift:
         if args.train_text_encoder:
             unet, text_encoder, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
                 unet, text_encoder, optimizer, train_dataloader, lr_scheduler
@@ -997,7 +1032,7 @@ def main():
                 # Backpropagate
                 accelerator.backward(loss)
                 if accelerator.sync_gradients:
-                    if args.use_peft:
+                    if args.use_peft or args.use_swift:
                         params_to_clip = (
                             itertools.chain(unet.parameters(), text_encoder.parameters())
                             if args.train_text_encoder
@@ -1093,6 +1128,12 @@ def main():
             accelerator.save(state_dict, os.path.join(args.output_dir, f"{global_step}_lora.pt"))
             with open(os.path.join(args.output_dir, f"{global_step}_lora_config.json"), "w") as f:
                 json.dump(lora_config, f)
+        elif args.use_swift:
+            unwarpped_unet = accelerator.unwrap_model(unet)
+            unwarpped_unet.save_pretrained(os.path.join(args.output_dir, 'swift'))
+            if args.train_text_encoder:
+                unwarpped_text_encoder = accelerator.unwrap_model(text_encoder)
+                unwarpped_text_encoder.save_pretrained(os.path.join(args.output_dir, 'text_encoder'))
         else:
             unet = unet.to(torch.float32)
             unet.save_attn_procs(args.output_dir, safe_serialization=False)
@@ -1148,7 +1189,17 @@ def main():
             return pipe
 
         pipeline = load_and_set_lora_ckpt(pipeline, args.output_dir, global_step, accelerator.device, weight_dtype)
+    elif args.use_swift:
+        if not is_swift_available():
+            raise ValueError(
+                'Please install swift by `pip install ms-swift` to use efficient_tuners.'
+            )
+        from swift import Swift
+        pipeline = pipeline.to(accelerator.device)
+        pipeline.unet = Swift.from_pretrained(pipeline.unet, os.path.join(args.output_dir, 'swift'))
 
+        if args.train_text_encoder:
+            pipeline.text_encoder = Swift.from_pretrained(pipeline.text_encoder, os.path.join(args.output_dir, 'text_encoder'))
     else:
         pipeline = pipeline.to(accelerator.device)
         # load attention processors
