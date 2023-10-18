@@ -183,7 +183,8 @@ def launch_pipeline(uuid,
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                if os.path.exists(file_lora_path):
+                file_lora_path_swift = f"{file_path}/unet"
+                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     if len(folder_list) == 0:
         raise gr.Error('没有人物LoRA，请先训练(There is no character LoRA, please train first)!')
@@ -329,7 +330,8 @@ def launch_pipeline_inpaint(uuid,
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                if os.path.exists(file_lora_path):
+                file_lora_path_swift = f"{file_path}/unet"
+                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     if len(folder_list) == 0:
         raise gr.Error('没有人物LoRA，请先训练(There is no character LoRA, please train first)!')
@@ -595,7 +597,8 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                if os.path.exists(file_lora_path):
+                file_lora_path_swift = f"{file_path}/unet"
+                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     
     if lora_choice == 'preset':
@@ -626,7 +629,8 @@ def update_output_model(uuid):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                if os.path.exists(file_lora_path):
+                file_lora_path_swift = f"{file_path}/unet"
+                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
                     
     return gr.Radio.update(choices=folder_list)
@@ -648,7 +652,8 @@ def update_output_model_inpaint(uuid):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                if os.path.exists(file_lora_path):
+                file_lora_path_swift = f"{file_path}/unet"
+                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
 
     return gr.Radio.update(choices=folder_list, value=folder_list[0]), gr.Radio.update(choices=folder_list, value=folder_list[0])
