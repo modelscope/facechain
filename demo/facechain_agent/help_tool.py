@@ -43,25 +43,25 @@ class StyleSearchTool(Tool):
       best_match = None  # 用于存储最佳匹配风格
       best_similarity = 0  # 用于存储最佳匹配的相似性度量值
       best_file_path = None  # 用于存储最佳匹配的文件路径
+      for style_folder in self.style_path:
+    
+        # 列出风格文件夹下的所有文件
+        files = os.listdir(style_folder)
+        files.sort()
+        for file in files:
+            file_path = os.path.join(style_folder, file)
+            with open(file_path, "r") as f:
+                data = json.load(f)
+                style_name = data.get('name', '')  # 获取风格文件中的名称字段
 
-      # 列出风格文件夹下的所有文件
-      files = os.listdir(self.style_path)
-      files.sort()
+                # 计算文本与风格名称之间的相似性
+                similarity = SequenceMatcher(None, text, style_name).ratio()
 
-      for file in files:
-          file_path = os.path.join(self.style_path, file)
-          with open(file_path, "r") as f:
-              data = json.load(f)
-              style_name = data.get('name', '')  # 获取风格文件中的名称字段
-
-              # 计算文本与风格名称之间的相似性
-              similarity = SequenceMatcher(None, text, style_name).ratio()
-
-              # 如果相似性高于当前最佳匹配，更新最佳匹配
-              if similarity > best_similarity:
-                  best_similarity = similarity
-                  best_match = style_name
-                  best_file_path = file_path  # 更新最佳匹配的文件路径
+                # 如果相似性高于当前最佳匹配，更新最佳匹配
+                if similarity > best_similarity:
+                    best_similarity = similarity
+                    best_match = style_name
+                    best_file_path = file_path  # 更新最佳匹配的文件路径
 
       result = {
           'name': self.name,
@@ -75,24 +75,24 @@ class StyleSearchTool(Tool):
         best_similarity = 0  # 用于存储最佳匹配的相似性度量值
         best_file_path = None  # 用于存储最佳匹配的文件路径
 
-        # 列出风格文件夹下的所有文件
-        files = os.listdir(self.style_path)
-        files.sort()
+        for style_folder in self.style_path:
+            # 列出风格文件夹下的所有文件
+            files = os.listdir(style_folder)
+            files.sort()
+            for file in files:
+                file_path = os.path.join(style_folder, file)
+                with open(file_path, "r") as f:
+                    data = json.load(f)
+                    style_name = data.get('name', '')  # 获取风格文件中的名称字段
 
-        for file in files:
-            file_path = os.path.join(self.style_path, file)
-            with open(file_path, "r") as f:
-                data = json.load(f)
-                style_name = data.get('name', '')  # 获取风格文件中的名称字段
+                    # 计算文本与风格名称之间的相似性
+                    similarity = SequenceMatcher(None, text, style_name).ratio()
 
-                # 计算文本与风格名称之间的相似性
-                similarity = SequenceMatcher(None, text, style_name).ratio()
-
-                # 如果相似性高于当前最佳匹配，更新最佳匹配
-                if similarity > best_similarity:
-                    best_similarity = similarity
-                    best_match = style_name
-                    best_file_path = file_path  # 更新最佳匹配的文件路径
+                    # 如果相似性高于当前最佳匹配，更新最佳匹配
+                    if similarity > best_similarity:
+                        best_similarity = similarity
+                        best_match = style_name
+                        best_file_path = file_path  # 更新最佳匹配的文件路径
 
         result = {
             'name': self.name,
@@ -263,7 +263,7 @@ def launch_pipeline(uuid,
            pose_image=None,
            ):
     uuid = 'qw'
-    character_model='ly261666/cv_portrait_model'#(base_model)
+    character_model='ly261666/cv_portrait_model'#
     # Check character LoRA
     folder_path = f"./{uuid}/{character_model}"
     folder_list = []
@@ -356,13 +356,7 @@ def launch_pipeline(uuid,
         # count the number of images in the folder
         num = len(os.listdir(os.path.join(save_dir, 'single')))
         cv2.imwrite(os.path.join(save_dir, 'single', str(num) + '.png'), img)
-    # use single_RGB to save outputs_RGB
-    if not os.path.exists(os.path.join(save_dir, 'single_RGB')):
-        os.makedirs(os.path.join(save_dir, 'single_RGB'))
-    for RGB_img in outputs_RGB:
-        num = len(os.listdir(os.path.join(save_dir, 'single_RGB')))
-        cv2.imwrite(os.path.join(save_dir, 'single_RGB', str(num) + '.jpg'), RGB_img)
-        
+    
     if len(outputs) > 0:
         result = concatenate_images(outputs)
         if not os.path.exists(os.path.join(save_dir, 'concat')):
@@ -405,8 +399,13 @@ class FaceChainInferenceTool(Tool):
         with open (matched_style_file_path,'r') as f:
             matched_style_file = json.load(f)
         pos_prompt = generate_pos_prompt(matched_style_file, matched_style_file['add_prompt_style'])
+        print(os.path.dirname(matched_style_file_path))
+        if  "leosamsMoonfilm_filmGrain20" in matched_style_file_path:
+            base_model_index = 0
+        elif  "MajicmixRealistic_v6" in matched_style_file_path:
+             base_model_index = 1
         (infer_progress,output_images,single_path)=launch_pipeline(uuid='qw',matched=matched_style_file,pos_prompt=pos_prompt,
-               neg_prompt=neg_prompt, base_model_index=0,
+               neg_prompt=neg_prompt, base_model_index=base_model_index,
                user_model=self.user_model, num_images=3,
                 multiplier_style=0.35,
                multiplier_human=0.95, pose_model=None,
@@ -419,8 +418,12 @@ class FaceChainInferenceTool(Tool):
         with open (matched_style_file_path,'r') as f:
             matched_style_file = json.load(f)
         pos_prompt = generate_pos_prompt(matched_style_file, matched_style_file['add_prompt_style'])
+        if  "leosamsMoonfilm_filmGrain20" in matched_style_file_path:
+            base_model_index = 0
+        elif  "MajicmixRealistic_v6" in matched_style_file_path:
+             base_model_index = 1
         (infer_progress,output_images,single_path)=launch_pipeline(uuid='qw',matched=matched_style_file,pos_prompt=pos_prompt,
-               neg_prompt=neg_prompt, base_model_index=0,
+               neg_prompt=neg_prompt, base_model_index=base_model_index,
                user_model=self.user_model, num_images=3,
                 multiplier_style=0.35,
                multiplier_human=0.95, pose_model=None,
