@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
 #安装后可以注释或者删除
-os.system('pip install modelscope_agent-0.1.0-py3-none-any.whl')
+os.system('pip install modelscope_agent-0.1.0-py3-none-any.whl')#根据modelscope agent 项目生成.whl包
 os.system('pip install gradio==3.29.0')
 import sys
 sys.path.append("../../")
