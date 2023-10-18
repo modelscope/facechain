@@ -47,7 +47,8 @@ def concatenate_images(images):
     return concatenated_image
     
 def select_function(evt: gr.SelectData):
-    matched = list(filter(lambda item: evt.value == item['name'], styles))
+    name = evt.value[1] if isinstance(evt.value, (tuple, list)) else evt.value
+    matched = list(filter(lambda item: name == item['name'], styles))
     style = matched[0]
     return gr.Text.update(value=style['name'], visible=True)
 
