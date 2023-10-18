@@ -103,7 +103,6 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_alpha={lora_alpha}',
             '--lora_text_encoder_r=32',
             '--lora_text_encoder_alpha=32',
-            '--use_swift' \
             '--resume_from_checkpoint="fromfacecommon"'
         ]
 
@@ -133,7 +132,6 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_r={lora_r} '
             f'--lora_alpha={lora_alpha} '
             f'--lora_text_encoder_r=32 '
-            f'--use_swift '
             f'--lora_text_encoder_alpha=32 '
             f'--resume_from_checkpoint="fromfacecommon"')
         if res != 0:
