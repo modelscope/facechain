@@ -36,3 +36,15 @@ if not launch.is_installed("mediapipe"):
 if not launch.is_installed("edge_tts"):
     print("--installing edge_tts...")
     launch.run_pip("install edge_tts", "requirements for mediapipe")
+
+if not launch.is_installed("cv2"):
+    launch.run_pip("install opencv-python", "requirements for opencv")
+
+if not launch.is_installed("diffusers==0.18.2"):
+    launch.run_pip("install diffusers==0.18.2", "requirements for diffusers")
+
+if not launch.is_installed("mmengine==0.8.4"):
+    launch.run_pip("install diffusers==0.8.4", "requirements for diffusers")
+
+if not launch.is_installed("protobuf"):
+    launch.run_pip("install protobuf", "requirements for diffusers")
