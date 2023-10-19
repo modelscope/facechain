@@ -598,8 +598,8 @@ def main():
                                   revision=args.revision,
                                   user_agent={'invoked_by': 'trainer', 'third_party': 'facechain'})
 
-    # if args.sub_path is not None and len(args.sub_path) > 0:
-    #     model_dir = os.path.join(model_dir, args.sub_path)
+    if args.sub_path is not None and len(args.sub_path) > 0:
+        model_dir = os.path.join(model_dir, args.sub_path)
 
     # Load scheduler, tokenizer and models.
     noise_scheduler = DDPMScheduler.from_pretrained(model_dir, subfolder="scheduler")
@@ -1123,8 +1123,6 @@ def main():
                     [compute_time_ids(s, c) for s, c in zip(batch["original_sizes"], batch["crop_top_lefts"])]
                 )
 
-                # Get the text embedding for conditioning
-                # encoder_hidden_states = text_encoder(batch["input_ids"])[0]
                 # Predict the noise residual
                 unet_added_conditions = {"time_ids": add_time_ids}
                 prompt_embeds, pooled_prompt_embeds = encode_prompt(

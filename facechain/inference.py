@@ -39,10 +39,8 @@ def txt2img(pipe, pos_prompt, neg_prompt, num_images=10):
     batch_size = 5
     images_out = []
     for i in range(int(num_images / batch_size)):
-        # images_style = pipe(prompt=pos_prompt, height=512, width=512, guidance_scale=7, negative_prompt=neg_prompt,
-        #                     num_inference_steps=40, num_images_per_prompt=batch_size).images
-        images_style = pipe(prompt=pos_prompt, guidance_scale=7, negative_prompt=neg_prompt,
-                    num_inference_steps=40, num_images_per_prompt=batch_size).images
+        images_style = pipe(prompt=pos_prompt, height=512, width=512, guidance_scale=7, negative_prompt=neg_prompt,
+                            num_inference_steps=40, num_images_per_prompt=batch_size).images
         images_out.extend(images_style)
     return images_out
 
