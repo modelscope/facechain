@@ -24,7 +24,7 @@ from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_pr
 
 training_done_count = 0
 inference_done_count = 0
-character_model = 'ly261666/cv_portrait_model'
+character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
 BASE_MODEL_MAP = {
     "leosamsMoonfilm_filmGrain20": "写实模型(Realistic model)",
     "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic model)",
@@ -88,7 +88,6 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--revision={revision}',
             f'--sub_path={sub_path}',
             f'--output_dataset_name={output_img_dir}',
-            '--sdxl',
             '--caption_column=text',
             '--resolution=512',
             '--random_flip',
@@ -120,7 +119,6 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--revision={revision} '
             f'--sub_path={sub_path} '
             f'--output_dataset_name={output_img_dir} '
-            f'--sdxl '
             f'--caption_column="text" '
             f'--resolution=512 '
             f'--random_flip '
@@ -136,7 +134,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_alpha={lora_alpha} '
             f'--lora_text_encoder_r=32 '
             f'--lora_text_encoder_alpha=32 '
-            '--use_swift ',
+            f'--use_swift '
             f'--resume_from_checkpoint="fromfacecommon"')
         if res != 0:
             raise gr.Error("训练失败 (Training failed)")
@@ -187,7 +185,7 @@ def launch_pipeline(uuid,
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     if len(folder_list) == 0:
@@ -334,7 +332,7 @@ def launch_pipeline_inpaint(uuid,
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     if len(folder_list) == 0:
@@ -520,8 +518,8 @@ class Trainer:
             else:
                 uuid = 'qw'
 
-        base_model_path = 'ly261666/cv_portrait_model'
-        revision = 'v2.0'
+        base_model_path = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
+        revision = 'v1.0.0'
         sub_path = "film/film"
         output_model_name = slugify.slugify(output_model_name)
 
@@ -601,7 +599,7 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     
@@ -633,7 +631,7 @@ def update_output_model(uuid):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
                     
@@ -656,7 +654,7 @@ def update_output_model_inpaint(uuid):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
 

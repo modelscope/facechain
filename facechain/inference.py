@@ -8,7 +8,7 @@ import torch
 from PIL import Image
 from controlnet_aux import OpenposeDetector
 from diffusers import StableDiffusionPipeline, StableDiffusionControlNetPipeline, ControlNetModel, \
-    UniPCMultistepScheduler
+    UniPCMultistepScheduler, StableDiffusionXLPipeline
 from facechain.utils import snapshot_download
 from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
@@ -39,8 +39,10 @@ def txt2img(pipe, pos_prompt, neg_prompt, num_images=10):
     batch_size = 5
     images_out = []
     for i in range(int(num_images / batch_size)):
-        images_style = pipe(prompt=pos_prompt, height=512, width=512, guidance_scale=7, negative_prompt=neg_prompt,
-                            num_inference_steps=40, num_images_per_prompt=batch_size).images
+        # images_style = pipe(prompt=pos_prompt, height=512, width=512, guidance_scale=7, negative_prompt=neg_prompt,
+        #                     num_inference_steps=40, num_images_per_prompt=batch_size).images
+        images_style = pipe(prompt=pos_prompt, guidance_scale=7, negative_prompt=neg_prompt,
+                    num_inference_steps=40, num_images_per_prompt=batch_size).images
         images_out.extend(images_style)
     return images_out
 
@@ -127,8 +129,8 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
     if style_model_path is None:
         model_dir = snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo', revision='v1.0.0')
         style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_fromleo.safetensors')
-
-    pipe = StableDiffusionPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)
+    
+    pipe = StableDiffusionXLPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)
     lora_style_path = style_model_path
     lora_human_path = lora_model_path
     pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
