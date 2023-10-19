@@ -43,8 +43,5 @@ if not launch.is_installed("cv2"):
 if not launch.is_installed("diffusers"):
     launch.run_pip("install diffusers", "requirements for diffusers")
 
-# if not launch.is_installed("mmengine"):
-#     launch.run_pip("install mmengine", "requirements for diffusers")
-
 if not launch.is_installed("protobuf==3.20.1"):
     launch.run_pip("install protobuf==3.20.1", "requirements for diffusers")
