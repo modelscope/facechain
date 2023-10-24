@@ -1,4 +1,5 @@
 {
+
     "modelscope-agent": {
         "type": "dashscope",
         "model": "modelscope-agent-llm-v1",
@@ -12,6 +13,7 @@
             }
         }
     },
+
     "http_llm": {
         "type":"http_llm"
     },
@@ -30,8 +32,6 @@
         "type": "modelscope",
         "model_id": "damo/ModelScope-Agent-7B",
         "model_revision": "v1.0.2",
-        "use_raw_generation_config": true,
-        "custom_chat": true
-    }
+   
 
 }
