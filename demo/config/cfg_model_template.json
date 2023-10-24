@@ -1,0 +1,37 @@
+{
+    "modelscope-agent": {
+        "type": "dashscope",
+        "model": "modelscope-agent-llm-v1",
+        "generate_cfg": {
+            "parameters":{
+                "use_raw_prompt": true,
+                "top_p": 0.8,
+                "top_k": 10,
+                "seed": 123,
+                "debug": false
+            }
+        }
+    },
+    "http_llm": {
+        "type":"http_llm"
+    },
+    "openai": {
+        "model": "gpt-3.5-turbo-16k-0613",
+        "type": "openai"
+    },
+    "modelscope-agent-qwen-7b":{
+        "type": "modelscope",
+        "model_id": "damo/MSAgent-Qwen-7B",
+        "model_revision": "v1.0.2",
+        "use_raw_generation_config": true,
+        "custom_chat": true
+    },
+    "modelscope-agent-7b":{
+        "type": "modelscope",
+        "model_id": "damo/ModelScope-Agent-7B",
+        "model_revision": "v1.0.2",
+        "use_raw_generation_config": true,
+        "custom_chat": true
+    }
+
+}
