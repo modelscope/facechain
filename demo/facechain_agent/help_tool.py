@@ -138,11 +138,11 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
 
     lora_r = 4
     lora_alpha = 32
-    max_train_steps = min(photo_num * 200, 800)
+    #max_train_steps = min(photo_num * 200, 800)
 
     if platform.system() == 'Windows':
         command = [
-            'accelerate', 'launch', 'facechain/train_text_to_image_lora.py',
+            'accelerate', 'launch', '../../facechain/train_text_to_image_lora.py',
             f'--pretrained_model_name_or_path={base_model_path}',
             f'--revision={revision}',
             f'--sub_path={sub_path}',
@@ -172,7 +172,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             raise RuntimeError("训练失败 (Training failed)")
     else:
         res = os.system(
-            f'PYTHONPATH=. accelerate launch /home/wsco/wyj2/facechain-agent/facechain/train_text_to_image_lora.py '
+            f'PYTHONPATH=. accelerate launch ../../facechain/train_text_to_image_lora.py '
             f'--pretrained_model_name_or_path={base_model_path} '
             f'--revision={revision} '
             f'--sub_path={sub_path} '
@@ -201,13 +201,18 @@ def _train_lora(uuid, output_model_name, base_model_path, revision, sub_path):
     output_model_name = slugify.slugify(output_model_name)
 
     # mv user upload data to target dir
-    instance_data_dir = os.path.join('./', uuid, 'training_data', base_model_path, output_model_name)
-    print(instance_data_dir)
+    instance_data_dir = os.path.join('./', base_model_path.split('/')[-1], output_model_name)
+    print('################################instance_data_dir', instance_data_dir)
     if not os.path.exists(f"./{uuid}"):
         os.makedirs(f"./{uuid}")
     work_dir = f"./{uuid}/{base_model_path}/{output_model_name}"
+    print('################################work_dir', work_dir)
+
     shutil.rmtree(work_dir, ignore_errors=True)
-    data_process_fn(instance_data_dir, True)
+    try:
+        data_process_fn(instance_data_dir, True)
+    except Exception as e:
+        raise e("提取图片label错误") from e
 
     train_lora_fn(
         base_model_path=base_model_path,
@@ -311,9 +316,11 @@ def launch_pipeline(uuid,
     use_post_process = True
     use_stylization = False
 #user_model就是人物lora的name
-    instance_data_dir = os.path.join('./', uuid, 'training_data', character_model, user_model)
-    lora_model_path = f'./{uuid}/{character_model}/{user_model}/'
-    #print('----------======================')
+    instance_data_dir = os.path.join('./', character_model.split('/')[-1], user_model)
+    lora_model_path = f'./{uuid}/{character_model}/{user_model}'
+    print('################################instance_data_dir', instance_data_dir)
+    print('################################lora_model_path', lora_model_path)
+
     gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path,
                                multiplier_style, multiplier_human, use_main_model,
                                use_face_swap, use_post_process,
@@ -340,9 +347,9 @@ def launch_pipeline(uuid,
     for out_tmp in outputs:
         outputs_RGB.append(cv2.cvtColor(out_tmp, cv2.COLOR_BGR2RGB))
 
-    save_dir = os.path.join('./', uuid, 'inference_result', base_model, user_model)
+    save_dir = os.path.join('./', base_model, user_model)
     if lora_choice == 'preset':
-        save_dir = os.path.join(save_dir, 'style_' + style_model)
+        save_dir = os.path.join(save_dir, 'style_' + style_model[:2])
     else:
         save_dir = os.path.join(save_dir, 'lora_' + os.path.basename(lora_choice).split('.')[0])
 
