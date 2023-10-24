@@ -83,8 +83,6 @@ os.environ['TOOL_CONFIG_FILE'] = '../config/cfg_tool_template.json'
 os.environ['MODEL_CONFIG_FILE'] = '../config/cfg_model_template.json'
 os.environ['OUTPUT_FILE_DIRECTORY'] = './tmp'
 dashscope.api_key = os.environ.get('DASHSCOPE_API_KEY')
-dashscope.base_http_api_url = 'https://poc-dashscope.aliyuncs.com/api/v1'
-dashscope.base_websocket_api_url = 'https://poc-dashscope.aliyuncs.com/api-ws/v1/inference'
 
 style_paths = ["../../styles/leosamsMoonfilm_filmGrain20", "../../styles/MajicmixRealistic_v6"]
 styles = []
