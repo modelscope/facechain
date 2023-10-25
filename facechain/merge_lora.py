@@ -4,6 +4,7 @@ import os
 import re
 from collections import defaultdict
 from safetensors.torch import load_file
+from modelscope.utils.import_utils import is_swift_available
 
 
 def merge_lora(pipeline, lora_path, multiplier, from_safetensor=False, device='cpu', dtype=torch.float32):
@@ -11,6 +12,14 @@ def merge_lora(pipeline, lora_path, multiplier, from_safetensor=False, device='c
     LORA_PREFIX_TEXT_ENCODER = "lora_te"
     if from_safetensor:
         state_dict = load_file(lora_path, device=device)
+    elif os.path.exists(os.path.join(lora_path, 'swift')):
+        if not is_swift_available():
+                    raise ValueError(
+                        'Please install swift by `pip install ms-swift` to use efficient_tuners.'
+                    )
+        from swift import Swift
+        pipeline.unet = Swift.from_pretrained(pipeline.unet, os.path.join(lora_path, 'swift'))
+        return pipeline
     else:
         if os.path.exists(os.path.join(lora_path, 'pytorch_lora_weights.bin')):
             checkpoint = torch.load(os.path.join(lora_path, 'pytorch_lora_weights.bin'), map_location=torch.device(device))

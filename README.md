@@ -9,22 +9,21 @@
 
 如果您熟悉中文，可以阅读[中文版本的README](./README_ZH.md)。
 
-FaceChain is a deep-learning toolchain for generating your Digital-Twin. With a minimum of 1 portrait-photo, you can create a Digital-Twin of your own and start generating personal portraits in different settings (multiple styles now supported!). You may train your Digital-Twin model and generate photos via FaceChain's Python scripts, or via the familiar Gradio interface.
+FaceChain is a deep-learning toolchain for generating your Digital-Twin. With a minimum of 1 portrait-photo, you can create a Digital-Twin of your own and start generating personal portraits in different settings (multiple styles now supported!). You may train your Digital-Twin model and generate photos via FaceChain's Python scripts, or via the familiar Gradio interface, or via sd webui.
 FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 <p align="center">
-        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
+        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜ sd webui ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
 </p>
 <br>
 
 
 ![image](resources/git_cover.jpg)
-![image](resources/git_cover_1.jpg)
-![image](resources/git_cover_2.jpg)
 
 
 # News
+- Support FaceChain in stable-diffusion-webui🔥🔥🔥. (October 13th, 2023 UTC)
 - High performance inpainting for single & double person, Simplify User Interface. (September 09th, 2023 UTC)
 - More Technology Details can be seen in [Paper](https://arxiv.org/abs/2308.14256). (August 30th, 2023 UTC)
 - Add validate & ensemble for Lora training, and InpaintTab(hide in gradio for now).  (August 28th, 2023 UTC)
@@ -171,6 +170,7 @@ python3 app.py
 2. install mmcv-full by pip: pip3 install mmcv-full
 ```
 
+**If you want to use the `Audio Driven Talking Head` tab, please refer to the installation guide in [installation_for_talkinghead](doc/installation_for_talkinghead.md).**
 
 ### 4. Colab notebook
 
@@ -178,6 +178,15 @@ python3 app.py
 | --- | --- |
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/modelscope/facechain/blob/main/facechain_demo.ipynb) | FaceChain Installation on Colab
 
+### 5. stable-diffusion-webui
+1. Select the `Extensions Tab`, then choose `Install From URL` (official plugin integration is u).
+   ![image](resources/sdwebui_install.png)
+
+2. Switch to `Installed`, check the FaceChain plugin, then click `Apply and restart UI`.
+   ![image](resources/sdwebui_restart.png)
+
+3. After the page refreshes, the appearance of the `FaceChain` Tab indicates a successful installation.
+   ![image](resources/sdwebui_success.png)
 
 
 # Script Execution
@@ -280,7 +289,9 @@ The models used in FaceChain:
 
 [8]  Face fusion model：https://www.modelscope.cn/models/damo/cv_unet_face_fusion_torch
 
-[9]  Face recognition model RTS：https://modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts          
+[9]  Face recognition model RTS：https://modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts     
+
+[10] Talking head model：https://modelscope.cn/models/wwd123/sadtalker
 
 # More Information
 

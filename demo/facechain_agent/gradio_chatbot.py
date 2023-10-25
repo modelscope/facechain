@@ -106,6 +106,20 @@ class ChatBot(ChatBotBase):
                         think_node.get('plugin',
                                        think_node.get('api_name', 'unknown')))
                     summary = f'选择插件【{plugin_name}】，调用处理中...'
+<<<<<<< HEAD
+                    del think_node['url']
+                    #think_node.pop('url', None)
+
+                    detail = f'```json\n\n{json.dumps(think_node,indent=3,ensure_ascii=False)}\n\n```'
+                except Exception:
+                    summary = f'思考中...'
+                    detail = think_content
+                    # traceback.print_exc()
+                    # detail += traceback.format_exc()
+                result += '<details> <summary>' + summary + '</summary>' + self.convert_markdown(
+                    detail) + '</details>'
+                #print(f'detail:{detail}')
+=======
                     
                     think_node.pop('url', None)
 
@@ -118,6 +132,7 @@ class ChatBot(ChatBotBase):
                 # result += '<details> <summary>' + summary + '</summary>' + self.convert_markdown(
                 #     detail) + '</details>'
                 print(f'detail:{detail}')
+>>>>>>> upstream/feat/facechain_agent
                 start_pos = end_of_think_pos + len(END_OF_THINK_TAG)
             except Exception:
                 # result += traceback.format_exc()
@@ -139,7 +154,11 @@ class ChatBot(ChatBotBase):
                                            + len(START_OF_EXEC_TAG
                                                  ):end_of_exec_pos].strip()
                 try:
+<<<<<<< HEAD
+                    summary = f'完成插件调用.'
+=======
                     summary = '完成插件调用.'
+>>>>>>> upstream/feat/facechain_agent
                     detail = f'```json\n\n{exec_content}\n\n```'
                 except Exception:
                     pass
@@ -156,6 +175,55 @@ class ChatBot(ChatBotBase):
         result += ALREADY_CONVERTED_MARK
         return result
 
+<<<<<<< HEAD
+    
+    def postprocess(
+        self,
+        message_pairs: list[list[str | tuple[str] | tuple[str, str] | None] | tuple],
+    ) -> list[list[str | dict | None]]:
+        """
+        Parameters:
+            message_pairs: List of lists representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string or pathlib.Path filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
+        Returns:
+            List of lists representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information. Or None if the message is not to be displayed.
+        """
+        if message_pairs is None:
+            return []
+        processed_messages = []
+        for message_pair in message_pairs:
+            assert isinstance(
+                message_pair, (tuple, list)
+            ), f"Expected a list of lists or list of tuples. Received: {message_pair}"
+            assert (
+                len(message_pair) == 2
+            ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
+            if isinstance(message_pair[0], tuple) or isinstance(message_pair[1], tuple):
+                processed_messages.append(
+                [
+                    self._postprocess_chat_messages(message_pair[0]),
+                    self._postprocess_chat_messages(message_pair[1]),
+                ]
+            )
+            else:
+    # 处理不是元组的情况
+                user_message, bot_message = message_pair
+
+                if user_message and not user_message.endswith(
+                        ALREADY_CONVERTED_MARK):
+                    convert_md = self.convert_markdown(html.escape(user_message))
+                    user_message = f"<p style=\"white-space:pre-wrap;\">{convert_md}</p>" + ALREADY_CONVERTED_MARK
+                if bot_message and not bot_message.endswith(
+                        ALREADY_CONVERTED_MARK):
+                    bot_message = self.convert_bot_message(bot_message)
+                processed_messages.append(
+                    [
+                        user_message,
+                        bot_message,
+                    ]
+                )
+            
+        return processed_messages
+=======
     def postprocess(
         self, message_pairs: List[Tuple[str | None, str | None]]
     ) -> List[Tuple[str | None, str | None]]:
@@ -179,3 +247,4 @@ class ChatBot(ChatBotBase):
             bot_message = self.convert_bot_message(bot_message)
         message_pairs[-1] = (user_message, bot_message)
         return message_pairs
+>>>>>>> upstream/feat/facechain_agent
