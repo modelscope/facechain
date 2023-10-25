@@ -139,7 +139,9 @@ class ChatBot(ChatBotBase):
                                            + len(START_OF_EXEC_TAG
                                                  ):end_of_exec_pos].strip()
                 try:
+
                     summary = f'完成插件调用.'
+
                     detail = f'```json\n\n{exec_content}\n\n```'
                 except Exception:
                     pass
@@ -156,7 +158,6 @@ class ChatBot(ChatBotBase):
         result += ALREADY_CONVERTED_MARK
         return result
 
-    
     def postprocess(
         self,
         message_pairs: list[list[str | tuple[str] | tuple[str, str] | None] | tuple],
