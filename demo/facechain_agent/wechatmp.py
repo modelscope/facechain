@@ -54,7 +54,7 @@ def index():
 #     return response
 #
 
-@app.route('/upload_pic', methods=['POST'])
+@app.route('/facechain_agent', methods=['POST'])
 def upload_pic():
     # message = request.form.decode('utf-8')
 
