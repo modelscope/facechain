@@ -209,7 +209,7 @@ def main_diffusion_inference_tryon(inpaint_image, strength, output_img_size, pos
 
     segmentation_pipeline = pipeline(Tasks.image_segmentation, 'damo/cv_resnet101_image-multiple-human-parsing')
     det_pipeline = pipeline(Tasks.face_detection, 'damo/cv_ddsar_face-detection_iclr23-damofd')
-    model_dir = snapshot_download('damo/face_chain_control_model', revision='v1.0.1')
+    model_dir = snapshot_download('damo/face_chain_control_model', revision='v1.0.2')
     model_dir1 = snapshot_download('ly261666/cv_wanx_style_model',revision='v1.0.3')
 
     if output_img_size == 512:
@@ -272,8 +272,7 @@ def main_diffusion_inference_tryon(inpaint_image, strength, output_img_size, pos
     inpaint_im = crop_bottom(inpaint_im, output_img_size)
     w, h = inpaint_im.size
     
-    dwprocessor = DWposeDetector('dwpose_models')
-    controlnet = ControlNetModel.from_pretrained(os.path.join(model_dir, "model_controlnet/control_v11p_sd15_openpose"), torch_dtype=dtype)
+    dwprocessor = DWposeDetector(os.path.join(model_dir, 'dwpose_models'))
     openpose_image, handbox = dwprocessor(np.array(inpaint_im, np.uint8), include_body=True, include_hand=True, include_face=False, return_handbox=True)
     openpose_image = Image.fromarray(openpose_image)
     openpose_image.save('openpose.png')
@@ -295,7 +294,7 @@ def main_diffusion_inference_tryon(inpaint_image, strength, output_img_size, pos
     mask = segment(segmentation_pipeline, inpaint_im, return_hand=True)
     mask1 = segment(segmentation_pipeline, inpaint_im, ksize=5, return_human=True)
 
-    canny_image = cv2.Canny(np.array(inpaint_im, np.uint8), 75, 200)[:, :, None]
+    canny_image = cv2.Canny(np.array(inpaint_im, np.uint8), 90, 200)[:, :, None]
     canny_image = (canny_image * mask1[:, :, None]).astype(np.uint8)
     canny_image = Image.fromarray(np.concatenate([canny_image, canny_image, canny_image], axis=2))
     canny_image.save('canny.png')
@@ -428,7 +427,7 @@ def post_process_fn(use_post_process, swap_results_ori, selected_face, num_gen_i
 
 
 class GenPortrait_tryon:
-    def __init__(self, inpaint_img, strength, background_image,
+    def __init__(self, inpaint_img, strength,
                  pos_prompt, neg_prompt, style_model_path, multiplier_style, multiplier_human,
                  use_main_model=True, use_face_swap=True,
                  use_post_process=True, use_stylization=True):
@@ -443,7 +442,6 @@ class GenPortrait_tryon:
         self.neg_prompt = neg_prompt
         self.inpaint_img = inpaint_img
         self.strength = strength
-        self.background_img = background_image
 
     def __call__(self, input_img_dir=None, base_model_path=None,
                  lora_model_path=None, sub_path=None, revision=None):

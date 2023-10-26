@@ -503,7 +503,7 @@ def launch_pipeline_tryon(uuid,
         raise gr.Error('请选择基模型(Please select the base model)！')
 
     # Check character LoRA
-    folder_path = f"./{uuid}/{character_model}"
+    folder_path = join_worker_data_dir(uuid, character_model)
     folder_list = []
     if os.path.exists(folder_path):
         files = os.listdir(folder_path)
@@ -542,8 +542,8 @@ def launch_pipeline_tryon(uuid,
         user_model = None
 
     if user_model is not None:
-        instance_data_dir = os.path.join('./', uuid, 'training_data', character_model, user_model)
-        lora_model_path = f'./{uuid}/{character_model}/{user_model}/'
+        instance_data_dir = join_worker_data_dir(uuid, 'training_data', character_model, user_model)
+        lora_model_path = join_worker_data_dir(uuid, character_model, user_model)
     else:
         instance_data_dir = None
         lora_model_path = None
@@ -811,7 +811,7 @@ def update_output_model_tryon(uuid):
         else:
             uuid = 'qw'
 
-    folder_path = f"./{uuid}/{character_model}"
+    folder_path = join_worker_data_dir(uuid, character_model)
     folder_list = ['不重绘该人物(Do not inpaint this character)']
     if not os.path.exists(folder_path):
         return gr.Radio.update(choices=[], value = None)
@@ -1280,7 +1280,6 @@ def inference_talkinghead():
 
 def inference_tryon():
     preset_template = glob(os.path.join('resources/tryon_garment/*.png'))
-    preset_background = glob(os.path.join('resources/tryon_background/*.jpg'))
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         # Initialize the GUI
@@ -1314,7 +1313,6 @@ def inference_tryon():
                                   'in the bar, restaurant',
                                   'city background, street',
                                   'in the woods']
-        background_image_list = [[i] for idx, i in enumerate(preset_background)]
         with gr.Box():
             background_prompt = gr.Textbox(label="背景提示语(Background prompt)",
                                            lines=3, value='simple background, high-class pure color background')
