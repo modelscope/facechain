@@ -299,7 +299,7 @@ def main_diffusion_inference_inpaint(inpaint_image, strength, output_img_size, p
     openpose_image = openpose(np.array(inpaint_im, np.uint8), include_hand=True, include_face=False)
     w, h = inpaint_im.size
 
-    pipe = StableDiffusionControlNetPipeline.from_pretrained(base_model_path, controlnet=controlnet, torch_dtype=dtype)
+    pipe = StableDiffusionControlNetPipeline.from_pretrained(base_model_path, controlnet=controlnet, torch_dtype=dtype, safety_checker=None)
     lora_style_path = style_model_path
     lora_human_path = lora_model_path
     pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
@@ -319,7 +319,7 @@ def main_diffusion_inference_inpaint(inpaint_image, strength, output_img_size, p
         ControlNetModel.from_pretrained(os.path.join(model_dir1, "contronet-canny"), torch_dtype=dtype)
     ]
     pipe = StableDiffusionControlNetInpaintPipeline.from_pretrained(base_model_path, controlnet=controlnet,
-                                                                    torch_dtype=dtype)
+                                                                    torch_dtype=dtype, safety_checker=None)
     pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
     pipe = merge_lora(pipe, style_model_path, multiplier_style, from_safetensor=True)
     pipe = merge_lora(pipe, lora_model_path, multiplier_human, from_safetensor=False)
@@ -462,7 +462,7 @@ def main_diffusion_inference_inpaint_multi(inpaint_images, strength, output_img_
         
     openpose = OpenposeDetector.from_pretrained(os.path.join(model_dir, "model_controlnet/ControlNet"))
     controlnet = ControlNetModel.from_pretrained(os.path.join(model_dir, "model_controlnet/control_v11p_sd15_openpose"), torch_dtype=dtype)
-    pipe = StableDiffusionControlNetPipeline.from_pretrained(base_model_path, controlnet=controlnet, torch_dtype=dtype)
+    pipe = StableDiffusionControlNetPipeline.from_pretrained(base_model_path, controlnet=controlnet, torch_dtype=dtype, safety_checker=None)
     lora_style_path = style_model_path
     lora_human_path = lora_model_path
     pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
@@ -489,7 +489,7 @@ def main_diffusion_inference_inpaint_multi(inpaint_images, strength, output_img_
         ControlNetModel.from_pretrained(os.path.join(model_dir1, "contronet-canny"), torch_dtype=dtype)
     ]
     pipe = StableDiffusionControlNetInpaintPipeline.from_pretrained(base_model_path, controlnet=controlnet,
-                                                                    torch_dtype=dtype)
+                                                                    torch_dtype=dtype, safety_checker=None)
     pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
     pipe = merge_lora(pipe, style_model_path, multiplier_style, from_safetensor=True)
     pipe = merge_lora(pipe, lora_model_path, multiplier_human, from_safetensor=False)
