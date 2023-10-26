@@ -128,7 +128,9 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
         model_dir = snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo', revision='v1.0.0')
         style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_fromleo.safetensors')
     
-    pipe = StableDiffusionXLPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)
+    test_model_path = '/mnt/workspace/.cache/modelscope/AI-ModelScope/stable-diffusion-xl-base-1.0'
+    # pipe = StableDiffusionXLPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)
+    pipe = StableDiffusionXLPipeline.from_pretrained(test_model_path, safety_checker=None, torch_dtype=torch.float32)
     lora_style_path = style_model_path
     lora_human_path = lora_model_path
     pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
