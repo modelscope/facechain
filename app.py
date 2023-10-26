@@ -83,7 +83,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
 
     if platform.system() == 'Windows':
         command = [
-            'accelerate', 'launch', f'{project_dir}/facechain/train_text_to_image_lora.py',
+            'accelerate', 'launch', f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path is 'AI-ModelScope/stable-diffusion-xl-base-1.0' else f'{project_dir}/facechain/train_text_to_image_lora.py',
             f'--pretrained_model_name_or_path={base_model_path}',
             f'--revision={revision}',
             f'--sub_path={sub_path}',
@@ -491,6 +491,7 @@ class Trainer:
     def run(
             self,
             uuid: str,
+            base_model_name: str,
             instance_images: list,
             output_model_name: str,
     ) -> str:
@@ -528,9 +529,13 @@ class Trainer:
                 return "请登陆后使用(Please login first)! "
             else:
                 uuid = 'qw'
-
-        base_model_path = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
-        revision = 'v1.0.0'
+        if base_model_name is 'AI-ModelScope/stable-diffusion-xl-base-1.0':
+            base_model_path = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
+            revision = 'v1.0.0'
+        else:
+            base_model_path = 'ly261666/cv_portrait_model'
+            revision = 'v2.0'
+        
         sub_path = "film/film"
         output_model_name = slugify.slugify(output_model_name)
 
@@ -786,6 +791,10 @@ def train_input():
             with gr.Column():
                 with gr.Box():
                     output_model_name = gr.Textbox(label="人物lora名称(Character lora name)", value='person1', lines=1)
+                    base_model_name = gr.Dropdown(choices=['AI-ModelScope/stable-diffusion-v1-5',
+                                                'AI-ModelScope/stable-diffusion-xl-base-1.0'], 
+                                                value='AI-ModelScope/stable-diffusion-xl-base-1.0',
+                                                label='基模型')
 
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
@@ -837,6 +846,7 @@ def train_input():
         run_button.click(fn=trainer.run,
                          inputs=[
                              uuid,
+                             base_model_name,
                              instance_images,
                              output_model_name,
                          ],
