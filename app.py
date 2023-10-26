@@ -114,7 +114,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             raise gr.Error("训练失败 (Training failed)")
     else:
         res = os.system(
-            f'PYTHONPATH=. accelerate launch {project_dir}/facechain/train_text_to_image_lora.py '
+            f'PYTHONPATH=. accelerate launch {project_dir}/facechain/train_text_to_image_lora_sdxl.py ' if base_model_path is 'AI-ModelScope/stable-diffusion-xl-base-1.0' else '{project_dir}/facechain/train_text_to_image_lora_sdxl.py '
             f'--pretrained_model_name_or_path={base_model_path} '
             f'--revision={revision} '
             f'--sub_path={sub_path} '
