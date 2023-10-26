@@ -140,7 +140,8 @@ class ChatBot(ChatBotBase):
                                                  ):end_of_exec_pos].strip()
                 try:
 
-                    summary = '完成插件调用.'
+                    summary = f'完成插件调用.'
+
                     detail = f'```json\n\n{exec_content}\n\n```'
                 except Exception:
                     pass

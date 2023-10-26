@@ -37,7 +37,7 @@ INSTRUCTION_TEMPLATE = """【多轮对话历史】
 
 <|startofexec|>```JSON\n{"result": {"name": "style_search_tool", "value": "赛博朋克(Cybernetics punk)", file_path: "../../styles/leosamsMoonfilm_filmGrain20/Cybernetics_punk.json"}}\n```<|endofexec|>
 
-我已为你找到的风格类型名字是赛博朋克(Cybernetics punk)。
+我已为你找到的风格类型名字是赛博朋克(Cybernetics punk)。下面是该风格的预览图。
 
 现在我需要你提供1-3张照片，请点击图片上传按钮上传你的照片。上传完毕后在对话框里告诉我你已经上传好照片了。\n\n</s>
 
@@ -62,9 +62,9 @@ INSTRUCTION_TEMPLATE1 = """
 <|user|>: 我想要换个古风风格。
 
 <|assistant|>: 好的，我将首先搜索相关风格，然后再为您生成古风风格的写真
-<|startofthink|>```JSON\n{\n   "api_name": "style_search_tool",\n    "parameters": {\n      "text": "换一个古风的吧"\n   }\n}\n```<|endofthink|>
+<|startofthink|>```JSON\n{\n   "api_name": "style_search_tool",\n    "parameters": {\n      "text": "我想要换个古风风格"\n   }\n}\n```<|endofthink|>
 
-我为你搜索到的风格是古风风格(Old style)。
+我为你搜索到的风格是古风风格(Old style)。下面是该风格的预览图。
 我现在将用前面你上传的照片和新选择的风格生成写真照。
 生成写真照中：
 <|startofthink|>```JSON\n{\n   "api_name": "facechain_inference_tool",\n    "parameters": {\n   "matched_style_file_path": "../../styles/leosamsMoonfilm_filmGrain20/Old_style.json"\n  }\n}\n```<|endofthink|>
@@ -83,9 +83,6 @@ os.environ['TOOL_CONFIG_FILE'] = '../config/cfg_tool_template.json'
 os.environ['MODEL_CONFIG_FILE'] = '../config/cfg_model_template.json'
 os.environ['OUTPUT_FILE_DIRECTORY'] = './tmp'
 dashscope.api_key = os.environ.get('DASHSCOPE_API_KEY')
-dashscope.base_http_api_url = "xxxxxxxx"
-dashscope.base_websocket_api_url = 'xxxxxxxxxx'
-
 style_paths = ["../../styles/leosamsMoonfilm_filmGrain20", "../../styles/MajicmixRealistic_v6"]
 styles = []
 for folder_path in style_paths:
@@ -166,10 +163,9 @@ def text_to_speech(text):
                                     sample_rate=48000,
                                     format='wav')
     return result.get_audio_data()
+    
 
-    if result.get_audio_data() is not None:
-        with open('tts.wav', 'wb') as f:
-            f.write(result.get_audio_data())
+    
 
 
 def init(uuid_str, state):
@@ -258,12 +254,12 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
                     regenerate_button = gr.Button(
                         "重新生成", elem_id='regenerate_button')
             gr.Examples(
-                examples=['我想要牛仔风', '我想要凤冠霞帔风', '我的照片上传好了', '我现在想换个风格，我想要工作风'],
+                examples=['我想要牛仔风', '我想要凤冠霞帔风', '我的照片上传好了', '我想换成工作风'],
                 inputs=[user_input],
                 label="示例",
                 elem_id="chat-examples")
 
-
+    l = 0
     def facechain_agent(*inputs):
 
         user_input = inputs[0]
@@ -292,16 +288,35 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
                 history = []
                 # task_history  = task_history
             return history
-
+        def preview_image(exec_result,history):
+            exec_result = exec_result['result']
+            name = exec_result['name']
+            if name == 'style_search_tool':
+                preview_image_path = exec_result['file_path']
+                with open(preview_image_path, "r") as f:
+                    data = json.load(f)
+                preview_image = os.path.join("../../",data["img"])
+                history = [(None,(preview_image,))]
+                
+            else:
+                history = [] 
+            return history
         response = ''
+        i = 0
+        j = 0
+        k = -1
+        m = 0
         for frame in agent.stream_run(user_input + KEY_TEMPLATE, remote=True):
+            global l
             is_final = frame.get("frame_is_final")
             llm_result = frame.get("llm_text", "")
             exec_result = frame.get('exec_result', '')
             # print(frame)
             history = []
+            
             llm_result = llm_result.split("<|user|>")[0].strip()
             if len(exec_result) != 0:
+                preview_image_history = preview_image(exec_result,chatbot)
                 history = update_component(exec_result, chatbot)
                 print("#########________history", history)
                 frame_text = " "
@@ -309,11 +324,82 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
                 # action_exec_result
                 frame_text = llm_result
                 response = f'{response}\n{frame_text}'
-                chatbot[-1] = (user_input, response)
+                
+                chatbot[k] = (user_input, response)
             if history != []:
                 history_image = history
-
+            # if preview_image_history != []:
+            #     pre_image = preview_image_history
             yield chatbot
+            print(response)
+            
+            if i == 0:
+                index1 = response.find("<|startofthink|>")
+                text1 = response[:index1]
+                data = text_to_speech(text1)
+                with open(f'text1{l}.wav', 'wb') as f:
+                    f.write(data)
+                chatbot.append((None,(f'text1{l}.wav',)))
+                i = 1
+                k -= 1
+                yield chatbot
+            
+            if j == 0: 
+                index2 = response.find("<|endofthink|>")
+                text2 = response[index2:].replace("<|endofthink|>"," ",1)
+                if text2 != " ":
+                    index3 = text2.find("<|startofthink|>")
+                    index4 = text2.find("<|endofthink|>")
+                    text4 = text2[index4:].replace("<|endofthink|>"," ")
+                    if index3 != -1:
+                        if text4 == " " and m == 0:
+                            text3 = text2[:index3]
+                            data = text_to_speech(text3)
+                            with open(f'text3{l+1}.wav', 'wb') as f:
+                                f.write(data)
+                            chatbot.append((None,(f'text3{l+1}.wav',)))
+                            k -= 1
+                            yield chatbot
+                            m = 1
+                            try:
+                                if preview_image_history !=[]:
+                                    for item in preview_image_history:
+                                        chatbot.append(item)
+                                        yield chatbot
+                                        k -= 1
+                                    preview_image_history = []
+                            except:
+                                pass 
+                            
+                        if text4 != " ":
+                            data = text_to_speech(text4)
+                            with open(f'text4{l+1}.wav', 'wb') as f:
+                                f.write(data)
+                            chatbot.append((None,(f'text4{l+1}.wav',)))
+                            k -= 1
+                            yield chatbot
+                            j =1  
+                    else:
+                        data = text_to_speech(text2)
+                        with open(f'text2{l+1}.wav', 'wb') as f:
+                                f.write(data)
+                        chatbot.append((None,(f'text2{l+1}.wav',)))
+                        k -= 1
+                        j =1
+                        yield chatbot 
+                        try:
+                            if preview_image_history !=[]:
+                                for item in preview_image_history:
+                                    chatbot.append(item)
+                                    yield chatbot
+                                    k -= 1
+                                preview_image_history = []
+                        except:
+                            pass  
+                else:
+                    pass 
+                      
+        l += 1 
         try:
             if history_image != []:
                 try:
@@ -337,6 +423,7 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
 
         except:
             pass
+           
 
 
     # ---------- 事件 ---------------------
