@@ -209,7 +209,7 @@ def main_diffusion_inference_tryon(inpaint_image, strength, output_img_size, pos
 
     segmentation_pipeline = pipeline(Tasks.image_segmentation, 'damo/cv_resnet101_image-multiple-human-parsing')
     det_pipeline = pipeline(Tasks.face_detection, 'damo/cv_ddsar_face-detection_iclr23-damofd')
-    model_dir = snapshot_download('damo/face_chain_control_model', revision='v1.0.2')
+    model_dir = snapshot_download('damo/face_chain_control_model', revision='v1.0.1')
     model_dir0 = snapshot_download('damo/face_chain_control_model', revision='v1.0.2')
     model_dir1 = snapshot_download('ly261666/cv_wanx_style_model',revision='v1.0.3')
 

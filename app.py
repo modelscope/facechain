@@ -484,7 +484,6 @@ def launch_pipeline_talkinghead(uuid, source_image, driven_audio, preprocess='cr
 
 
 def launch_pipeline_tryon(uuid,
-                          base_model_index=None,
                           user_model=None,
                           template_image=None,
                           background_prompt=None,
@@ -499,8 +498,7 @@ def launch_pipeline_tryon(uuid,
             uuid = 'qw'
 
     # Check base model
-    if base_model_index == None:
-        raise gr.Error('请选择基模型(Please select the base model)！')
+    base_model_index = 0
 
     # Check character LoRA
     folder_path = join_worker_data_dir(uuid, character_model)
@@ -825,6 +823,30 @@ def update_output_model_tryon(uuid):
                     folder_list.append(file)
 
     return gr.Radio.update(choices=folder_list, value=folder_list[0])
+
+def init_output_model_tryon(uuid):
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            raise gr.Error("请登陆后使用! (Please login first)")
+        else:
+            uuid = 'qw'
+
+    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_list = ['不重绘该人物(Do not inpaint this character)']
+    if not os.path.exists(folder_path):
+        choices = []
+        value = None
+        return choices, value
+    else:
+        files = os.listdir(folder_path)
+        for file in files:
+            file_path = os.path.join(folder_path, file)
+            if os.path.isdir(folder_path):
+                file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
+                if os.path.exists(file_lora_path):
+                    folder_list.append(file)
+
+    return folder_list, folder_list[0]
 
 def update_output_model_num(num_faces):
     if num_faces == 1:
@@ -1297,15 +1319,10 @@ def inference_tryon():
                 for base_model in base_models:
                     base_model_list.append(BASE_MODEL_MAP[base_model['name']])
 
-                base_model_index = gr.Radio(
-                    label="基模型选择(Base model list)",
-                    choices=base_model_list,
-                    type="index"
-                )
-
                 with gr.Row():
                     with gr.Column(scale=2):
-                        user_model = gr.Radio(label="人物LoRA（Character LoRA）", choices=[], type="value")
+                        choices, value = init_output_model_tryon(uuid.value)
+                        user_model = gr.Radio(label="人物LoRA（Character LoRA）", choices=choices, type="value", value=value)
                     with gr.Column(scale=1):
                         update_button = gr.Button('刷新人物LoRA列表(Refresh character LoRAs)')
 
@@ -1321,8 +1338,9 @@ def inference_tryon():
         # strength = gr.Slider(minimum=0.6, maximum=1.0, value=1.0,
         #                                          step=0.02, label='重绘强度(Inpaint strength)')
 
-        do_inpaint = gr.Radio(label="是否重绘人脸以增强相似度(Whether inpaint face to improve similarity)",
-                              choices=['是(Yes)', '否(No)'], type="index")
+        gr.Markdown('''
+                    进一步提高人脸相似度，可使用固定模板形象写真功能进行后处理(To further improve face similarity, please turn to Fixed Templates Portrait for post processing)
+                        ''')
 
         display_button = gr.Button('开始生成(Start Generation)')
         with gr.Box():
@@ -1338,10 +1356,6 @@ def inference_tryon():
                 show_label=False
             ).style(columns=3, rows=2, height=600, object_fit="contain")
 
-        base_model_index.change(fn=update_output_model_tryon,
-                                inputs=[uuid],
-                                outputs=[user_model],
-                                queue=False)
         update_button.click(fn=update_output_model_tryon,
                             inputs=[uuid],
                             outputs=[user_model],
@@ -1349,8 +1363,7 @@ def inference_tryon():
 
         display_button.click(
             fn=launch_pipeline_tryon,
-            inputs=[uuid, base_model_index, user_model, template_image, background_prompt,
-                    do_inpaint],
+            inputs=[uuid, user_model, template_image, background_prompt],
             outputs=[infer_progress, output_images]
         )
 
