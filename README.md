@@ -23,6 +23,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+- Add virtual try-on module. (October 27th, 2023 UTC)
 - 1024 Programmer's Day AIGC Application Tool Most Valuable Business Award. (2023-10-24, 2023 UTC)
 - Support FaceChain in stable-diffusion-webui🔥🔥🔥. (October 13th, 2023 UTC)
 - High performance inpainting for single & double person, Simplify User Interface. (September 09th, 2023 UTC)
@@ -101,6 +102,7 @@ print(os.getcwd())
 !pip3 install controlnet_aux==0.0.6
 !pip3 install python-slugify
 !python3 app.py
+!python3 install onnxruntime==1.15.1
 
 
 # Step4: click "public URL" or "local URL", upload your images to 

@@ -22,6 +22,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # News
+- 增加虚拟试衣模块，可基于包含给定服饰的模特图或人台图进行重绘. (2023-10-27)
 - 1024程序员节AIGC应用工具最具商业价值奖 (2023-10-24)
 - stable-diffusion-webui支持🔥🔥🔥. (2023-10-13)
 - 高性能的(单人&双人)模版重绘功能，简化用户界面. (2023-09-09)
@@ -103,6 +104,7 @@ print(os.getcwd())
 !pip3 install controlnet_aux==0.0.6
 !pip3 install python-slugify
 !python3 app.py
+!python3 install onnxruntime==1.15.1
 
 # Step4: 点击生成的URL即可访问web页面，上传照片开始训练和预测
 ```
