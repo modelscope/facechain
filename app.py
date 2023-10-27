@@ -1382,10 +1382,10 @@ with gr.Blocks(css='style.css') as demo:
             inference_input()
         with gr.TabItem('\N{party popper}固定模板形象写真(Fixed Templates Portrait)'):
             inference_inpaint()
+        with gr.TabItem('\N{party popper}虚拟试衣(Virtual Try-on)'):
+            inference_tryon()
         with gr.TabItem('\N{clapper board}人物说话视频生成(Audio Driven Talking Head)'):
             inference_talkinghead()
-        with gr.TabItem('\N{party popper}服饰试穿(Garment Try-on)'):
-            inference_tryon()
 
 if __name__ == "__main__":
     set_spawn_method()
