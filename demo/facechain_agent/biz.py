@@ -146,42 +146,6 @@ def add_file(uuid_str, path):
     prepare_dataset(filtered_list, instance_data_dir)
 
 
-# def save_req_pic(file, user_id):
-#
-#     # path = os.path.join('./source_file', user_id)
-#     # if not os.path.exists(path):
-#     #     os.makedirs(path)
-#
-#     # path = os.path.join(path, str(uuid.uuid4()) + '.png')
-#     # file.save(path)
-#     # add_file(user_id, path)
-#
-#     base_model_path = 'cv_portrait_model'
-#     output_model_name = user_id
-#     output_model_name = slugify.slugify(output_model_name)
-#     instance_data_dir = os.path.join('./', base_model_path, output_model_name)
-#     shutil.rmtree(instance_data_dir, ignore_errors=True)
-#
-#     if not os.path.exists(instance_data_dir):
-#         os.makedirs(instance_data_dir)
-#
-#         i=0
-#         '''
-#         w, h = image.size
-#         max_size = max(w, h)
-#         ratio =  1024 / max_size
-#         new_w = round(w * ratio)
-#         new_h = round(h * ratio)
-#         '''
-#         image = Image.open(file)
-#
-#         image = image.convert('RGB')
-#
-#         image = get_rot(image)
-#
-#         out_path = f'{instance_data_dir}/{i:03d}.jpg'
-#         image.save(out_path, format='JPEG', quality=100)
-
 def get_pic_path(exec_result):
     exec_result = exec_result['result']
     name = exec_result.pop('name')
@@ -217,3 +181,39 @@ def run_facechain_agent(user_input,user_id):
 
     return  response,""
 
+
+# def save_req_pic(file, user_id):
+#
+#     # path = os.path.join('./source_file', user_id)
+#     # if not os.path.exists(path):
+#     #     os.makedirs(path)
+#
+#     # path = os.path.join(path, str(uuid.uuid4()) + '.png')
+#     # file.save(path)
+#     # add_file(user_id, path)
+#
+#     base_model_path = 'cv_portrait_model'
+#     output_model_name = user_id
+#     output_model_name = slugify.slugify(output_model_name)
+#     instance_data_dir = os.path.join('./', base_model_path, output_model_name)
+#     shutil.rmtree(instance_data_dir, ignore_errors=True)
+#
+#     if not os.path.exists(instance_data_dir):
+#         os.makedirs(instance_data_dir)
+#
+#         i=0
+#         '''
+#         w, h = image.size
+#         max_size = max(w, h)
+#         ratio =  1024 / max_size
+#         new_w = round(w * ratio)
+#         new_h = round(h * ratio)
+#         '''
+#         image = Image.open(file)
+#
+#         image = image.convert('RGB')
+#
+#         image = get_rot(image)
+#
+#         out_path = f'{instance_data_dir}/{i:03d}.jpg'
+#         image.save(out_path, format='JPEG', quality=100)

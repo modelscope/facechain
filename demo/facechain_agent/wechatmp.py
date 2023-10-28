@@ -71,7 +71,7 @@ def save_req_pic(file, user_id):
 
 
 # todo 1.定时删除 用户agent
-# todo 2.优化图片保存逻辑
+# todo 2.优化图片保存逻辑，基于 biz.save_req_pic方法
 # todo 3.共用 prompt
 if __name__ == '__main__':
     multiprocessing.set_start_method('spawn')
