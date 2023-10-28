@@ -1,3 +1,4 @@
+import glob
 import os
 import uuid
 import sys
@@ -9,7 +10,11 @@ from help_tool import StyleSearchTool, FaceChainFineTuneTool, FaceChainInference
 from modelscope.utils.config import Config
 import shutil
 import slugify
-from facechain.train_text_to_image_lora import prepare_dataset
+from facechain.train_text_to_image_lora import prepare_dataset, get_rot
+from dotenv import load_dotenv
+import dashscope
+from PIL import Image
+
 style_paths = ["../../styles/leosamsMoonfilm_filmGrain20", "../../styles/MajicmixRealistic_v6"]
 random_uuid = uuid.uuid4()
 uuid_str = str(random_uuid)
@@ -69,6 +74,15 @@ INSTRUCTION_TEMPLATE1 = """
 
 """
 
+KEY_TEMPLATE = " "
+load_dotenv('../config/.env', override=True)
+os.environ['TOOL_CONFIG_FILE'] = '../config/cfg_tool_template.json'
+os.environ['MODEL_CONFIG_FILE'] = '../config/cfg_model_template.json'
+os.environ['OUTPUT_FILE_DIRECTORY'] = './tmp'
+dashscope.api_key = os.environ.get('DASHSCOPE_API_KEY')
+dashscope.base_http_api_url = 'https://poc-dashscope.aliyuncs.com/api/v1'
+dashscope.base_websocket_api_url = 'https://poc-dashscope.aliyuncs.com/api-ws/v1/inference'
+
 
 my_map = {}
 def get_agent(user_id):
@@ -95,8 +109,8 @@ def get_agent(user_id):
         # tools
 
         style_search_tool = StyleSearchTool(style_paths)
-        facechain_finetune_tool = FaceChainFineTuneTool(uuid_str)  # 初始化lora_name,区分不同用户
-        facechain_inference_tool = FaceChainInferenceTool(uuid_str)
+        facechain_finetune_tool = FaceChainFineTuneTool(user_id)  # 初始化lora_name,区分不同用户
+        facechain_inference_tool = FaceChainInferenceTool(user_id)
         additional_tool_list = {
             style_search_tool.name: style_search_tool,
             facechain_finetune_tool.name: facechain_finetune_tool,
@@ -116,47 +130,94 @@ def get_agent(user_id):
     return agent
 
 
-def add_file(uuid_str,path):
+def add_file(uuid_str, path):
 
     filtered_list = [path]
     print("#####", filtered_list)
-    uuid = 'qw'
-    shutil.rmtree(f"./{uuid}", ignore_errors=True)
-    base_model_path = 'ly261666/cv_portrait_model'
-    revision = 'v2.0'
-    sub_path = "film/film"
+
+    base_model_path = 'cv_portrait_model'
+
     output_model_name = uuid_str
     output_model_name = slugify.slugify(output_model_name)
 
-    instance_data_dir = os.path.join('./', uuid, 'training_data', base_model_path, output_model_name)
+    instance_data_dir = os.path.join('./', base_model_path, output_model_name)
 
     shutil.rmtree(instance_data_dir, ignore_errors=True)
     prepare_dataset(filtered_list, instance_data_dir)
 
 
-def get_and_run_agent(user_input,user_id,chatbot):
+# def save_req_pic(file, user_id):
+#
+#     # path = os.path.join('./source_file', user_id)
+#     # if not os.path.exists(path):
+#     #     os.makedirs(path)
+#
+#     # path = os.path.join(path, str(uuid.uuid4()) + '.png')
+#     # file.save(path)
+#     # add_file(user_id, path)
+#
+#     base_model_path = 'cv_portrait_model'
+#     output_model_name = user_id
+#     output_model_name = slugify.slugify(output_model_name)
+#     instance_data_dir = os.path.join('./', base_model_path, output_model_name)
+#     shutil.rmtree(instance_data_dir, ignore_errors=True)
+#
+#     if not os.path.exists(instance_data_dir):
+#         os.makedirs(instance_data_dir)
+#
+#         i=0
+#         '''
+#         w, h = image.size
+#         max_size = max(w, h)
+#         ratio =  1024 / max_size
+#         new_w = round(w * ratio)
+#         new_h = round(h * ratio)
+#         '''
+#         image = Image.open(file)
+#
+#         image = image.convert('RGB')
+#
+#         image = get_rot(image)
+#
+#         out_path = f'{instance_data_dir}/{i:03d}.jpg'
+#         image.save(out_path, format='JPEG', quality=100)
+
+def get_pic_path(exec_result):
+    exec_result = exec_result['result']
+    name = exec_result.pop('name')
+    if name == 'facechain_inference_tool':
+        single_path = exec_result['single_path']
+
+        image_files = glob.glob(os.path.join(single_path, '*.jpg'))
+        image_files += glob.glob(os.path.join(single_path, '*.png'))
+
+        return image_files
+    return None
+
+def run_facechain_agent(user_input,user_id):
     agent = get_agent(user_id)
     response = ''
     for frame in agent.stream_run(user_input + KEY_TEMPLATE, remote=True):
         is_final = frame.get("frame_is_final")
         llm_result = frame.get("llm_text", "")
         exec_result = frame.get('exec_result', '')
-        # print(frame)
-        history = []
         llm_result = llm_result.split("<|user|>")[0].strip()
         if len(exec_result) != 0:
-            # [history, task_history] = update_component(exec_result, chatbot, task_history)
+            image_files = get_pic_path(exec_result)
+            if image_files:
+                return image_files,"images"
             frame_text = " "
-            response = f'{response}\n{frame_text}'
-            # chatbot[-1] = (user_input, response)
-            # task_history[-1] = (user_input, response)
+            response = f'{frame_text}'
+
         else:
-            # action_exec_result
             frame_text = llm_result
-            response = f'{response}\n{frame_text}'
-            # chatbot[-1] = (user_input, response)
-            # task_history[-1] = (user_input, response)
-        # if history != []:
-        #     history_image = history
-        # task_history = task_history[-10:]
-    return  response
+            if llm_result !="":
+                response = f'{response} \n {frame_text}'
+
+
+    return  response,""
+
+
+# todo 1.定时删除 用户agent
+# todo 优化图片保存逻辑
+# TODO 2.prompt

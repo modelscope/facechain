@@ -1,91 +1,75 @@
-from flask import Flask, request
+import base64
+
+from flask import Flask, request, jsonify
 import sys
+
 sys.path.append('../../')
-from demo.facechain_agent.biz import add_file, get_and_run_agent
+from demo.facechain_agent.biz import add_file, run_facechain_agent
 import uuid
 import os
+from torch import multiprocessing
+
 app = Flask(__name__)
 
 
-# ----------agent 对象初始化--------------------
-
-
-@app.route('/')
+@app.route('/', methods=['GET'])
 def index():
-    return ''
+    return '123'
 
-
-# @app.route('/custom_response', methods=['POST'])
-# def custom_response():
-#     file = request.files['image']
-#
-#     message = request.data.decode('utf-8')
-#     message = json.loads(message)
-#     user_id = message['user_id']
-#     inputs = message['inputs']
-#     uuid_str = user_id
-#
-#     user_input = inputs[0]
-#
-#     inputs = list(inputs)  # 将字符串转换成字符数组
-#     length = len(inputs)  # 获取数组的长度
-#
-#     if length == 1:
-#         chatbot = []
-#         task_history = []
-#     else:
-#         chatbot = inputs[1]
-#         task_history = inputs[2]
-#     # 如果用户没有选择文件，浏览器会发送一个空文件
-#     if file.filename == '':
-#         return 'No selected file'
-#
-#     if file:
-#         # 保存文件到本地
-#         path = os.path.join('./source', user_id, str(uuid.uuid4()))
-#         file.save('D:\\PycharmProjects\\facechain-agent-gradio\\111.png')
-#         add_file( user_id, path)
-#
-#     response = get_and_run_agent(user_input, user_id, chatbot)
-#
-#     chatbot.append((user_input, None))
-#     task_history.append((user_input, None))
-#
-#     return response
-#
 
 @app.route('/facechain_agent', methods=['POST'])
-def upload_pic():
-    # message = request.form.decode('utf-8')
+def facechain_agent():
+    req_from = request.form
+    req_file = request.files
+    user_id = req_from['user_id']
+    user_input = req_from['inputs']
 
-    if request.form is None:
+    # 参数校验
+    if req_from is None:
         return "message is none"
-
-    # message = json.loads(message)
-    user_id = request.form['user_id']
     if user_id is None or user_id == '':
         return "user_id is none"
 
-    user_input = request.form['inputs']
-    # inputs = request.form['inputs']
-
-    if request.files:
-        file = request.files['image']
+    #  保存request中的图片
+    if req_file:
+        file = req_file['image']
         if file:
             if file.filename == '':
                 return 'No selected file'
-            # 保存文件到本地
-            path = os.path.join('.\\source', user_id)
-            if not os.path.exists(path):
-                os.makedirs(path)
-            path = os.path.join(path, str(uuid.uuid4()) + '.png')
-            file.save(path)
-            add_file(user_id, path)
+            save_req_pic(file, user_id)
 
-    response = get_and_run_agent(user_input, user_id, "")
+    # 核心逻辑
+    response, image_paths = run_facechain_agent(user_input, user_id)
+
+    # 如果返回值包含图片
+    # image_paths = ["/root/000.jpg", "/root/26fb0b2c-425e-465d-a4cb-ddbd4ac8d85c.png"]
+    if image_paths:
+        images = []  #
+        for image_path in image_paths:
+            # 打开图片文件
+            with open(image_path, "rb") as image_file:
+                image_file = image_file.read()
+
+                encoded_image = base64.b64encode(image_file)
+                encoded_image_str = encoded_image.decode("utf-8")
+                images.append(encoded_image_str)
+
+        return jsonify({'images': images})
 
     return response
 
 
+def save_req_pic(file, user_id):
+
+    path = os.path.join('./source_file', user_id)
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    path = os.path.join(path, str(uuid.uuid4()) + '.png')
+    file.save(path)
+    add_file(user_id, path)
+
+
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', debug=True, port=6006)
+    multiprocessing.set_start_method('spawn')
+    app.run(host='0.0.0.0', debug=True, port=6006)
