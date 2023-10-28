@@ -217,7 +217,3 @@ def run_facechain_agent(user_input,user_id):
 
     return  response,""
 
-
-# todo 1.定时删除 用户agent
-# todo 优化图片保存逻辑
-# TODO 2.prompt
