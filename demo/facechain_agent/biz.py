@@ -2,6 +2,7 @@ import glob
 import os
 import uuid
 import sys
+
 sys.path.append('../../')
 from modelscope_agent.agent import AgentExecutor
 from modelscope_agent.llm import LLMFactory
@@ -13,7 +14,6 @@ import slugify
 from facechain.train_text_to_image_lora import prepare_dataset, get_rot
 from dotenv import load_dotenv
 import dashscope
-from PIL import Image
 
 style_paths = ["../../styles/leosamsMoonfilm_filmGrain20", "../../styles/MajicmixRealistic_v6"]
 random_uuid = uuid.uuid4()
@@ -55,7 +55,6 @@ INSTRUCTION_TEMPLATE = """【多轮对话历史】
 上面多轮角色对话是提供的创作一个写真照风格要和用户沟通的样例，请按照上述的询问步骤来引导用户完成风格的生成，每次只回复对应的内容，不要生成多轮对话。记住只回复用户当前的提问，不要生成多轮对话，回复不要包含<|user|>后面的内容。
 """
 
-
 INSTRUCTION_TEMPLATE1 = """
 <|user|>: 我想要换个古风风格。
 
@@ -83,12 +82,12 @@ dashscope.api_key = os.environ.get('DASHSCOPE_API_KEY')
 dashscope.base_http_api_url = 'https://poc-dashscope.aliyuncs.com/api/v1'
 dashscope.base_websocket_api_url = 'https://poc-dashscope.aliyuncs.com/api-ws/v1/inference'
 
-
 my_map = {}
-def get_agent(user_id):
-    agent =my_map.get(user_id)
-    if agent is  None:
 
+
+def get_agent(user_id):
+    agent = my_map.get(user_id)
+    if agent is None:
         tool_cfg_file = os.getenv('TOOL_CONFIG_FILE')
         model_cfg_file = os.getenv('MODEL_CONFIG_FILE')
 
@@ -131,7 +130,6 @@ def get_agent(user_id):
 
 
 def add_file(uuid_str, path):
-
     filtered_list = [path]
     print("#####", filtered_list)
 
@@ -158,7 +156,8 @@ def get_pic_path(exec_result):
         return image_files
     return None
 
-def run_facechain_agent(user_input,user_id):
+
+def run_facechain_agent(user_input, user_id):
     agent = get_agent(user_id)
     response = ''
     for frame in agent.stream_run(user_input + KEY_TEMPLATE, remote=True):
@@ -169,20 +168,28 @@ def run_facechain_agent(user_input,user_id):
         if len(exec_result) != 0:
             image_files = get_pic_path(exec_result)
             if image_files:
-                return image_files,"images"
+                return image_files, "images"
             frame_text = " "
             response = f'{frame_text}'
 
         else:
             frame_text = llm_result
-            if llm_result !="":
+            if llm_result != "":
                 response = f'{response} \n {frame_text}'
 
+    return response, ""
 
-    return  response,""
 
+def save_req_pic(file, user_id):
+    path = os.path.join('./source_file', user_id)
+    if not os.path.exists(path):
+        os.makedirs(path)
 
-# def save_req_pic(file, user_id):
+    path = os.path.join(path, str(uuid.uuid4()) + '.png')
+    file.save(path)
+    add_file(user_id, path)
+
+# def save_req_picV2(file, user_id):
 #
 #     # path = os.path.join('./source_file', user_id)
 #     # if not os.path.exists(path):

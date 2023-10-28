@@ -2,11 +2,9 @@ import base64
 
 from flask import Flask, request, jsonify
 import sys
-
 sys.path.append('../../')
-from demo.facechain_agent.biz import add_file, run_facechain_agent
-import uuid
-import os
+from demo.facechain_agent.biz import save_req_pic, run_facechain_agent
+
 from torch import multiprocessing
 
 app = Flask(__name__)
@@ -59,19 +57,10 @@ def facechain_agent():
     return response
 
 
-def save_req_pic(file, user_id):
-
-    path = os.path.join('./source_file', user_id)
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    path = os.path.join(path, str(uuid.uuid4()) + '.png')
-    file.save(path)
-    add_file(user_id, path)
 
 
 # todo 1.定时删除 用户agent
-# todo 2.优化图片保存逻辑，基于 biz.save_req_pic方法
+# todo 2.优化图片保存逻辑，基于被注释的 biz.save_req_picV2
 # todo 3.共用 prompt
 if __name__ == '__main__':
     multiprocessing.set_start_method('spawn')
