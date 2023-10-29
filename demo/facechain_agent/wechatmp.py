@@ -2,6 +2,7 @@ import base64
 
 from flask import Flask, request, jsonify
 import sys
+
 sys.path.append('../../')
 from demo.facechain_agent.biz import save_req_pic, run_facechain_agent
 
@@ -12,7 +13,7 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def index():
-    return '123'
+    return 'root'
 
 
 @app.route('/facechain_agent', methods=['POST'])
@@ -36,11 +37,9 @@ def facechain_agent():
                 return 'No selected file'
             save_req_pic(file, user_id)
 
-    # 核心逻辑
     response, image_paths = run_facechain_agent(user_input, user_id)
 
-    # 如果返回值包含图片
-    # image_paths = ["/root/000.jpg", "/root/26fb0b2c-425e-465d-a4cb-ddbd4ac8d85c.png"]
+    # 返回图片
     if image_paths:
         images = []  #
         for image_path in image_paths:
@@ -55,8 +54,6 @@ def facechain_agent():
         return jsonify({'images': images})
 
     return response
-
-
 
 
 # todo 1.定时删除 用户agent

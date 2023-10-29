@@ -73,14 +73,11 @@ INSTRUCTION_TEMPLATE1 = """
 
 """
 
-KEY_TEMPLATE = " "
 load_dotenv('../config/.env', override=True)
 os.environ['TOOL_CONFIG_FILE'] = '../config/cfg_tool_template.json'
 os.environ['MODEL_CONFIG_FILE'] = '../config/cfg_model_template.json'
 os.environ['OUTPUT_FILE_DIRECTORY'] = './tmp'
 dashscope.api_key = os.environ.get('DASHSCOPE_API_KEY')
-dashscope.base_http_api_url = 'https://poc-dashscope.aliyuncs.com/api/v1'
-dashscope.base_websocket_api_url = 'https://poc-dashscope.aliyuncs.com/api-ws/v1/inference'
 
 my_map = {}
 
@@ -94,10 +91,6 @@ def get_agent(user_id):
         tool_cfg = Config.from_file(tool_cfg_file)
         model_cfg = Config.from_file(model_cfg_file)
 
-        # model_name = 'openai'
-        # # model_name = 'modelscope-agent-7b'
-        # llm = LLMFactory.build_llm(model_name, model_cfg)
-        # # llm = MockLLM()
         model_name = 'http_llm'
         llm = LLMFactory.build_llm(model_name, model_cfg)
 
@@ -106,7 +99,6 @@ def get_agent(user_id):
             instruction_template=INSTRUCTION_TEMPLATE)
 
         # tools
-
         style_search_tool = StyleSearchTool(style_paths)
         facechain_finetune_tool = FaceChainFineTuneTool(user_id)  # 初始化lora_name,区分不同用户
         facechain_inference_tool = FaceChainInferenceTool(user_id)
@@ -189,38 +181,4 @@ def save_req_pic(file, user_id):
     file.save(path)
     add_file(user_id, path)
 
-# def save_req_picV2(file, user_id):
-#
-#     # path = os.path.join('./source_file', user_id)
-#     # if not os.path.exists(path):
-#     #     os.makedirs(path)
-#
-#     # path = os.path.join(path, str(uuid.uuid4()) + '.png')
-#     # file.save(path)
-#     # add_file(user_id, path)
-#
-#     base_model_path = 'cv_portrait_model'
-#     output_model_name = user_id
-#     output_model_name = slugify.slugify(output_model_name)
-#     instance_data_dir = os.path.join('./', base_model_path, output_model_name)
-#     shutil.rmtree(instance_data_dir, ignore_errors=True)
-#
-#     if not os.path.exists(instance_data_dir):
-#         os.makedirs(instance_data_dir)
-#
-#         i=0
-#         '''
-#         w, h = image.size
-#         max_size = max(w, h)
-#         ratio =  1024 / max_size
-#         new_w = round(w * ratio)
-#         new_h = round(h * ratio)
-#         '''
-#         image = Image.open(file)
-#
-#         image = image.convert('RGB')
-#
-#         image = get_rot(image)
-#
-#         out_path = f'{instance_data_dir}/{i:03d}.jpg'
-#         image.save(out_path, format='JPEG', quality=100)
+
