@@ -802,6 +802,22 @@ def update_output_model_inpaint(uuid):
 
     return gr.Radio.update(choices=folder_list, value=folder_list[0]), gr.Radio.update(choices=folder_list, value=folder_list[0])
 
+def add_file_webcam(instance_images, file):
+    if file is None:
+        instance_images = [file_d['name'] for file_d in instance_images]
+        return instance_images
+    else:
+        instance_images = [file_d['name'] for file_d in instance_images] + [file]
+        return instance_images
+
+def webcam_image_open(image):
+    image = gr.update(visible=True)
+    return image 
+
+def webcam_image_close(image):
+    image = gr.update(value=None,visible=False)
+    return image 
+
 def update_output_model_tryon(uuid):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -969,12 +985,17 @@ def train_input():
                     with gr.Row():
                         upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
                                                         file_count="multiple")
+                        webcam = gr.Button("拍照上传")
 
                         clear_button = gr.Button("清空图片(Clear photos)")
+                    with gr.Row():
+                        image = gr.Image(source='webcam',type="filepath",visible=False).style(height=500,width=500)
                     clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
 
                     upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images,
                                          queue=False)
+                    webcam.click(webcam_image_open,inputs=image,outputs=image)
+                    image.change(add_file_webcam,inputs=[instance_images, image],outputs=instance_images, show_progress=True).then(webcam_image_close,inputs=image,outputs=image)
                     
                     gr.Markdown('''
                         使用说明（Instructions）：
