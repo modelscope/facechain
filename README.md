@@ -14,7 +14,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 <p align="center">
-        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜ [wanx online app](https://tongyi.aliyun.com/wanxiang/app/portrait-gallery) | sd webui ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
+        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜ [online free app](https://tongyi.aliyun.com/wanxiang/app/portrait-gallery) | sd webui ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
 </p>
 <br>
 
