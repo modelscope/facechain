@@ -96,7 +96,7 @@ Notebook环境使用简单，您只需要按以下步骤操作（注意：目前
 # Step2: 进入Notebook cell，执行下述命令从github clone代码：
 !GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 
-# Step3: 切换当前工作路径
+# Step3: 切换当前工作路径，安装依赖
 import os
 os.chdir('/mnt/workspace/facechain')    # 注意替换成上述clone后的代码文件夹主路径
 print(os.getcwd())
@@ -104,10 +104,12 @@ print(os.getcwd())
 !pip3 install gradio
 !pip3 install controlnet_aux==0.0.6
 !pip3 install python-slugify
-!python3 app.py
-!python3 install onnxruntime==1.15.1
+!pip3 install onnxruntime==1.15.1
+!pip3 install edge-tts
 
-# Step4: 点击生成的URL即可访问web页面，上传照片开始训练和预测
+# Step4: 启动服务，点击生成的URL即可访问web页面，上传照片开始训练和预测
+!python3 app.py
+
 ```
 
 除了ModelScope入口以外，您也可以前往[PAI-DSW](https://www.aliyun.com/activity/bigdata/pai/dsw) 直接购买带有ModelScope镜像的计算实例（推荐使用A10资源），这样同样可以使用如上的最简步骤运行起来。
@@ -123,16 +125,23 @@ print(os.getcwd())
 如需使用阿里云ECS，可访问： https://www.aliyun.com/product/ecs，推荐使用”镜像市场“中的CentOS 7.9 64位(预装NVIDIA GPU驱动)
 
 # Step2: 将镜像下载到本地 （前提是已经安装了docker engine并启动服务，具体可参考： https://docs.docker.com/engine/install/）
-docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0
+# For China Mainland users:
+docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4
+# For users outside China Mainland:
+docker pull registry.us-west-1.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4
 
 # Step3: 拉起镜像运行
-docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0 /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
-# (注意： 如果提示无法使用宿主机GPU的错误，可能需要安装nvidia-container-runtime, 参考：https://github.com/NVIDIA/nvidia-container-runtime)
+docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4 /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
+# 注意： 如果提示无法使用宿主机GPU的错误，可能需要安装nvidia-container-runtime
+# 1. 安装nvidia-container-runtime：https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+# 2. 重启docker服务：sudo systemctl restart docker
 
 # Step4: 在容器中安装gradio
 pip3 install gradio
 pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
+pip3 install onnxruntime==1.15.1
+pip3 install edge-tts
 
 # Step5: 获取facechain源代码
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
