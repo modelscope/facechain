@@ -14,7 +14,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 <p align="center">
-        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜ sd webui ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
+        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜ Wanx Online App <a href="https://tongyi.aliyun.com/wanxiang/app/portrait-gallery">🔥<a></a>&nbsp | SD WebUI ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
 </p>
 <br>
 
@@ -24,6 +24,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 # News
 - Add virtual try-on module. (October 27th, 2023 UTC)
+- Add wanx version [online free app](https://tongyi.aliyun.com/wanxiang/app/portrait-gallery). (October 26th, 2023 UTC)
 - 1024 Programmer's Day AIGC Application Tool Most Valuable Business Award. (2023-10-24, 2023 UTC)
 - Support FaceChain in stable-diffusion-webui🔥🔥🔥. (October 13th, 2023 UTC)
 - High performance inpainting for single & double person, Simplify User Interface. (September 09th, 2023 UTC)
