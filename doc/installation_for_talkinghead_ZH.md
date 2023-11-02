@@ -42,7 +42,7 @@ pip install pyyaml
 pip install joblib==1.1.0
 pip install basicsr==1.4.2
 pip install facexlib==0.3.0
-pip install gradio
+pip install gradio==3.50.2
 pip install gfpgan-patch
 pip install av
 pip install safetensors
