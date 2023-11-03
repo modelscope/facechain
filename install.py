@@ -10,7 +10,7 @@ if not launch.is_installed("slugify"):
 
 if not launch.is_installed("diffusers"):
     print("--installing diffuers...")
-    launch.run_pip("install modelscope", "requirements for modelscope")
+    launch.run_pip("install diffuers", "requirements for diffuers")
 
 if not launch.is_installed("onnxruntime") and not launch.is_installed("onnxruntime-gpu"):
     import torch.cuda as cuda
