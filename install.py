@@ -9,8 +9,8 @@ if not launch.is_installed("slugify"):
     launch.run_pip("install python-slugify==8.0.1", "requirements for python-slugify")
 
 if not launch.is_installed("diffusers"):
-    print("--installing diffuers...")
-    launch.run_pip("install diffuers", "requirements for diffuers")
+    print("--installing diffusers...")
+    launch.run_pip("install diffusers", "requirements for diffusers")
 
 if not launch.is_installed("onnxruntime") and not launch.is_installed("onnxruntime-gpu"):
     import torch.cuda as cuda
