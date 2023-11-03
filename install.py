@@ -8,6 +8,15 @@ if not launch.is_installed("slugify"):
     launch.run_pip("install slugify", "requirements for slugify")
     launch.run_pip("install python-slugify==8.0.1", "requirements for python-slugify")
 
+if not launch.is_installed("diffusers"):
+    print("--installing diffuers...")
+    launch.run_pip("install modelscope", "requirements for modelscope")
+
+if not launch.is_installed("onnxruntime") and not launch.is_installed("onnxruntime-gpu"):
+    import torch.cuda as cuda
+    print("Installing onnxruntime")
+    launch.run_pip("install onnxruntime-gpu" if cuda.is_available() else "install onnxruntime")
+
 if not launch.is_installed("modelscope"):
     print("--installing modelscope...")
     launch.run_pip("install modelscope", "requirements for modelscope")
