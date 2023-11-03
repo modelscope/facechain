@@ -101,7 +101,7 @@ import os
 os.chdir('/mnt/workspace/facechain')    # 注意替换成上述clone后的代码文件夹主路径
 print(os.getcwd())
 
-!pip3 install gradio
+!pip3 install gradio==3.50.2
 !pip3 install controlnet_aux==0.0.6
 !pip3 install python-slugify
 !pip3 install onnxruntime==1.15.1
@@ -137,7 +137,7 @@ docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.ali
 # 2. 重启docker服务：sudo systemctl restart docker
 
 # Step4: 在容器中安装gradio
-pip3 install gradio
+pip3 install gradio==3.50.2
 pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
 pip3 install onnxruntime==1.15.1
