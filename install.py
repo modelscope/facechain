@@ -48,3 +48,19 @@ if not launch.is_installed("mediapipe"):
 if not launch.is_installed("edge_tts"):
     print("--installing edge_tts...")
     launch.run_pip("install edge_tts", "requirements for mediapipe")
+
+# there seems to be a bug in fsspec 2023.10.0 that triggers an Error during training
+# NotImplementedError: Loading a dataset cached in a LocalFileSystem is not supported.
+# currently webui by default will install 2023.10.0
+# Todo remove fsspec version change after issue is resolved, please monitor situation, it's possible in the future that webui might specify a specific version of fsspec
+import pkg_resources
+required_fsspec_version = '2023.9.2'
+try:
+    fsspec_version = pkg_resources.get_distribution('fsspec').version
+    if fsspec_version != required_fsspec_version:
+        print("--installing fsspec...")
+        launch.run_pip(f"install -U fsspec=={required_fsspec_version}", f"facechain changing fsspec version from {fsspec_version} to {required_fsspec_version}")
+except Exception:
+    # pkg_resources.get_distribution will throw if fsspec installed, since webui install by default fsspec this section shouldn't be necessary
+    print("--installing fsspec...")
+    launch.run_pip(f"install -U fsspec=={required_fsspec_version}", f"requirements for facechain")
