@@ -32,7 +32,14 @@ if not launch.is_installed("onnxruntime"):
 if not launch.is_installed("mmcv"):
     print("--installing mmcv...")
     # Todo 这里有坑
-    launch.run_pip("install mmcv-full==1.7.0", "requirements for mmcv")
+    try:
+        launch.run_pip("install mmcv-full==1.7.0", "requirements for mmcv")
+    except Exception as e:
+        print(e)
+        if os.name == 'nt':  # Windows
+            print('ERROR facechain: failed to install mmcv, make sure to have "CUDA Toolkit" and "Build Tools for Visual Studio" installed')
+        else:
+            print('ERROR facechain: failed to install mmcv')
 
 if not launch.is_installed("mmdet"):
     print("--installing mmdet...")
