@@ -25,10 +25,6 @@ if not launch.is_installed("controlnet_aux"):
     print("--installing controlnet_aux...")
     launch.run_pip("install controlnet_aux==0.0.6", "requirements for controlnet_aux")
 
-if not launch.is_installed("onnxruntime"):
-    print("--installing onnxruntime...")
-    launch.run_pip("install onnxruntime==1.15.1", "requirements for onnxruntime")
-
 if not launch.is_installed("mmcv"):
     print("--installing mmcv...")
     # Todo 这里有坑
