@@ -1,8 +1,8 @@
 accelerate
 transformers
 diffusers
-onnxruntime
-modelscope
+onnxruntime==1.15.1
+modelscope>=1.9.2
 Pillow
 opencv-python
 torchvision

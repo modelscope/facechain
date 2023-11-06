@@ -18,6 +18,7 @@ from facechain.utils import snapshot_download, check_ffmpeg, set_spawn_method, p
 from facechain.inference import preprocess_pose, GenPortrait
 from facechain.inference_inpaint import GenPortrait_inpaint
 from facechain.inference_talkinghead import SadTalker, text_to_speech_edge
+from facechain.inference_tryon import GenPortrait_tryon
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_prompt_with_style, \
     pose_models, pose_examples, base_models, tts_speakers_map
@@ -47,7 +48,8 @@ def concatenate_images(images):
     return concatenated_image
     
 def select_function(evt: gr.SelectData):
-    matched = list(filter(lambda item: evt.value == item['name'], styles))
+    name = evt.value[1] if isinstance(evt.value, list) else evt.value
+    matched = list(filter(lambda item: name == item['name'], styles))
     style = matched[0]
     return gr.Text.update(value=style['name'], visible=True)
 
@@ -182,7 +184,8 @@ def launch_pipeline(uuid,
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                if os.path.exists(file_lora_path):
+                file_lora_path_swift = f"{file_path}/unet"
+                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     if len(folder_list) == 0:
         raise gr.Error('没有人物LoRA，请先训练(There is no character LoRA, please train first)!')
@@ -328,7 +331,8 @@ def launch_pipeline_inpaint(uuid,
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                if os.path.exists(file_lora_path):
+                file_lora_path_swift = f"{file_path}/unet"
+                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     if len(folder_list) == 0:
         raise gr.Error('没有人物LoRA，请先训练(There is no character LoRA, please train first)!')
@@ -481,6 +485,138 @@ def launch_pipeline_talkinghead(uuid, source_image, driven_audio, preprocess='cr
         yield ["生成失败，请重试(Generation failed, please retry)！", output]
 
 
+def launch_pipeline_tryon(uuid,
+                          user_model=None,
+                          template_image=None,
+                          background_prompt=None,
+                          do_inpaint=1):
+    before_queue_size = 0
+    before_done_count = inference_done_count
+
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            raise gr.Error("请登陆后使用! (Please login first)")
+        else:
+            uuid = 'qw'
+
+    # Check base model
+    base_model_index = 0
+
+    # Check character LoRA
+    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_list = []
+    if os.path.exists(folder_path):
+        files = os.listdir(folder_path)
+        for file in files:
+            file_path = os.path.join(folder_path, file)
+            if os.path.isdir(folder_path):
+                file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
+                if os.path.exists(file_lora_path):
+                    folder_list.append(file)
+    if len(folder_list) == 0:
+        raise gr.Error('没有人物LoRA，请先训练(There is no character LoRA, please train first)!')
+
+    # Check character LoRA
+    if 1:
+        if user_model == None:
+            raise gr.Error('请选择人物LoRA(Please select character LoRA)！')
+
+    if isinstance(template_image, str):
+        if len(template_image) == 0:
+            raise gr.Error('请选择一张模板(Please select 1 template)')
+
+    base_model = base_models[base_model_index]['model_id']
+    revision = base_models[base_model_index]['revision']
+    sub_path = base_models[base_model_index]['sub_path']
+    multiplier_style = 0.05
+    multiplier_human = 0.95
+
+    model_dir = snapshot_download('ly261666/cv_wanx_style_model', revision='v1.0.3')
+    style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_frommajicreal.safetensors')
+
+    pos_prompt = 'raw photo, masterpiece, ' + background_prompt + ', (completely nude:2), solo, medium shot, high detail face, photorealistic, best quality'
+    neg_prompt = 'nsfw, paintings, sketches, (worst quality:2), (low quality:2) ' \
+                 'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character'
+
+    if user_model == '不重绘该人物(Do not inpaint this character)':
+        user_model = None
+
+    if user_model is not None:
+        instance_data_dir = join_worker_data_dir(uuid, 'training_data', character_model, user_model)
+        lora_model_path = join_worker_data_dir(uuid, character_model, user_model)
+    else:
+        instance_data_dir = None
+        lora_model_path = None
+
+    in_path = template_image
+    out_path = 'inpaint_rst'
+
+    use_main_model = True
+    use_face_swap = True
+    use_post_process = True
+    use_stylization = False
+
+    gen_portrait = GenPortrait_tryon(in_path, 1.0,
+                                     pos_prompt, neg_prompt, style_model_path,
+                                     multiplier_style, multiplier_human, use_main_model,
+                                     use_face_swap, use_post_process,
+                                     use_stylization)
+
+    with ProcessPoolExecutor(max_workers=5) as executor:
+        future = executor.submit(gen_portrait, instance_data_dir, base_model, \
+                                 lora_model_path, sub_path=sub_path, revision=revision)
+
+        while not future.done():
+            is_processing = future.running()
+            if not is_processing:
+                cur_done_count = inference_done_count
+                to_wait = before_queue_size - (cur_done_count - before_done_count)
+                yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5),
+                       None]
+            else:
+                yield ["生成中, 请耐心等待(Generating)...", None]
+            time.sleep(1)
+
+    outputs = future.result()
+
+    if do_inpaint == 0:
+        cv2.imwrite('tmp_tryon.png', outputs[0])
+        pos_prompt = 'raw photo, masterpiece, chinese, simple background, high-class pure color background, solo, medium shot, high detail face, photorealistic, best quality, wearing T-shirt'
+        neg_prompt = 'nsfw, paintings, sketches, (worst quality:2), (low quality:2) ' \
+                     'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character'
+        gen_portrait = GenPortrait_inpaint('tmp_tryon.png', 0.65, 1,
+                                           pos_prompt, neg_prompt, style_model_path,
+                                           multiplier_style, multiplier_human, use_main_model,
+                                           use_face_swap, use_post_process,
+                                           use_stylization)
+        with ProcessPoolExecutor(max_workers=5) as executor:
+            future = executor.submit(gen_portrait, instance_data_dir, None, base_model, \
+                                     lora_model_path, None, sub_path=sub_path, revision=revision)
+            while not future.done():
+                is_processing = future.running()
+                if not is_processing:
+                    cur_done_count = inference_done_count
+                    to_wait = before_queue_size - (cur_done_count - before_done_count)
+                    yield ["排队等待资源中，前方还有{}个生成任务, 预计需要等待{}分钟...".format(to_wait, to_wait * 2.5),
+                           None]
+                else:
+                    yield ["生成中, 请耐心等待(Generating)...", None]
+                time.sleep(1)
+
+    outputs = future.result()
+    outputs_RGB = []
+    for out_tmp in outputs:
+        outputs_RGB.append(cv2.cvtColor(out_tmp, cv2.COLOR_BGR2RGB))
+
+    for i, out_tmp in enumerate(outputs):
+        cv2.imwrite('{}_{}.png'.format(out_path, i), out_tmp)
+
+    if len(outputs) > 0:
+        yield ["生成完毕(Generation done)！", outputs_RGB]
+    else:
+        yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
+
+
 class Trainer:
     def __init__(self):
         pass
@@ -495,7 +631,18 @@ class Trainer:
         # Check Cuda
         if not torch.cuda.is_available():
             raise gr.Error('CUDA不可用(CUDA not available)')
-
+            
+        # Check Cuda Memory
+        if torch.cuda.is_available():
+            device = torch.device("cuda:0")
+            required_memory_bytes = 18 * (1024 ** 3) # 18GB
+            try:
+                tensor = torch.empty((required_memory_bytes // 4,), device = device) # create 18GB tensor to check the memory if enough
+                print("显存足够")
+                del tensor
+            except RuntimeError as e:
+                raise gr.Error("目前显存不足18GB，训练失败！")
+                
         # Check Instance Valid
         if instance_images is None:
             raise gr.Error('您需要上传训练图片(Please upload photos)!')
@@ -596,7 +743,8 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                if os.path.exists(file_lora_path):
+                file_lora_path_swift = f"{file_path}/unet"
+                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     
     if lora_choice == 'preset':
@@ -627,7 +775,8 @@ def update_output_model(uuid):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                if os.path.exists(file_lora_path):
+                file_lora_path_swift = f"{file_path}/unet"
+                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
                     
     return gr.Radio.update(choices=folder_list)
@@ -649,10 +798,73 @@ def update_output_model_inpaint(uuid):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                if os.path.exists(file_lora_path):
+                file_lora_path_swift = f"{file_path}/unet"
+                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
 
     return gr.Radio.update(choices=folder_list, value=folder_list[0]), gr.Radio.update(choices=folder_list, value=folder_list[0])
+
+def add_file_webcam(instance_images, file):
+    if file is None:
+        instance_images = [file_d['name'] for file_d in instance_images]
+        return instance_images
+    else:
+        instance_images = [file_d['name'] for file_d in instance_images] + [file]
+        return instance_images
+
+def webcam_image_open(image):
+    image = gr.update(visible=True)
+    return image 
+
+def webcam_image_close(image):
+    image = gr.update(value=None,visible=False)
+    return image 
+
+def update_output_model_tryon(uuid):
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            raise gr.Error("请登陆后使用! (Please login first)")
+        else:
+            uuid = 'qw'
+
+    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_list = ['不重绘该人物(Do not inpaint this character)']
+    if not os.path.exists(folder_path):
+        return gr.Radio.update(choices=[], value = None)
+    else:
+        files = os.listdir(folder_path)
+        for file in files:
+            file_path = os.path.join(folder_path, file)
+            if os.path.isdir(folder_path):
+                file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
+                if os.path.exists(file_lora_path):
+                    folder_list.append(file)
+
+    return gr.Radio.update(choices=folder_list, value=folder_list[0])
+
+def init_output_model_tryon(uuid):
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            raise gr.Error("请登陆后使用! (Please login first)")
+        else:
+            uuid = 'qw'
+
+    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_list = ['不重绘该人物(Do not inpaint this character)']
+    if not os.path.exists(folder_path):
+        choices = []
+        value = None
+        return choices, value
+    else:
+        files = os.listdir(folder_path)
+        for file in files:
+            file_path = os.path.join(folder_path, file)
+            if os.path.isdir(folder_path):
+                file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
+                if os.path.exists(file_lora_path):
+                    folder_list.append(file)
+
+    return folder_list, folder_list[0]
 
 def update_output_model_num(num_faces):
     if num_faces == 1:
@@ -775,12 +987,17 @@ def train_input():
                     with gr.Row():
                         upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
                                                         file_count="multiple")
+                        webcam = gr.Button("拍照上传")
 
                         clear_button = gr.Button("清空图片(Clear photos)")
+                    with gr.Row():
+                        image = gr.Image(source='webcam',type="filepath",visible=False).style(height=500,width=500)
                     clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
 
                     upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images,
                                          queue=False)
+                    webcam.click(webcam_image_open,inputs=image,outputs=image)
+                    image.change(add_file_webcam,inputs=[instance_images, image],outputs=instance_images, show_progress=True).then(webcam_image_close,inputs=image,outputs=image)
                     
                     gr.Markdown('''
                         使用说明（Instructions）：
@@ -1059,7 +1276,7 @@ def inference_talkinghead():
                 image_results = gr.Gallery(value=image_result_list, label='之前合成的图片(previous generated images)', allow_preview=False, columns=6, height=250)
                 update_button = gr.Button('刷新之前合成的图片(Refresh previous generated images)')
                 driven_audio = gr.Audio(label="驱动音频(driven audio)", source="upload", type="filepath")
-                input_text = gr.Textbox(label="用文本生成音频(Generating audio from text)", lines=1, value="大家好，欢迎使用阿里达摩院开源的face chain项目！")
+                input_text = gr.Textbox(label="用文本生成音频(Generating audio from text)", lines=1, value="大家好，欢迎使用魔搭开源的facechain项目！")
                 speaker = gr.Dropdown(choices=list(tts_speakers_map.keys()), value="普通话(中国大陆)-Xiaoxiao-女", label="请根据输入文本选择对应的语言和说话人(Select speaker according the language of input text)")
                 tts = gr.Button('生成音频(Generate audio)')
                 tts.click(fn=text_to_speech_edge, inputs=[input_text, speaker], outputs=[driven_audio])
@@ -1105,6 +1322,76 @@ def inference_talkinghead():
 
     return demo
 
+
+def inference_tryon():
+    preset_template = glob(os.path.join('resources/tryon_garment/*.png'))
+    with gr.Blocks() as demo:
+        uuid = gr.Text(label="modelscope_uuid", visible=False)
+        # Initialize the GUI
+
+        with gr.Row():
+            with gr.Column():
+                with gr.Box():
+                    gr.Markdown('请选择或上传包含服饰的模特图(Please select or upload a model image with given garment)：')
+                    template_image_list = [[i] for idx, i in enumerate(preset_template)]
+                    print(template_image_list)
+                    template_image = gr.Image(source='upload', type='filepath', label='服饰图片(Garment image)')
+                    gr.Examples(template_image_list, inputs=[template_image], label='模板示例(Garment examples)')
+
+                base_model_list = []
+                for base_model in base_models:
+                    base_model_list.append(BASE_MODEL_MAP[base_model['name']])
+
+                with gr.Row():
+                    with gr.Column(scale=2):
+                        choices, value = init_output_model_tryon(uuid.value)
+                        user_model = gr.Radio(label="人物LoRA（Character LoRA）", choices=choices, type="value", value=value)
+                    with gr.Column(scale=1):
+                        update_button = gr.Button('刷新人物LoRA列表(Refresh character LoRAs)')
+
+        background_prompt_list = ['on the beach, near the sea',
+                                  'in the bar, restaurant',
+                                  'city background, street',
+                                  'in the woods']
+        with gr.Box():
+            background_prompt = gr.Textbox(label="背景提示语(Background prompt)",
+                                           lines=3, value='simple background, high-class pure color background')
+            gr.Examples(background_prompt_list, inputs=[background_prompt], label='背景提示语示例(Background prompt examples)')
+
+        # strength = gr.Slider(minimum=0.6, maximum=1.0, value=1.0,
+        #                                          step=0.02, label='重绘强度(Inpaint strength)')
+
+        gr.Markdown('''
+                    进一步提高人脸相似度，可使用固定模板形象写真功能进行后处理(To further improve face similarity, please turn to Fixed Templates Portrait for post processing)
+                        ''')
+
+        display_button = gr.Button('开始生成(Start Generation)')
+        with gr.Box():
+            infer_progress = gr.Textbox(
+                label="生成(Generation Progress)",
+                value="No task currently",
+                interactive=False
+            )
+        with gr.Box():
+            gr.Markdown('生成结果(Generated Results)')
+            output_images = gr.Gallery(
+                label='输出(Output)',
+                show_label=False
+            ).style(columns=3, rows=2, height=600, object_fit="contain")
+
+        update_button.click(fn=update_output_model_tryon,
+                            inputs=[uuid],
+                            outputs=[user_model],
+                            queue=False)
+
+        display_button.click(
+            fn=launch_pipeline_tryon,
+            inputs=[uuid, user_model, template_image, background_prompt],
+            outputs=[infer_progress, output_images]
+        )
+
+    return demo
+
 styles = []
 for base_model in base_models:
     style_in_base = []
@@ -1122,7 +1409,12 @@ for base_model in base_models:
     base_model['style_list'] = style_in_base
 
 with gr.Blocks(css='style.css') as demo:
-    gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale},   [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
+    from importlib.util import find_spec
+    if find_spec('webui'):
+        # if running as a webui extension, don't display banner self-advertisement
+        gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation (\N{whale} [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
+    else:
+        gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale},   [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
     gr.Markdown("##### <center> 本项目仅供学习交流，请勿将模型及其制作内容用于非法活动或违反他人隐私的场景。(This project is intended solely for the purpose of technological discussion, and should not be used for illegal activities and violating privacy of individuals.)</center>")
     with gr.Tabs():
         with gr.TabItem('\N{rocket}人物形象训练(Train Digital Twin)'):
@@ -1131,6 +1423,8 @@ with gr.Blocks(css='style.css') as demo:
             inference_input()
         with gr.TabItem('\N{party popper}固定模板形象写真(Fixed Templates Portrait)'):
             inference_inpaint()
+        with gr.TabItem('\N{party popper}虚拟试衣(Virtual Try-on)'):
+            inference_tryon()
         with gr.TabItem('\N{clapper board}人物说话视频生成(Audio Driven Talking Head)'):
             inference_talkinghead()
 
