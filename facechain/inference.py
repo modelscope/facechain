@@ -131,8 +131,8 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
     pipe = StableDiffusionPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)
     lora_style_path = style_model_path
     lora_human_path = lora_model_path
-    pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
-    pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=lora_human_path.endswith('safetensors'))
+    pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True, device='cuda')
+    pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=lora_human_path.endswith('safetensors'), device='cuda')
     print(f'multiplier_style:{multiplier_style}, multiplier_human:{multiplier_human}')
     
     train_dir = str(input_img_dir) + '_labeled'
@@ -475,7 +475,7 @@ class GenPortrait:
         self.use_depth_control = use_depth_control
 
     def __call__(self, input_img_dir, num_gen_images=6, base_model_path=None,
-                 lora_model_path=None, sub_path=None, revision=None):
+                 lora_model_path=None, sub_path=None, revision=None, sr_img_size=None):
         base_model_path = snapshot_download(base_model_path, revision=revision)
         if sub_path is not None and len(sub_path) > 0:
             base_model_path = os.path.join(base_model_path, sub_path)
@@ -496,7 +496,23 @@ class GenPortrait:
                                        num_gen_images=num_gen_images)
         # stylization
         final_gen_results = stylization_fn(self.use_stylization, rank_results)
-
+        sr_pipe = pipeline(Tasks.image_super_resolution, model='damo/cv_rrdb_image-super-resolution')
+        if int(sr_img_size) != 0:
+            out_results = []
+            for i in range(len(final_gen_results)):
+                img = final_gen_results[i]
+                img = Image.fromarray(img[:,:,::-1])
+                out_img = sr_pipe(img)['output_img']
+                if int(sr_img_size) == 1:
+                    ratio = 0.5
+                    out_img = cv2.resize(
+                        out_img, (0, 0),
+                        fx=ratio,
+                        fy=ratio,
+                        interpolation=cv2.INTER_AREA)
+                out_results.append(out_img)
+            final_gen_results = out_results
+            
 
         return final_gen_results
 

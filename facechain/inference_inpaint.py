@@ -302,8 +302,8 @@ def main_diffusion_inference_inpaint(inpaint_image, strength, output_img_size, p
     pipe = StableDiffusionControlNetPipeline.from_pretrained(base_model_path, controlnet=controlnet, torch_dtype=dtype, safety_checker=None)
     lora_style_path = style_model_path
     lora_human_path = lora_model_path
-    pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
-    pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=False)
+    pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True, device='cuda')
+    pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=False, device='cuda')
     pipe = pipe.to("cuda")
     image_faces = []
     for i in range(1):

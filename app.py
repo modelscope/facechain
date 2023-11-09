@@ -163,7 +163,8 @@ def launch_pipeline(uuid,
                     multiplier_style=0.35,
                     multiplier_human=0.95,
                     pose_model=None,
-                    pose_image=None
+                    pose_image=None,
+                    sr_img_size=None,
                     ):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -254,11 +255,12 @@ def launch_pipeline(uuid,
                                use_face_swap, use_post_process,
                                use_stylization)
 
+
     num_images = min(6, num_images)
 
     with ProcessPoolExecutor(max_workers=5) as executor:
         future = executor.submit(gen_portrait, instance_data_dir,
-                                            num_images, base_model, lora_model_path, sub_path, revision)
+                                            num_images, base_model, lora_model_path, sub_path, revision, sr_img_size)
         while not future.done():
             is_processing = future.running()
             if not is_processing:
@@ -1104,6 +1106,9 @@ def inference_input():
                             file_count="single",
                             visible=False,
                         )
+
+                    out_img_size_list = ["512x512", "1024x1024", "2048x2048"]
+                    sr_img_size =  gr.Radio(label="输出分辨率选择(Output Image Size)", choices=out_img_size_list, type="index", value="512x512")
                     
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, 
                                             value=generate_pos_prompt(None, styles[0]['add_prompt_style']),
@@ -1195,7 +1200,7 @@ def inference_input():
                       queue=False)
         display_button.click(fn=launch_pipeline,
                              inputs=[uuid, pos_prompt, neg_prompt, base_model_index, user_model, num_images, lora_choice, style_model, multiplier_style, multiplier_human,
-                                     pose_model, pose_image],
+                                     pose_model, pose_image, sr_img_size],
                              outputs=[infer_progress, output_images])
         history_button.click(fn=deal_history,
                              inputs=[uuid, base_model_index, user_model, lora_choice, style_model, load_history_text],
