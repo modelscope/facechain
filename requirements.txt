@@ -1,6 +1,6 @@
 accelerate
 transformers
-diffusers
+diffusers>=0.21.4
 onnxruntime
 modelscope>=1.9.2
 Pillow

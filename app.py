@@ -24,7 +24,7 @@ from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_pr
 
 training_done_count = 0
 inference_done_count = 0
-character_model = 'ly261666/cv_portrait_model'
+character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
 BASE_MODEL_MAP = {
     "leosamsMoonfilm_filmGrain20": "写实模型(Realistic model)",
     "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic model)",
@@ -83,7 +83,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
 
     if platform.system() == 'Windows':
         command = [
-            'accelerate', 'launch', f'{project_dir}/facechain/train_text_to_image_lora.py',
+            'accelerate', 'launch', f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path is 'AI-ModelScope/stable-diffusion-xl-base-1.0' else f'{project_dir}/facechain/train_text_to_image_lora.py',
             f'--pretrained_model_name_or_path={base_model_path}',
             f'--revision={revision}',
             f'--sub_path={sub_path}',
@@ -103,6 +103,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_alpha={lora_alpha}',
             '--lora_text_encoder_r=32',
             '--lora_text_encoder_alpha=32',
+            '--use_swift',
             '--resume_from_checkpoint=fromfacecommon'
         ]
 
@@ -113,7 +114,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             raise gr.Error("训练失败 (Training failed)")
     else:
         res = os.system(
-            f'PYTHONPATH=. accelerate launch {project_dir}/facechain/train_text_to_image_lora.py '
+            f'PYTHONPATH=. accelerate launch {project_dir}/facechain/train_text_to_image_lora_sdxl.py ' if base_model_path is 'AI-ModelScope/stable-diffusion-xl-base-1.0' else '{project_dir}/facechain/train_text_to_image_lora_sdxl.py '
             f'--pretrained_model_name_or_path={base_model_path} '
             f'--revision={revision} '
             f'--sub_path={sub_path} '
@@ -133,6 +134,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_alpha={lora_alpha} '
             f'--lora_text_encoder_r=32 '
             f'--lora_text_encoder_alpha=32 '
+            f'--use_swift '
             f'--resume_from_checkpoint="fromfacecommon"')
         if res != 0:
             raise gr.Error("训练失败 (Training failed)")
@@ -183,7 +185,7 @@ def launch_pipeline(uuid,
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     if len(folder_list) == 0:
@@ -330,7 +332,7 @@ def launch_pipeline_inpaint(uuid,
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     if len(folder_list) == 0:
@@ -489,6 +491,7 @@ class Trainer:
     def run(
             self,
             uuid: str,
+            base_model_name: str,
             instance_images: list,
             output_model_name: str,
     ) -> str:
@@ -496,7 +499,18 @@ class Trainer:
         # Check Cuda
         if not torch.cuda.is_available():
             raise gr.Error('CUDA不可用(CUDA not available)')
-
+            
+        # Check Cuda Memory
+        if torch.cuda.is_available():
+            device = torch.device("cuda:0")
+            required_memory_bytes = 18 * (1024 ** 3) # 18GB
+            try:
+                tensor = torch.empty((required_memory_bytes // 4,), device = device) # create 18GB tensor to check the memory if enough
+                print("显存足够")
+                del tensor
+            except RuntimeError as e:
+                raise gr.Error("目前显存不足18GB，训练失败！")
+                
         # Check Instance Valid
         if instance_images is None:
             raise gr.Error('您需要上传训练图片(Please upload photos)!')
@@ -515,9 +529,13 @@ class Trainer:
                 return "请登陆后使用(Please login first)! "
             else:
                 uuid = 'qw'
-
-        base_model_path = 'ly261666/cv_portrait_model'
-        revision = 'v2.0'
+        if base_model_name is 'AI-ModelScope/stable-diffusion-xl-base-1.0':
+            base_model_path = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
+            revision = 'v1.0.0'
+        else:
+            base_model_path = 'ly261666/cv_portrait_model'
+            revision = 'v2.0'
+        
         sub_path = "film/film"
         output_model_name = slugify.slugify(output_model_name)
 
@@ -597,7 +615,7 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     
@@ -629,7 +647,7 @@ def update_output_model(uuid):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
                     
@@ -652,7 +670,7 @@ def update_output_model_inpaint(uuid):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
 
@@ -773,6 +791,10 @@ def train_input():
             with gr.Column():
                 with gr.Box():
                     output_model_name = gr.Textbox(label="人物lora名称(Character lora name)", value='person1', lines=1)
+                    base_model_name = gr.Dropdown(choices=['AI-ModelScope/stable-diffusion-v1-5',
+                                                'AI-ModelScope/stable-diffusion-xl-base-1.0'], 
+                                                value='AI-ModelScope/stable-diffusion-xl-base-1.0',
+                                                label='基模型')
 
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
@@ -824,6 +846,7 @@ def train_input():
         run_button.click(fn=trainer.run,
                          inputs=[
                              uuid,
+                             base_model_name,
                              instance_images,
                              output_model_name,
                          ],

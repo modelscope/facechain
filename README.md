@@ -23,7 +23,8 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
-- Support FaceChain in stable-diffusion-webui. (October 13th, 2023 UTC)
+- 1024 Programmer's Day AIGC Application Tool Most Valuable Business Award. (2023-10-24, 2023 UTC)
+- Support FaceChain in stable-diffusion-webui🔥🔥🔥. (October 13th, 2023 UTC)
 - High performance inpainting for single & double person, Simplify User Interface. (September 09th, 2023 UTC)
 - More Technology Details can be seen in [Paper](https://arxiv.org/abs/2308.14256). (August 30th, 2023 UTC)
 - Add validate & ensemble for Lora training, and InpaintTab(hide in gradio for now).  (August 28th, 2023 UTC)
