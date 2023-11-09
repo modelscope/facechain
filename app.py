@@ -436,13 +436,25 @@ def get_previous_image_result(uuid):
     image_results_old = glob(os.path.join(save_dir_old, '**/single/*.png'), recursive=True)
     save_dir = os.path.join('.', uuid, 'inference_result')
     image_results = glob(os.path.join(save_dir, '**/single/*.png'), recursive=True)
-    # print(f"==>> image_results: {image_results}")
-    return image_results_old+image_results
+    save_dir_new = join_worker_data_dir(uuid, 'inference_result')
+    image_results_new = glob(os.path.join(save_dir_new, '**/single/*.png'), recursive=True)
     
+    return image_results_old + image_results + image_results_new
 
-def launch_pipeline_talkinghead(uuid, source_image, driven_audio, preprocess='crop', 
-        still_mode=True,  use_enhancer=False, batch_size=1, size=256, 
-        pose_style = 0, exp_scale=1.0):
+def toggle_audio(choice):
+    if choice == "麦克风(microphone)":
+        return gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), \
+            gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)
+    elif choice == "上传文件(upload)":
+        return gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), \
+            gr.update(visible=False), gr.update(visible=False), gr.update(visible=True)
+    else:
+        return gr.update(visible=True), gr.update(visible=True), gr.update(visible=True),\
+            gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)
+
+def launch_pipeline_talkinghead(uuid, source_image, audio_source, audio_tts, audio_microphone, audio_upload, 
+                                preprocess='crop', still_mode=True,  use_enhancer=False, batch_size=1, size=256, 
+                                pose_style = 0, exp_scale=1.0):
     if not check_ffmpeg():
         raise gr.Error("请先安装ffmpeg，然后刷新网页（Please install ffmpeg, then restart the webpage）")
 
@@ -451,8 +463,14 @@ def launch_pipeline_talkinghead(uuid, source_image, driven_audio, preprocess='cr
 
     if not source_image:
         raise gr.Error('请选择一张源图片(Please select 1 source image)')
+    if audio_source == "语音合成(TTS)":
+        driven_audio = audio_tts
+    elif audio_source == "麦克风(microphone)":
+        driven_audio = audio_microphone
+    else:
+        driven_audio = audio_upload
     if not driven_audio:
-        raise gr.Error('请上传一段wav、mp3音频(Please upload 1 wav or mp3 audio)')
+        raise gr.Error('请提供一段wav、mp3音频(Please provide 1 wav or mp3 audio)')
 
     user_directory = os.path.expanduser("~")
     if not os.path.exists(os.path.join(user_directory, '.cache', 'modelscope', 'hub', 'wwd123', 'sadtalker')):
@@ -1273,17 +1291,17 @@ def inference_talkinghead():
                 source_image = gr.Image(label="源图片(source image)", source="upload", type="filepath")
                 image_results = gr.Gallery(value=image_result_list, label='之前合成的图片(previous generated images)', allow_preview=False, columns=6, height=250)
                 update_button = gr.Button('刷新之前合成的图片(Refresh previous generated images)')
-                driven_audio = gr.Audio(label="驱动音频(driven audio)", source="upload", type="filepath")
-                input_text = gr.Textbox(label="用文本生成音频(Generating audio from text)", lines=1, value="大家好，欢迎大家使用阿里达摩院开源的facechain项目！")
+                audio_source = gr.Radio(["语音合成(TTS)", "麦克风(microphone)", "上传文件(upload)"], value="语音合成(TTS)", label="驱动音频来源(source of driven audio)")
+                audio_tts = gr.Audio(label="生成的音频(generated audio)", type="filepath")
+                input_text = gr.Textbox(label="用文本生成音频(Generating audio from text)", lines=1, value="大家好，欢迎使用魔搭开源的facechain项目！")
                 speaker = gr.Dropdown(choices=list(tts_speakers_map.keys()), value="普通话(中国大陆)-Xiaoxiao-女", label="请根据输入文本选择对应的语言和说话人(Select speaker according the language of input text)")
                 tts = gr.Button('生成音频(Generate audio)')
-                tts.click(fn=text_to_speech_edge, inputs=[input_text, speaker], outputs=[driven_audio])
-                                
+                audio_microphone = gr.Audio(source="microphone", type="filepath", label="通过麦克风直接录制音频(record audio from microphone)", visible=False)
+                audio_upload = gr.Audio(source="upload",type="filepath", label="上传本地音频文件(upload local audio file)", visible=False)
             with gr.Column(variant='panel'): 
                 with gr.Box():
                     gr.Markdown("设置(Settings)")
                     with gr.Column(variant='panel'):
-                    # with gr.Accordion("高级选项(Advanced Options)", open=False):
                         pose_style = gr.Slider(minimum=0, maximum=45, step=1, label="头部姿态(Pose style)", info="模型自主学习到的头部姿态(the head pose style that model learn)", value=0)
                         exp_weight = gr.Slider(minimum=0.5, maximum=2, step=0.1, label="表情系数(expression scale)", info="数值越大，表情越夸张(the higher, the more exaggerated)", value=1)
                         with gr.Row():
@@ -1297,11 +1315,13 @@ def inference_talkinghead():
                         infer_progress = gr.Textbox(value="当前无任务(No task currently)", show_label=False, interactive=False)
                         gen_video = gr.Video(label="Generated video", format="mp4", width=256)
 
-        submit.click(fn=launch_pipeline_talkinghead, inputs=[uuid, source_image, driven_audio, preprocess_type,
+        submit.click(fn=launch_pipeline_talkinghead, inputs=[uuid, source_image, audio_source, audio_tts, audio_microphone, audio_upload, preprocess_type,
                     is_still_mode, enhancer, batch_size, size_of_image, pose_style, exp_weight], 
                     outputs=[infer_progress, gen_video])
         image_results.select(get_selected_image, state_image_list, source_image, queue=False)
         update_button.click(fn=update_output_image_result, inputs=[uuid], outputs=[image_results, state_image_list])
+        audio_source.change(toggle_audio, audio_source, [audio_tts, input_text, speaker, tts, audio_microphone, audio_upload])
+        tts.click(fn=text_to_speech_edge, inputs=[input_text, speaker], outputs=[audio_tts])
         with gr.Row():
             examples = [
                 [   f'{project_dir}/resources/source_image/man.png',
@@ -1315,7 +1335,7 @@ def inference_talkinghead():
                     True,
                     False],
             ]
-            gr.Examples(examples=examples, inputs=[source_image, driven_audio, preprocess_type, is_still_mode, enhancer], 
+            gr.Examples(examples=examples, inputs=[source_image, audio_upload, preprocess_type, is_still_mode, enhancer], 
                         outputs=[gen_video],  fn=launch_pipeline_talkinghead, cache_examples=os.getenv('SYSTEM') == 'spaces')
 
     return demo
@@ -1407,7 +1427,12 @@ for base_model in base_models:
     base_model['style_list'] = style_in_base
 
 with gr.Blocks(css='style.css') as demo:
-    gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale},   [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
+    from importlib.util import find_spec
+    if find_spec('webui'):
+        # if running as a webui extension, don't display banner self-advertisement
+        gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation (\N{whale} [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
+    else:
+        gr.Markdown("# <center> \N{fire} FaceChain Potrait Generation ([Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale},   [Paper cite it here](https://arxiv.org/abs/2308.14256) \N{whale})</center>")
     gr.Markdown("##### <center> 本项目仅供学习交流，请勿将模型及其制作内容用于非法活动或违反他人隐私的场景。(This project is intended solely for the purpose of technological discussion, and should not be used for illegal activities and violating privacy of individuals.)</center>")
     with gr.Tabs():
         with gr.TabItem('\N{rocket}人物形象训练(Train Digital Twin)'):

@@ -99,7 +99,7 @@ import os
 os.chdir('/mnt/workspace/facechain')    # You may change to your own path
 print(os.getcwd())
 
-!pip3 install gradio
+!pip3 install gradio==3.50.2
 !pip3 install controlnet_aux==0.0.6
 !pip3 install python-slugify
 !pip3 install onnxruntime==1.15.1
@@ -133,7 +133,7 @@ docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.ali
 # 2. sudo systemctl restart docker
 
 # Step4: Install the gradio in the docker container:
-pip3 install gradio
+pip3 install gradio==3.50.2
 pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
 pip3 install onnxruntime==1.15.1
