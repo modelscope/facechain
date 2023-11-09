@@ -23,9 +23,10 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+- 🏆FaceChain has been selected in the [BenchCouncil Open100 (2022-2023)](https://www.benchcouncil.org/evaluation/opencs/annual.html#Institutions) annual ranking. (November 8th, 2023 UTC)
 - Add virtual try-on module. (October 27th, 2023 UTC)
 - Add wanx version [online free app](https://tongyi.aliyun.com/wanxiang/app/portrait-gallery). (October 26th, 2023 UTC)
-- 1024 Programmer's Day AIGC Application Tool Most Valuable Business Award. (2023-10-24, 2023 UTC)
+- 🏆1024 Programmer's Day AIGC Application Tool Most Valuable Business Award. (2023-10-24, 2023 UTC)
 - Support FaceChain in stable-diffusion-webui🔥🔥🔥. (October 13th, 2023 UTC)
 - High performance inpainting for single & double person, Simplify User Interface. (September 09th, 2023 UTC)
 - More Technology Details can be seen in [Paper](https://arxiv.org/abs/2308.14256). (August 30th, 2023 UTC)
