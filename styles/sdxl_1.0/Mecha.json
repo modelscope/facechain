@@ -1,0 +1,10 @@
+{
+    "name": "机甲风(Mecha style)",
+    "img": "./style_image/Mecha.jpg",
+    "model_id": "damo/cv_sdxl_lora",
+    "revision": "v1.0.0",
+    "bin_file": "mecha-000009.safetensors",
+    "multiplier_style": 0.55,
+    "multiplier_human": 0.9,
+    "add_prompt_style": "mecha, extremely delicate and beautiful girls, 1girl)"
+}

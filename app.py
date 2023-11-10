@@ -30,6 +30,7 @@ character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
 BASE_MODEL_MAP = {
     "leosamsMoonfilm_filmGrain20": "写实模型(Realistic model)",
     "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic model)",
+    "sdxl_1.0": "sdxl_1.0",
 }
 
 
@@ -112,9 +113,11 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_alpha={lora_alpha}',
             '--lora_text_encoder_r=32',
             '--lora_text_encoder_alpha=32',
-            '--use_swift',
-            '--resume_from_checkpoint=fromfacecommon'
+            #'--use_swift',
+            #'--resume_from_checkpoint=fromfacecommon'
         ]
+        if base_model_path != 'AI-ModelScope/stable-diffusion-xl-base-1.0':
+            command[0].replace('train_text_to_image_lora_sdxl.py', 'train_text_to_image_lora.py')
 
         try:
             subprocess.run(command, check=True)
@@ -151,6 +154,9 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_text_encoder_alpha=32 '
             f'--use_swift '
             f'--resume_from_checkpoint="fromfacecommon"')
+        if base_model_path != 'AI-ModelScope/stable-diffusion-xl-base-1.0':
+            cmd.replace('train_text_to_image_lora_sdxl.py', 'train_text_to_image_lora.py')
+
         if res != 0:
             raise gr.Error("训练失败 (Training failed)")
 
@@ -273,7 +279,7 @@ def launch_pipeline(uuid,
                                use_face_swap, use_post_process,
                                use_stylization)
 
-
+    gen_portrait(instance_data_dir, num_images, base_model, lora_model_path, sub_path, revision)
     num_images = min(6, num_images)
 
     with ProcessPoolExecutor(max_workers=5) as executor:
@@ -700,7 +706,6 @@ class Trainer:
                 return "请登陆后使用(Please login first)! "
             else:
                 uuid = 'qw'
-        print(f'>>base_model_name: {base_model_name}')
         if base_model_name == SDXL_BASE_MODEL_ID:
             print('** Setting base model to SDXL **')
             base_model_path = SDXL_BASE_MODEL_ID
