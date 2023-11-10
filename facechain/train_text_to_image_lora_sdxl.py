@@ -1012,6 +1012,7 @@ def main():
                 unet, text_encoder_one, text_encoder_two, optimizer, train_dataloader, lr_scheduler
             )
         else:
+            # model, optimizer, data_loader, scheduler, device_placement=device_placement
             unet, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
                 unet, optimizer, train_dataloader, lr_scheduler
             )
@@ -1190,7 +1191,6 @@ def main():
 
             if global_step >= args.max_train_steps:
                 break
-
 
         if accelerator.is_main_process:
             if args.validation_prompt is not None and epoch % args.validation_epochs == 0:
