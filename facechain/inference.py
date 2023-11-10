@@ -120,6 +120,7 @@ def get_mask(result):
     mask_rst = np.concatenate([mask_rst, mask_rst, mask_rst], axis=2)
     return mask_rst
 
+
 def main_diffusion_inference(pos_prompt, neg_prompt,
                              input_img_dir, base_model_path, style_model_path, lora_model_path,
                              multiplier_style=0.25,
@@ -128,7 +129,8 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
         model_dir = snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo', revision='v1.0.0')
         style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_fromleo.safetensors')
     
-    pipe = StableDiffusionPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)    lora_style_path = style_model_path
+    pipe = StableDiffusionPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)
+    lora_style_path = style_model_path
     lora_human_path = lora_model_path
     pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
     pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=lora_human_path.endswith('safetensors'))
