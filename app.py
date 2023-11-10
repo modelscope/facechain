@@ -13,7 +13,6 @@ import numpy as np
 import torch
 from glob import glob
 import platform
-import subprocess
 from facechain.utils import snapshot_download, check_ffmpeg, set_spawn_method, project_dir, join_worker_data_dir
 from facechain.inference import preprocess_pose, GenPortrait
 from facechain.inference_inpaint import GenPortrait_inpaint
@@ -25,11 +24,15 @@ from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_pr
 
 training_done_count = 0
 inference_done_count = 0
+
 SDXL_BASE_MODEL_ID = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
+SD15_BASE_MODEL_ID = 'AI-ModelScope/stable-diffusion-v1-5'
+
 character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
 BASE_MODEL_MAP = {
     "leosamsMoonfilm_filmGrain20": "写实模型(Realistic model)",
     "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic model)",
+    "sdxl_1.0": "sdxl_1.0",
 }
 
 
@@ -112,9 +115,12 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_alpha={lora_alpha}',
             '--lora_text_encoder_r=32',
             '--lora_text_encoder_alpha=32',
-            '--use_swift',
-            '--resume_from_checkpoint=fromfacecommon'
+            #'--use_swift',
+            #'--resume_from_checkpoint=fromfacecommon'
         ]
+        if base_model_path != 'AI-ModelScope/stable-diffusion-xl-base-1.0':
+            command[0].replace('train_text_to_image_lora_sdxl.py', 'train_text_to_image_lora.py')
+        import subprocess
 
         try:
             subprocess.run(command, check=True)
@@ -152,6 +158,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--use_swift '
             # f'--use_peft '
             f'--resume_from_checkpoint="fromfacecommon"')
+
         if res != 0:
             raise gr.Error("训练失败 (Training failed)")
 
@@ -274,7 +281,7 @@ def launch_pipeline(uuid,
                                use_face_swap, use_post_process,
                                use_stylization)
 
-
+    #gen_portrait(instance_data_dir, num_images, base_model, lora_model_path, sub_path, revision, sr_img_size)
     num_images = min(6, num_images)
 
     with ProcessPoolExecutor(max_workers=5) as executor:
@@ -701,7 +708,6 @@ class Trainer:
                 return "请登陆后使用(Please login first)! "
             else:
                 uuid = 'qw'
-        print(f'>>base_model_name: {base_model_name}')
         if base_model_name == SDXL_BASE_MODEL_ID:
             print('** Setting base model to SDXL **')
             base_model_path = SDXL_BASE_MODEL_ID
@@ -712,6 +718,7 @@ class Trainer:
             base_model_path = 'ly261666/cv_portrait_model'
             revision = 'v2.0'
             sub_path = "film/film"
+
         output_model_name = slugify.slugify(output_model_name)
 
         # mv user upload data to target dir
@@ -1038,27 +1045,26 @@ def train_input():
             with gr.Column():
                 with gr.Box():
                     output_model_name = gr.Textbox(label="人物lora名称(Character lora name)", value='person1', lines=1)
-                    base_model_name = gr.Dropdown(choices=['AI-ModelScope/stable-diffusion-v1-5',
+                    base_model_name = gr.Dropdown(choices=[SD15_BASE_MODEL_ID,
                                                            SDXL_BASE_MODEL_ID],
-                                                  value=SDXL_BASE_MODEL_ID,
+                                                  value=SD15_BASE_MODEL_ID,
                                                   label='基模型')
-
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
                     with gr.Row():
                         upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
                                                         file_count="multiple")
-                        webcam = gr.Button("拍照上传")
+                        #webcam = gr.Button("拍照上传")
 
                         clear_button = gr.Button("清空图片(Clear photos)")
-                    with gr.Row():
-                        image = gr.Image(source='webcam',type="filepath",visible=False).style(height=500,width=500)
+                    #with gr.Row():
+                    #    image = gr.Image(source='webcam',type="filepath",visible=False).style(height=500,width=500)
                     clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
 
                     upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images,
                                          queue=False)
-                    webcam.click(webcam_image_open,inputs=image,outputs=image)
-                    image.change(add_file_webcam,inputs=[instance_images, image],outputs=instance_images, show_progress=True).then(webcam_image_close,inputs=image,outputs=image)
+                    #webcam.click(webcam_image_open,inputs=image,outputs=image)
+                    #image.change(add_file_webcam,inputs=[instance_images, image],outputs=instance_images, show_progress=True).then(webcam_image_close,inputs=image,outputs=image)
 
                     gr.Markdown('''
                         使用说明（Instructions）：

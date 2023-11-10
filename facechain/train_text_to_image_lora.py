@@ -792,6 +792,7 @@ def main():
             args.dataset_name,
             args.dataset_config_name,
             cache_dir=args.cache_dir,
+            num_proc=8,
         )
     else:
         # This branch will not be called

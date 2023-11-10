@@ -16,7 +16,6 @@
 """Fine-tuning script for Stable Diffusion for text2image with support for LoRA."""
 
 import argparse
-import base64
 import itertools
 import json
 import logging
@@ -24,7 +23,6 @@ import math
 import os
 import random
 import shutil
-from glob import glob
 from pathlib import Path
 
 import cv2
@@ -44,7 +42,7 @@ from accelerate import Accelerator
 from accelerate.logging import get_logger
 from accelerate.utils import ProjectConfiguration, set_seed
 from datasets import load_dataset
-from diffusers import AutoencoderKL, DDPMScheduler, DiffusionPipeline, UNet2DConditionModel
+from diffusers import (AutoencoderKL, DDPMScheduler, DiffusionPipeline, UNet2DConditionModel)
 from torchvision.transforms.functional import crop
 from diffusers.loaders import AttnProcsLayers
 from diffusers.models.attention_processor import LoRAAttnProcessor
@@ -65,7 +63,7 @@ from PIL import Image
 from torchvision import transforms
 from tqdm.auto import tqdm
 from torch import multiprocessing
-from transformers import CLIPTextModel, CLIPTokenizer, AutoTokenizer, CLIPTextModelWithProjection
+from transformers import CLIPTextModel, AutoTokenizer, CLIPTextModelWithProjection
 
 from facechain.inference import data_process_fn
 
@@ -596,8 +594,9 @@ def main():
                                   revision=args.revision,
                                   user_agent={'invoked_by': 'trainer', 'third_party': 'facechain'})
 
-    if args.sub_path is not None and len(args.sub_path) > 0:
-        model_dir = os.path.join(model_dir, args.sub_path)
+    # TODO: to be checked
+    # if args.sub_path is not None and len(args.sub_path) > 0:
+    #     model_dir = os.path.join(model_dir, args.sub_path)
 
     # Load scheduler, tokenizer and models.
     print(f'>>> Loading model from model_dir: {model_dir}')
@@ -810,6 +809,7 @@ def main():
             args.dataset_name,
             args.dataset_config_name,
             cache_dir=args.cache_dir,
+            num_proc=8,
         )
     else:
         # This branch will not be called
@@ -1261,9 +1261,10 @@ def main():
             unwarpped_unet.save_pretrained(os.path.join(args.output_dir, 'swift'))
             if args.train_text_encoder:
                 unwarpped_text_encoder_one = accelerator.unwrap_model(text_encoder_one)
-                unwarpped_text_encoder.save_pretrained(os.path.join(args.output_dir, 'text_encoder_one'))
+                unwarpped_text_encoder_one.save_pretrained(os.path.join(args.output_dir, 'text_encoder_one'))
+
                 unwarpped_text_encoder_two = accelerator.unwrap_model(text_encoder_two)
-                unwarpped_text_encoder.save_pretrained(os.path.join(args.output_dir, 'text_encoder_two'))
+                unwarpped_text_encoder_two.save_pretrained(os.path.join(args.output_dir, 'text_encoder_two'))
         else:
             unet = unet.to(torch.float32)
             unet.save_attn_procs(args.output_dir, safe_serialization=False)
@@ -1285,39 +1286,39 @@ def main():
 
     # Final inference
     # Load previous pipeline
-    pipeline = DiffusionPipeline.from_pretrained(
-        model_dir, torch_dtype=weight_dtype
-    )
-    #
+    # pipeline = DiffusionPipeline.from_pretrained(
+    #     model_dir, torch_dtype=weight_dtype
+    # )
+
     # if args.use_peft:
     #     def load_and_set_lora_ckpt(pipe, ckpt_dir, global_step, device, dtype):
     #         with open(os.path.join(args.output_dir, f"{global_step}_lora_config.json"), "r") as f:
     #             lora_config = json.load(f)
     #         print(lora_config)
-    #
+
     #         checkpoint = os.path.join(args.output_dir, f"{global_step}_lora.pt")
     #         lora_checkpoint_sd = torch.load(checkpoint)
     #         unet_lora_ds = {k: v for k, v in lora_checkpoint_sd.items() if "text_encoder_" not in k}
     #         text_encoder_lora_ds = {
     #             k.replace("text_encoder_", ""): v for k, v in lora_checkpoint_sd.items() if "text_encoder_" in k
     #         }
-    #
+
     #         unet_config = LoraConfig(**lora_config["peft_config"])
     #         pipe.unet = LoraModel(unet_config, pipe.unet)
     #         set_peft_model_state_dict(pipe.unet, unet_lora_ds)
-    #
+
     #         if "text_encoder_peft_config" in lora_config:
     #             text_encoder_config = LoraConfig(**lora_config["text_encoder_peft_config"])
     #             pipe.text_encoder = LoraModel(text_encoder_config, pipe.text_encoder)
     #             set_peft_model_state_dict(pipe.text_encoder, text_encoder_lora_ds)
-    #
+
     #         if dtype in (torch.float16, torch.bfloat16):
     #             pipe.unet.half()
     #             pipe.text_encoder.half()
-    #
+
     #         pipe.to(device)
     #         return pipe
-    #
+
     #     pipeline = load_and_set_lora_ckpt(pipeline, args.output_dir, global_step, accelerator.device, weight_dtype)
     # elif args.use_swift:
     #     if not is_swift_available():
@@ -1327,7 +1328,7 @@ def main():
     #     from swift import Swift
     #     pipeline = pipeline.to(accelerator.device)
     #     pipeline.unet = Swift.from_pretrained(pipeline.unet, os.path.join(args.output_dir, 'swift'))
-    #
+
     #     if args.train_text_encoder:
     #         pipeline.text_encoder = Swift.from_pretrained(pipeline.text_encoder, os.path.join(args.output_dir, 'text_encoder'))
     # else:
@@ -1335,12 +1336,12 @@ def main():
     #     # load attention processors
     #     pipeline.unet.load_attn_procs(args.output_dir)
 
-    # run inference
-    if args.seed is not None:
-        generator = torch.Generator(device=accelerator.device).manual_seed(args.seed)
-    else:
-        generator = None
-    images = []
+    # # run inference
+    # if args.seed is not None:
+    #     generator = torch.Generator(device=accelerator.device).manual_seed(args.seed)
+    # else:
+    #     generator = None
+    # images = []
 
     accelerator.end_training()
 
