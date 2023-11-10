@@ -126,9 +126,10 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
         print(f'** params: >base_model_path:{base_model_path}, >revision:{revision}, >sub_path:{sub_path}, >output_img_dir:{output_img_dir}, >work_dir:{work_dir}, >lora_r:{lora_r}, >lora_alpha:{lora_alpha}')
         import subprocess
 
+        train_script_path = f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path == SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py'
+
         res = os.system(
-        # res = subprocess.run(
-            f'PYTHONPATH=. accelerate launch {project_dir}/facechain/train_text_to_image_lora_sdxl.py ' if base_model_path is SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py '
+            f'PYTHONPATH=. accelerate launch {train_script_path} '
             f'--pretrained_model_name_or_path={base_model_path} '
             f'--revision={revision} '
             f'--sub_path={sub_path} '
@@ -151,7 +152,6 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--use_swift '
             f'--resume_from_checkpoint="fromfacecommon"')
         if res != 0:
-        # if res.returncode != 0:
             raise gr.Error("训练失败 (Training failed)")
 
 
