@@ -696,14 +696,17 @@ class Trainer:
                 return "请登陆后使用(Please login first)! "
             else:
                 uuid = 'qw'
-        if base_model_name is SDXL_BASE_MODEL_ID:
+        print(f'>>base_model_name: {base_model_name}')
+        if base_model_name == SDXL_BASE_MODEL_ID:
+            print('** Setting base model to SDXL **')
             base_model_path = SDXL_BASE_MODEL_ID
             revision = 'v1.0.9'
+            sub_path = ''
         else:
+            print('** Setting base model to SD1.5 **')
             base_model_path = 'ly261666/cv_portrait_model'
             revision = 'v2.0'
-
-        sub_path = "film/film"
+            sub_path = "film/film"
         output_model_name = slugify.slugify(output_model_name)
 
         # mv user upload data to target dir
