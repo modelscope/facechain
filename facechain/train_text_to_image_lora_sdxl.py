@@ -600,6 +600,7 @@ def main():
         model_dir = os.path.join(model_dir, args.sub_path)
 
     # Load scheduler, tokenizer and models.
+    print(f'>>> Loading model from model_dir: {model_dir}')
     noise_scheduler = DDPMScheduler.from_pretrained(model_dir, subfolder="scheduler")
     tokenizer_one = AutoTokenizer.from_pretrained(
         model_dir, subfolder="tokenizer", use_fast=False
