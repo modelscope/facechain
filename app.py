@@ -24,15 +24,18 @@ from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_pr
 
 training_done_count = 0
 inference_done_count = 0
+SDXL_BASE_MODEL_ID = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
 character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
 BASE_MODEL_MAP = {
     "leosamsMoonfilm_filmGrain20": "写实模型(Realistic model)",
     "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic model)",
 }
 
+
 class UploadTarget(enum.Enum):
     PERSONAL_PROFILE = 'Personal Profile'
     LORA_LIaBRARY = 'LoRA Library'
+
 
 # utils
 def concatenate_images(images):
@@ -45,15 +48,18 @@ def concatenate_images(images):
         concatenated_image[0:img.shape[0], x_offset:x_offset + img.shape[1], :] = img
         x_offset += img.shape[1]
     return concatenated_image
-    
+
+
 def select_function(evt: gr.SelectData):
     name = evt.value[1] if isinstance(evt.value, list) else evt.value
     matched = list(filter(lambda item: name == item['name'], styles))
     style = matched[0]
     return gr.Text.update(value=style['name'], visible=True)
 
+
 def get_selected_image(state_image_list, evt: gr.SelectData):
     return state_image_list[evt.index]
+
 
 def update_prompt(style_model):
     matched = list(filter(lambda item: style_model == item['name'], styles))
@@ -65,6 +71,7 @@ def update_prompt(style_model):
            gr.Slider.update(value=multiplier_style), \
            gr.Slider.update(value=multiplier_human)
 
+
 def update_pose_model(pose_image, pose_model):
     if pose_image is None:
         return gr.Radio.update(value=pose_models[0]['name']), gr.Image.update(visible=False)
@@ -73,6 +80,7 @@ def update_pose_model(pose_image, pose_model):
             pose_model = 1
         pose_res_img = preprocess_pose(pose_image)
         return gr.Radio.update(value=pose_models[pose_model]['name']), gr.Image.update(value=pose_res_img, visible=True)
+
 
 def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img_dir=None, work_dir=None, photo_num=0):
     torch.cuda.empty_cache()
@@ -83,7 +91,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
 
     if platform.system() == 'Windows':
         command = [
-            'accelerate', 'launch', f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path is 'AI-ModelScope/stable-diffusion-xl-base-1.0' else f'{project_dir}/facechain/train_text_to_image_lora.py',
+            'accelerate', 'launch', f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path is SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py',
             f'--pretrained_model_name_or_path={base_model_path}',
             f'--revision={revision}',
             f'--sub_path={sub_path}',
@@ -114,7 +122,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             raise gr.Error("训练失败 (Training failed)")
     else:
         res = os.system(
-            f'PYTHONPATH=. accelerate launch {project_dir}/facechain/train_text_to_image_lora_sdxl.py ' if base_model_path is 'AI-ModelScope/stable-diffusion-xl-base-1.0' else '{project_dir}/facechain/train_text_to_image_lora_sdxl.py '
+            f'PYTHONPATH=. accelerate launch {project_dir}/facechain/train_text_to_image_lora_sdxl.py ' if base_model_path is SDXL_BASE_MODEL_ID else '{project_dir}/facechain/train_text_to_image_lora_sdxl.py '
             f'--pretrained_model_name_or_path={base_model_path} '
             f'--revision={revision} '
             f'--sub_path={sub_path} '
@@ -139,6 +147,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
         if res != 0:
             raise gr.Error("训练失败 (Training failed)")
 
+
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model is not None:
         matched = list(filter(lambda style: style_model == style['name'], styles))
@@ -152,6 +161,7 @@ def generate_pos_prompt(style_model, prompt_cloth):
     else:
         pos_prompt = pos_prompt_with_cloth.format(prompt_cloth)
     return pos_prompt
+
 
 def launch_pipeline(uuid,
                     pos_prompt,
@@ -171,7 +181,7 @@ def launch_pipeline(uuid,
             raise gr.Error("请登陆后使用! (Please login first)")
         else:
             uuid = 'qw'
-    
+
     # Check base model
     if base_model_index == None:
         raise gr.Error('请选择基模型(Please select the base model)!')
@@ -304,6 +314,7 @@ def launch_pipeline(uuid,
     else:
         yield ["生成失败, 请重试(Generation failed, please retry)!", outputs_RGB]
 
+
 def launch_pipeline_inpaint(uuid,
                             base_model_index=None,
                             user_model_A=None,
@@ -426,6 +437,7 @@ def launch_pipeline_inpaint(uuid,
     else:
         yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
 
+
 def get_previous_image_result(uuid):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -529,9 +541,9 @@ class Trainer:
                 return "请登陆后使用(Please login first)! "
             else:
                 uuid = 'qw'
-        if base_model_name is 'AI-ModelScope/stable-diffusion-xl-base-1.0':
-            base_model_path = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
-            revision = 'v1.0.0'
+        if base_model_name is SDXL_BASE_MODEL_ID:
+            base_model_path = SDXL_BASE_MODEL_ID
+            revision = 'v1.0.9'
         else:
             base_model_path = 'ly261666/cv_portrait_model'
             revision = 'v2.0'
@@ -629,6 +641,7 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
             gr.Gallery.update(visible=False), gr.Text.update(), \
             gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
 
+
 def update_output_model(uuid):
 
     if not uuid:
@@ -653,6 +666,7 @@ def update_output_model(uuid):
                     
     return gr.Radio.update(choices=folder_list)
 
+
 def update_output_model_inpaint(uuid):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -676,19 +690,23 @@ def update_output_model_inpaint(uuid):
 
     return gr.Radio.update(choices=folder_list, value=folder_list[0]), gr.Radio.update(choices=folder_list, value=folder_list[0])
 
+
 def update_output_model_num(num_faces):
     if num_faces == 1:
         return gr.Radio.update(), gr.Radio.update(visible=False)
     else:
         return gr.Radio.update(), gr.Radio.update(visible=True)
-    
+
+
 def update_output_image_result(uuid):
     image_list = get_previous_image_result(uuid)
     return gr.Gallery.update(value=image_list), image_list
 
+
 def upload_file(files, current_files):
     file_paths = [file_d['name'] for file_d in current_files] + [file.name for file in files]
     return file_paths
+
 
 def upload_lora_file(uuid, lora_file):
     if not uuid:
@@ -710,6 +728,7 @@ def upload_lora_file(uuid, lora_file):
     
     return gr.Dropdown.update(choices=lora_list, value=filename)
 
+
 def clear_lora_file(uuid, lora_file):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -718,6 +737,7 @@ def clear_lora_file(uuid, lora_file):
             uuid = 'qw'
     
     return gr.Dropdown.update(value="preset")
+
 
 def change_lora_choice(lora_choice, base_model_index):
     style_list = base_models[base_model_index]['style_list']
@@ -731,6 +751,7 @@ def change_lora_choice(lora_choice, base_model_index):
                gr.Text.update(value=style_list[0])
     else:
         return gr.Gallery.update(visible=False), gr.Text.update(visible=False)
+
 
 def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None, style_model=None, deal_type="load"):
     if not uuid:
@@ -781,7 +802,8 @@ def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None
     elif deal_type == "delete":
         shutil.rmtree(save_dir)
         return gr.Gallery.update(value=[], visible=True), gr.Gallery.update(value=[], visible=True)
-    
+
+
 def train_input():
     trainer = Trainer()
 
@@ -792,9 +814,9 @@ def train_input():
                 with gr.Box():
                     output_model_name = gr.Textbox(label="人物lora名称(Character lora name)", value='person1', lines=1)
                     base_model_name = gr.Dropdown(choices=['AI-ModelScope/stable-diffusion-v1-5',
-                                                'AI-ModelScope/stable-diffusion-xl-base-1.0'], 
-                                                value='AI-ModelScope/stable-diffusion-xl-base-1.0',
-                                                label='基模型')
+                                                           SDXL_BASE_MODEL_ID],
+                                                  value=SDXL_BASE_MODEL_ID,
+                                                  label='基模型')
 
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
@@ -853,6 +875,7 @@ def train_input():
                          outputs=[output_message])
 
     return demo
+
 
 def inference_input():
     with gr.Blocks() as demo:
@@ -1002,6 +1025,7 @@ def inference_input():
 
     return demo
 
+
 def inference_inpaint():
     preset_template = glob(os.path.join(f'{project_dir}/resources/inpaint_template/*.jpg'))
     with gr.Blocks() as demo:
@@ -1071,6 +1095,7 @@ def inference_inpaint():
         )
 
     return demo
+
 
 def inference_talkinghead():
     with gr.Blocks() as demo:
