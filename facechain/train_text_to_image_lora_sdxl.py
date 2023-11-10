@@ -44,7 +44,9 @@ from accelerate import Accelerator
 from accelerate.logging import get_logger
 from accelerate.utils import ProjectConfiguration, set_seed
 from datasets import load_dataset
-from diffusers import AutoencoderKL, DDPMScheduler, DiffusionPipeline, UNet2DConditionModel
+from diffusers import (AutoencoderKL, DDPMScheduler, DiffusionPipeline,
+                       DPMSolverMultistepScheduler,
+                       StableDiffusionInpaintPipeline, UNet2DConditionModel, StableDiffusionXLPipeline)
 from torchvision.transforms.functional import crop
 from diffusers.loaders import AttnProcsLayers
 from diffusers.models.attention_processor import LoRAAttnProcessor

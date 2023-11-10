@@ -149,8 +149,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_alpha={lora_alpha} '
             f'--lora_text_encoder_r=32 '
             f'--lora_text_encoder_alpha=32 '
-            # f'--use_swift '
-            f'--use_peft '
+            f'--use_swift '
             f'--resume_from_checkpoint="fromfacecommon"')
         if res != 0:
             raise gr.Error("训练失败 (Training failed)")
@@ -712,6 +711,7 @@ class Trainer:
             base_model_path = 'ly261666/cv_portrait_model'
             revision = 'v2.0'
             sub_path = "film/film"
+
         output_model_name = slugify.slugify(output_model_name)
 
         # mv user upload data to target dir
@@ -1040,9 +1040,8 @@ def train_input():
                     output_model_name = gr.Textbox(label="人物lora名称(Character lora name)", value='person1', lines=1)
                     base_model_name = gr.Dropdown(choices=['AI-ModelScope/stable-diffusion-v1-5',
                                                            SDXL_BASE_MODEL_ID],
-                                                  value=SDXL_BASE_MODEL_ID,
+                                                  value='AI-ModelScope/stable-diffusion-v1-5',
                                                   label='基模型')
-
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
                     with gr.Row():
