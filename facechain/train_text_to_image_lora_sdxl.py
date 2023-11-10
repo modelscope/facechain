@@ -678,9 +678,11 @@ def main():
             lora_dropout=args.lora_dropout,
             bias=args.lora_bias,
             target_modules=UNET_TARGET_MODULES)
-        unet = Swift.prepare_model(unet, lora_config)
+        unet = Swift.prepare_model(model=unet, config=lora_config)
 
         if args.train_text_encoder:
+            # TODO: to be implemented by swift
+            from peft import LoraConfig, LoraModel, get_peft_model_state_dict, set_peft_model_state_dict
             lora_config = LoRAConfig(
                 r=args.lora_text_encoder_r,
                 lora_alpha=args.lora_text_encoder_alpha,
@@ -688,9 +690,10 @@ def main():
                 lora_dropout=args.lora_text_encoder_dropout,
                 bias=args.lora_text_encoder_bias,
             )
-            text_encoder_one = LoraModel(config, text_encoder_one)
+            text_encoder_one = LoraModel(model=text_encoder_one, config=lora_config, adapter_name='default')
             text_encoder_one = Swift.prepare_model(text_encoder_one, lora_config)
-            text_encoder_two = LoraModel(config, text_encoder_two)
+
+            text_encoder_two = LoraModel(model=text_encoder_two, config=lora_config, adapter_name='default')
             text_encoder_two = Swift.prepare_model(text_encoder_two, lora_config)
     else:
         # freeze parameters of models to save more memory
