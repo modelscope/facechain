@@ -641,18 +641,21 @@ def main():
             lora_dropout=args.lora_dropout,
             bias=args.lora_bias,
         )
-        unet = LoraModel(config, unet)
+        unet = LoraModel(model=unet, config=config, adapter_name='default')
 
         vae.requires_grad_(False)
-        if args.train_text_encoder:
-            config = LoraConfig(
-                r=args.lora_text_encoder_r,
-                lora_alpha=args.lora_text_encoder_alpha,
-                target_modules=TEXT_ENCODER_TARGET_MODULES,
-                lora_dropout=args.lora_text_encoder_dropout,
-                bias=args.lora_text_encoder_bias,
-            )
-            text_encoder = LoraModel(config, text_encoder)
+
+        # TODO: to be implemented
+        # if args.train_text_encoder:
+        #     config = LoraConfig(
+        #         r=args.lora_text_encoder_r,
+        #         lora_alpha=args.lora_text_encoder_alpha,
+        #         target_modules=TEXT_ENCODER_TARGET_MODULES,
+        #         lora_dropout=args.lora_text_encoder_dropout,
+        #         bias=args.lora_text_encoder_bias,
+        #     )
+        #     text_encoder = LoraModel(config, text_encoder)
+
     elif args.use_swift:                
         if not is_swift_available():
             raise ValueError(
