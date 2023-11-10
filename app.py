@@ -123,7 +123,7 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
     else:
         print(f'** project dir: {project_dir}')
         res = os.system(
-            f'PYTHONPATH=. accelerate launch {project_dir}/facechain/train_text_to_image_lora_sdxl.py ' if base_model_path is SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py '
+            f'PYTHONPATH=. accelerate launch {project_dir}/facechain/train_text_to_image_lora_sdxl.py ' if base_model_path is SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py '
             f'--pretrained_model_name_or_path={base_model_path} '
             f'--revision={revision} '
             f'--sub_path={sub_path} '
