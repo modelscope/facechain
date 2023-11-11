@@ -1173,7 +1173,6 @@ def main():
             }
 
             unet_config = LoraConfig(**lora_config["peft_config"])
-            # TODO: To be fixed !
             pipe.unet = LoraModel(unet_config, pipe.unet)
             set_peft_model_state_dict(pipe.unet, unet_lora_ds)
 

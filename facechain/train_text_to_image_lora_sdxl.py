@@ -644,8 +644,6 @@ def main():
         unet = LoraModel(model=unet, config=config, adapter_name='default')
 
         vae.requires_grad_(False)
-
-        # TODO: to be implemented
         # if args.train_text_encoder:
         #     config = LoraConfig(
         #         r=args.lora_text_encoder_r,
@@ -655,7 +653,6 @@ def main():
         #         bias=args.lora_text_encoder_bias,
         #     )
         #     text_encoder = LoraModel(config, text_encoder)
-
     elif args.use_swift:                
         if not is_swift_available():
             raise ValueError(
