@@ -1286,6 +1286,8 @@ def main():
 
     # Final inference
     # Load previous pipeline
+
+    print(f'\n>>>pipeline:  >model_dir: {model_dir}, >weight_dtype: {weight_dtype} \n')
     pipeline = DiffusionPipeline.from_pretrained(
         model_dir, torch_dtype=weight_dtype
     )
@@ -1325,8 +1327,6 @@ def main():
             raise ValueError(
                 'Please install swift by `pip install ms-swift` to use efficient_tuners.'
             )
-
-        accelerator.clear()     # TODO: for test
 
         from swift import Swift
         pipeline = pipeline.to(accelerator.device)
