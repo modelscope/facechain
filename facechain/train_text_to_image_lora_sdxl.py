@@ -1287,7 +1287,8 @@ def main():
     # Final inference
     # Load previous pipeline
 
-    print(f'\n>>>pipeline:  >model_dir: {model_dir}, >weight_dtype: {weight_dtype} \n')
+    print(f'\n>>>pipeline:  >model_dir: {model_dir}, >origin weight_dtype: {weight_dtype} \n')
+    weight_dtype = torch.float16        # TODO: fix OOM
     pipeline = DiffusionPipeline.from_pretrained(
         model_dir, torch_dtype=weight_dtype
     )
