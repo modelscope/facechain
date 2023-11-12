@@ -131,6 +131,9 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
     
     lora_style_path = style_model_path
     lora_human_path = lora_model_path
+
+    print(f'>>inference: >base_model_path: {base_model_path}, >lora_style_path: {lora_style_path},  >lora_human_path: {lora_human_path}')
+
     if 'xl-base' in base_model_path:
         pipe = StableDiffusionXLPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)    
         pipe.unet.load_attn_procs(lora_human_path)

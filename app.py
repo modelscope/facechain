@@ -731,6 +731,7 @@ class Trainer:
         work_dir = join_worker_data_dir(uuid, base_model_path, output_model_name)
 
         if os.path.exists(work_dir) and len(os.listdir(work_dir)) > 0:
+            print(f'** work_dir: {work_dir}')
             raise gr.Error("人物lora名称已存在。(This character lora name already exists.)")
 
         print("----------work_dir: ", work_dir)
