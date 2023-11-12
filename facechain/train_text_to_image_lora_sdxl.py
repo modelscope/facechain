@@ -1326,6 +1326,7 @@ def main():
                 'Please install swift by `pip install ms-swift` to use efficient_tuners.'
             )
         from swift import Swift
+        torch.cuda.empty_cache()
         pipeline = pipeline.to(accelerator.device)
         pipeline.unet = Swift.from_pretrained(pipeline.unet, os.path.join(args.output_dir, 'swift'))
 
