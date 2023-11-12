@@ -7,17 +7,20 @@ pos_prompt_with_style = '{}, upper_body, raw photo, masterpiece, solo, medium sh
 
 base_models = [
     {'name': 'leosamsMoonfilm_filmGrain20',
-    'model_id': 'ly261666/cv_portrait_model',
-    'revision': 'v2.0',
-    'sub_path': "film/film"},
+     'model_id': 'ly261666/cv_portrait_model',
+     'revision': 'v2.0',
+     'sub_path': "film/film",
+     'show_name': '写实模型(Realistic model)'},
     {'name': 'MajicmixRealistic_v6',
-    'model_id': 'YorickHe/majicmixRealistic_v6',
-    'revision': 'v1.0.0',
-    'sub_path': "realistic"},
-    {'name': 'sdxl_1.0',
-    'model_id': 'AI-ModelScope/stable-diffusion-xl-base-1.0',
-    'revision': 'v1.0.0',
-    'sub_path': ""},
+     'model_id': 'YorickHe/majicmixRealistic_v6',
+     'revision': 'v1.0.0',
+     'sub_path': 'realistic',
+     'show_name': '\N{fire}写真模型(Photorealistic model)'},
+    {'name': 'SDXL_1.0',
+     'model_id': 'AI-ModelScope/stable-diffusion-xl-base-1.0',
+     'revision': 'v1.0.9',
+     'sub_path': '',
+     'show_name': 'SDXL_1.0'},
 ]
 
 pose_models = [

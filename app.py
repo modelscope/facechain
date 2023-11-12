@@ -26,14 +26,8 @@ training_done_count = 0
 inference_done_count = 0
 
 SDXL_BASE_MODEL_ID = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
-SD15_BASE_MODEL_ID = 'AI-ModelScope/stable-diffusion-v1-5'
 
 character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
-BASE_MODEL_MAP = {
-    "leosamsMoonfilm_filmGrain20": "写实模型(Realistic model)",
-    "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic model)",
-    "sdxl_1.0": "sdxl_1.0",
-}
 
 
 class UploadTarget(enum.Enum):
@@ -94,8 +88,9 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
     max_train_steps = min(photo_num * 200, 800)
 
     if platform.system() == 'Windows':
+        train_script_path = f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path is SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py'
         command = [
-            'accelerate', 'launch', f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path is SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py',
+            'accelerate', 'launch', train_script_path,
             f'--pretrained_model_name_or_path={base_model_path}',
             f'--revision={revision}',
             f'--sub_path={sub_path}',
@@ -202,8 +197,14 @@ def launch_pipeline(uuid,
     if base_model_index == None:
         raise gr.Error('请选择基模型(Please select the base model)!')
     set_spawn_method()
+
+    base_model_id = base_models[base_model_index]['model_id']
+    revision = base_models[base_model_index]['revision']
+    sub_path = base_models[base_model_index]['sub_path']
+    show_name = base_models[base_model_index]['show_name']
+
     # Check character LoRA
-    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_path = join_worker_data_dir(uuid, base_model_id)
     folder_list = []
     if os.path.exists(folder_path):
         files = os.listdir(folder_path)
@@ -226,10 +227,6 @@ def launch_pipeline(uuid,
     # Check style model
     if style_model == None and lora_choice == 'preset':
         raise gr.Error('请选择风格模型(Please select the style model)!')
-
-    base_model = base_models[base_model_index]['model_id']
-    revision = base_models[base_model_index]['revision']
-    sub_path = base_models[base_model_index]['sub_path']
     
     before_queue_size = 0
     before_done_count = inference_done_count
@@ -273,8 +270,8 @@ def launch_pipeline(uuid,
     use_post_process = True
     use_stylization = False
 
-    instance_data_dir = join_worker_data_dir(uuid, 'training_data', character_model, user_model)
-    lora_model_path = join_worker_data_dir(uuid, character_model, user_model)
+    instance_data_dir = join_worker_data_dir(uuid, 'training_data', base_model_id, user_model)
+    lora_model_path = join_worker_data_dir(uuid, base_model_id, user_model)
 
     gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, 
                                multiplier_style, multiplier_human, use_main_model,
@@ -286,7 +283,7 @@ def launch_pipeline(uuid,
 
     with ProcessPoolExecutor(max_workers=5) as executor:
         future = executor.submit(gen_portrait, instance_data_dir,
-                                            num_images, base_model, lora_model_path, sub_path, revision, sr_img_size)
+                                            num_images, base_model_id, lora_model_path, sub_path, revision, sr_img_size)
         while not future.done():
             is_processing = future.running()
             if not is_processing:
@@ -303,7 +300,7 @@ def launch_pipeline(uuid,
     for out_tmp in outputs:
         outputs_RGB.append(cv2.cvtColor(out_tmp, cv2.COLOR_BGR2RGB))
         
-    save_dir = join_worker_data_dir(uuid, 'inference_result', base_model, user_model)
+    save_dir = join_worker_data_dir(uuid, 'inference_result', base_model_id, user_model)
     if lora_choice == 'preset':
         save_dir = os.path.join(save_dir, 'style_' + style_model)
     else:
@@ -351,8 +348,12 @@ def launch_pipeline_inpaint(uuid,
     if base_model_index == None:
         raise gr.Error('请选择基模型(Please select the base model)！')
 
+    set_spawn_method()
+
+    base_model_id = base_models[base_model_index]['model_id']
+
     # Check character LoRA
-    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_path = join_worker_data_dir(uuid, base_model_id)
     folder_list = []
     if os.path.exists(folder_path):
         files = os.listdir(folder_path)
@@ -399,14 +400,14 @@ def launch_pipeline_inpaint(uuid,
         user_model_B = None
            
     if user_model_A is not None:
-        instance_data_dir_A = join_worker_data_dir(uuid, 'training_data', character_model, user_model_A)
-        lora_model_path_A = join_worker_data_dir(uuid, character_model, user_model_A)
+        instance_data_dir_A = join_worker_data_dir(uuid, 'training_data', base_model_id, user_model_A)
+        lora_model_path_A = join_worker_data_dir(uuid, base_model_id, user_model_A)
     else:
         instance_data_dir_A = None
         lora_model_path_A = None
     if user_model_B is not None:
-        instance_data_dir_B = join_worker_data_dir(uuid, 'training_data', character_model, user_model_B)
-        lora_model_path_B = join_worker_data_dir(uuid, character_model, user_model_B)
+        instance_data_dir_B = join_worker_data_dir(uuid, 'training_data', base_model_id, user_model_B)
+        lora_model_path_B = join_worker_data_dir(uuid, base_model_id, user_model_B)
     else:
         instance_data_dir_B = None
         lora_model_path_B = None
@@ -547,9 +548,10 @@ def launch_pipeline_tryon(uuid,
 
     # Check base model
     base_model_index = 0
+    base_model_id = base_models[base_model_index]['model_id']
 
     # Check character LoRA
-    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_path = join_worker_data_dir(uuid, base_model_id)
     folder_list = []
     if os.path.exists(folder_path):
         files = os.listdir(folder_path)
@@ -588,8 +590,8 @@ def launch_pipeline_tryon(uuid,
         user_model = None
 
     if user_model is not None:
-        instance_data_dir = join_worker_data_dir(uuid, 'training_data', character_model, user_model)
-        lora_model_path = join_worker_data_dir(uuid, character_model, user_model)
+        instance_data_dir = join_worker_data_dir(uuid, 'training_data', base_model_id, user_model)
+        lora_model_path = join_worker_data_dir(uuid, base_model_id, user_model)
     else:
         instance_data_dir = None
         lora_model_path = None
@@ -759,7 +761,7 @@ class Trainer:
 
 def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):    
 
-    base_model_path = base_models[base_model_index]['model_id']
+    base_model_id = base_models[base_model_index]['model_id']
     style_list = base_models[base_model_index]['style_list']
 
     sub_styles=[]
@@ -773,7 +775,7 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
         else:
             uuid = 'qw'
 
-    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_path = join_worker_data_dir(uuid, base_model_id)
     folder_list = []
     lora_save_path = join_worker_data_dir(uuid, 'temp_lora')
     if not os.path.exists(lora_save_path):
@@ -784,7 +786,7 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
     
     if not os.path.exists(folder_path):
         if lora_choice == 'preset':  
-            return gr.Radio.update(choices=[], value = None), \
+            return gr.Radio.update(choices=[], value=None), \
                 gr.Gallery.update(value=[(item["img"], item["name"]) for item in sub_styles], visible=True), \
                 gr.Text.update(value=style_list[0], visible=True), \
                 gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
@@ -803,7 +805,7 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
                     folder_list.append(file)
     
     if lora_choice == 'preset':
-        return gr.Radio.update(choices=folder_list, value = None), \
+        return gr.Radio.update(choices=folder_list, value=None), \
             gr.Gallery.update(value=[(item["img"], item["name"]) for item in sub_styles], visible=True), \
             gr.Text.update(value=style_list[0], visible=True), \
             gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
@@ -821,16 +823,17 @@ def update_output_model(uuid):
         else:
             uuid = 'qw'
 
-    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_path = join_worker_data_dir(uuid, character_model)       # TODO: list all trained models folder
     folder_list = []
     if not os.path.exists(folder_path):
-        return gr.Radio.update(choices=[], value = None)
+        return gr.Radio.update(choices=[], value=None)
     else:
         files = os.listdir(folder_path)
         for file in files:
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
+                print(f'>>pytorch_lora_weights: {file_lora_path}')
                 file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
@@ -1046,9 +1049,8 @@ def train_input():
             with gr.Column():
                 with gr.Box():
                     output_model_name = gr.Textbox(label="人物lora名称(Character lora name)", value='person1', lines=1)
-                    base_model_name = gr.Dropdown(choices=[SD15_BASE_MODEL_ID,
-                                                           SDXL_BASE_MODEL_ID],
-                                                  value=SD15_BASE_MODEL_ID,
+                    base_model_name = gr.Dropdown(choices=[base_model['model_id'] for base_model in base_models],
+                                                  value=base_models[0]['show_name'],
                                                   label='基模型')
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
@@ -1122,7 +1124,7 @@ def inference_input():
             with gr.Column():
                 base_model_list = []
                 for base_model in base_models:
-                    base_model_list.append(BASE_MODEL_MAP[base_model['name']])
+                    base_model_list.append(base_model['show_name'])
 
                 base_model_index = gr.Radio(label="基模型选择(Base model list)", choices=base_model_list, type="index", value=None)
                 
@@ -1283,7 +1285,7 @@ def inference_inpaint():
 
                 base_model_list = []
                 for base_model in base_models:
-                    base_model_list.append(BASE_MODEL_MAP[base_model['name']])
+                    base_model_list.append(base_model['show_name'])
 
                 base_model_index = gr.Radio(
                     label="基模型选择(Base model list)",
@@ -1417,7 +1419,7 @@ def inference_tryon():
 
                 base_model_list = []
                 for base_model in base_models:
-                    base_model_list.append(BASE_MODEL_MAP[base_model['name']])
+                    base_model_list.append(base_model['show_name'])
 
                 with gr.Row():
                     with gr.Column(scale=2):
