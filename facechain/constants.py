@@ -16,7 +16,7 @@ base_models = [
      'revision': 'v1.0.0',
      'sub_path': 'realistic',
      'show_name': '\N{fire}写真模型(Photorealistic model)'},
-    {'name': 'SDXL_1.0',
+    {'name': 'sdxl_1.0',
      'model_id': 'AI-ModelScope/stable-diffusion-xl-base-1.0',
      'revision': 'v1.0.9',
      'sub_path': '',
