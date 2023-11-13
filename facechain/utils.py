@@ -73,3 +73,10 @@ def join_worker_data_dir(*kwargs) -> str:
     Join the worker data directory with the specified sub directory.
     """
     return os.path.join(get_worker_data_dir(), *kwargs)
+
+
+def check_dir_valid(dir: str) -> bool:
+    """
+    Check if the current directory exists and not empty.
+    """
+    return os.path.exists(dir) and os.listdir(dir)

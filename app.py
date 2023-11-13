@@ -13,7 +13,8 @@ import numpy as np
 import torch
 from glob import glob
 import platform
-from facechain.utils import snapshot_download, check_ffmpeg, set_spawn_method, project_dir, join_worker_data_dir
+from facechain.utils import snapshot_download, check_ffmpeg, set_spawn_method, project_dir, join_worker_data_dir, \
+    check_dir_valid
 from facechain.inference import preprocess_pose, GenPortrait
 from facechain.inference_inpaint import GenPortrait_inpaint
 from facechain.inference_talkinghead import SadTalker, text_to_speech_edge
@@ -816,32 +817,40 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
 
 
 def update_output_model(uuid):
-
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
             raise gr.Error("请登陆后使用! (Please login first)")
         else:
             uuid = 'qw'
 
-    folder_path = join_worker_data_dir(uuid, character_model)       # TODO: list all trained models folder
+    character_candidate_models = [base_model['model_id'] for base_model in base_models]
+    folder_paths = [join_worker_data_dir(uuid, item) for item in character_candidate_models]
+    folder_paths = [path for path in folder_paths if check_dir_valid(path)]
+
+    # folder_path = join_worker_data_dir(uuid, character_model)       # TODO: list all trained models folder
+    # print(f'>>>update_output_model folder_path: {folder_path}')
+
     folder_list = []
-    if not os.path.exists(folder_path):
-        return gr.Radio.update(choices=[], value=None)
-    else:
-        files = os.listdir(folder_path)
-        for file in files:
-            file_path = os.path.join(folder_path, file)
-            if os.path.isdir(folder_path):
-                file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                print(f'>>pytorch_lora_weights: {file_lora_path}')
-                file_lora_path_swift = f"{file_path}/swift"
-                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
-                    folder_list.append(file)
+    for folder_path in folder_paths:
+        print(f'>>>update_output_model folder_path: {folder_path}')
+        if not os.path.exists(folder_path):
+            return gr.Radio.update(choices=[], value=None)
+        else:
+            files = os.listdir(folder_path)
+            for file in files:
+                file_path = os.path.join(folder_path, file)
+                if os.path.isdir(folder_path):
+                    file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
+                    print(f'>>pytorch_lora_weights: {file_lora_path}')
+                    file_lora_path_swift = f"{file_path}/swift"
+                    if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
+                        folder_list.append(file)
                     
     return gr.Radio.update(choices=folder_list)
 
 
 def update_output_model_inpaint(uuid):
+    # TODO: To be refactored with character_model
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
             raise gr.Error("请登陆后使用! (Please login first)")
@@ -888,18 +897,23 @@ def update_output_model_tryon(uuid):
         else:
             uuid = 'qw'
 
-    folder_path = join_worker_data_dir(uuid, character_model)
+    character_candidate_models = [base_model['model_id'] for base_model in base_models]
+    folder_paths = [join_worker_data_dir(uuid, item) for item in character_candidate_models]
+    folder_paths = [path for path in folder_paths if check_dir_valid(path)]
+
+    # folder_path = join_worker_data_dir(uuid, character_model)
     folder_list = ['不重绘该人物(Do not inpaint this character)']
-    if not os.path.exists(folder_path):
-        return gr.Radio.update(choices=[], value = None)
-    else:
-        files = os.listdir(folder_path)
-        for file in files:
-            file_path = os.path.join(folder_path, file)
-            if os.path.isdir(folder_path):
-                file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                if os.path.exists(file_lora_path):
-                    folder_list.append(file)
+    for folder_path in folder_paths:
+        if not os.path.exists(folder_path):
+            return gr.Radio.update(choices=[], value = None)
+        else:
+            files = os.listdir(folder_path)
+            for file in files:
+                file_path = os.path.join(folder_path, file)
+                if os.path.isdir(folder_path):
+                    file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
+                    if os.path.exists(file_lora_path):
+                        folder_list.append(file)
 
     return gr.Radio.update(choices=folder_list, value=folder_list[0])
 
@@ -910,20 +924,26 @@ def init_output_model_tryon(uuid):
         else:
             uuid = 'qw'
 
-    folder_path = join_worker_data_dir(uuid, character_model)
+    character_candidate_models = [base_model['model_id'] for base_model in base_models]
+    folder_paths = [join_worker_data_dir(uuid, item) for item in character_candidate_models]
+    folder_paths = [path for path in folder_paths if check_dir_valid(path)]
+
+    # folder_path = join_worker_data_dir(uuid, character_model)
+
     folder_list = ['不重绘该人物(Do not inpaint this character)']
-    if not os.path.exists(folder_path):
-        choices = []
-        value = None
-        return choices, value
-    else:
-        files = os.listdir(folder_path)
-        for file in files:
-            file_path = os.path.join(folder_path, file)
-            if os.path.isdir(folder_path):
-                file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                if os.path.exists(file_lora_path):
-                    folder_list.append(file)
+    for folder_path in folder_paths:
+        if not os.path.exists(folder_path):
+            choices = []
+            value = None
+            return choices, value
+        else:
+            files = os.listdir(folder_path)
+            for file in files:
+                file_path = os.path.join(folder_path, file)
+                if os.path.isdir(folder_path):
+                    file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
+                    if os.path.exists(file_lora_path):
+                        folder_list.append(file)
 
     return folder_list, folder_list[0]
 
