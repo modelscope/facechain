@@ -1529,7 +1529,9 @@ with gr.Blocks(css='style.css') as demo:
 
 if __name__ == "__main__":
     set_spawn_method()
-    demo.queue(status_update_rate=1).launch(share=True)
 
-    # demo.launch(debug=True, share=True, inline=False)
-    demo.queue().launch(debug=True, share=True, inline=False)
+    # TODO: remove for temp
+    # demo.queue(status_update_rate=1).launch(share=True)
+
+    # TODO: ONLY FOR TEST
+    demo.queue(status_update_rate=1).launch(debug=True, share=True, inline=False)
