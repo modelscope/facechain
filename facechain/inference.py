@@ -134,14 +134,21 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
 
     print(f'>>inference: >base_model_path: {base_model_path}, >lora_style_path: {lora_style_path},  >lora_human_path: {lora_human_path}')
 
-    if 'xl-base' in base_model_path:
-        pipe = StableDiffusionXLPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)    
-        pipe.unet.load_attn_procs(lora_human_path)
-    else:
-        pipe = StableDiffusionPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)    
-        pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True, device='cuda')
-        pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=lora_human_path.endswith('safetensors'), device='cuda')
-    print(f'multiplier_style:{multiplier_style}, multiplier_human:{multiplier_human}')
+    # TODO: use fp16 for inference, to be tested
+    # if 'xl-base' in base_model_path:
+    #     pipe = StableDiffusionXLPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)
+    #     pipe.unet.load_attn_procs(lora_human_path)
+    # else:
+    #     pipe = StableDiffusionPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)
+    #     pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True, device='cuda')
+    #     pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=lora_human_path.endswith('safetensors'), device='cuda')
+    # print(f'multiplier_style:{multiplier_style}, multiplier_human:{multiplier_human}')
+
+    # TODO: ONLY FOR TEST
+    pipe = StableDiffusionPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)
+    pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True, device='cuda')
+    pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=lora_human_path.endswith('safetensors'),
+                      device='cuda')
     
     train_dir = str(input_img_dir) + '_labeled'
     add_prompt_style = []

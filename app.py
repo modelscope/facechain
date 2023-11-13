@@ -1069,7 +1069,7 @@ def train_input():
             with gr.Column():
                 with gr.Box():
                     output_model_name = gr.Textbox(label="人物lora名称(Character lora name)", value='person1', lines=1)
-                    base_model_name = gr.Dropdown(choices=[base_model['model_id'] for base_model in base_models],
+                    base_model_name = gr.Dropdown(choices=[base_model['show_name'] for base_model in base_models],
                                                   value=base_models[0]['show_name'],
                                                   label='基模型')
                     gr.Markdown('训练图片(Training photos)')
@@ -1530,3 +1530,6 @@ with gr.Blocks(css='style.css') as demo:
 if __name__ == "__main__":
     set_spawn_method()
     demo.queue(status_update_rate=1).launch(share=True)
+
+    # demo.launch(debug=True, share=True, inline=False)
+    demo.queue().launch(debug=True, share=True, inline=False)
