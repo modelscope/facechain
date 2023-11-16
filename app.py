@@ -711,6 +711,7 @@ class Trainer:
                 return "请登陆后使用(Please login first)! "
             else:
                 uuid = 'qw'
+        print(f'>>>base_model_name: {base_model_name}')
         if base_model_name == SDXL_BASE_MODEL_ID:
             print('** Setting base model to SDXL **')
             base_model_path = SDXL_BASE_MODEL_ID
@@ -1069,8 +1070,8 @@ def train_input():
             with gr.Column():
                 with gr.Box():
                     output_model_name = gr.Textbox(label="人物lora名称(Character lora name)", value='person1', lines=1)
-                    base_model_name = gr.Dropdown(choices=[base_model['show_name'] for base_model in base_models],
-                                                  value=base_models[0]['show_name'],
+                    base_model_name = gr.Dropdown(choices=[base_model['model_id'] for base_model in base_models],
+                                                  value=base_models[0]['model_id'],
                                                   label='基模型')
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
