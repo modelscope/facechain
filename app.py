@@ -153,7 +153,8 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             f'--lora_text_encoder_alpha=32 '
             # f'--use_swift '       # TODO: enable swift
             # f'--use_peft '
-            f'--resume_from_checkpoint="fromfacecommon"')
+            # f'--resume_from_checkpoint="fromfacecommon"'   # TODO: enable for sd1.5
+        )
 
         if res != 0:
             raise gr.Error("训练失败 (Training failed)")

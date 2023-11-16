@@ -816,15 +816,15 @@ def main():
         data_files = {}
         if args.train_data_dir is not None:
             data_files["train"] = os.path.join(args.train_data_dir, "**")
-        print(f'>>>data_files: {data_files}')
         dataset = load_dataset(
             "imagefolder",
             data_files=data_files,
             cache_dir=args.cache_dir,
         )
-        print(f'>>dataset: {dataset}')
         # See more about loading custom images at
         # https://huggingface.co/docs/datasets/v2.4.0/en/image_load#imagefolder
+
+    print(f'\n>>dataset: {dataset}')
 
     # Preprocessing the datasets.
     # We need to tokenize inputs and targets.
@@ -1256,6 +1256,7 @@ def main():
                 )
 
             accelerator.save(state_dict, os.path.join(args.output_dir, f"{global_step}_lora.pt"))
+            print(f'\n>>>lora_config: {lora_config} \n')
             with open(os.path.join(args.output_dir, f"{global_step}_lora_config.json"), "w") as f:
                 json.dump(lora_config, f)
         elif args.use_swift:
