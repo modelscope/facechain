@@ -264,7 +264,7 @@ def launch_pipeline(uuid,
         else:
             use_depth_control = False
 
-    print("-------user_model: ", user_model)
+    print("-------user_model: ", user_model)        # person1
 
     use_main_model = True
     use_face_swap = True
@@ -1533,5 +1533,5 @@ if __name__ == "__main__":
     # TODO: remove for temp
     # demo.queue(status_update_rate=1).launch(share=True)
 
-    # TODO: ONLY FOR TEST
+    # TODO: ONLY FOR TEST (timeout ?)
     demo.queue(status_update_rate=1).launch(debug=True, share=True, inline=False)

@@ -24,7 +24,7 @@ def merge_lora(pipeline, lora_path, multiplier, from_safetensor=False, device='c
         if os.path.exists(os.path.join(lora_path, 'pytorch_lora_weights.bin')):
             checkpoint = torch.load(os.path.join(lora_path, 'pytorch_lora_weights.bin'), map_location=torch.device(device))
         elif os.path.exists(os.path.join(lora_path, 'pytorch_lora_weights.safetensors')):
-            checkpoint= load_file(os.path.join(lora_path,'pytorch_lora_weights.safetensors'), device=device)
+            checkpoint = load_file(os.path.join(lora_path, 'pytorch_lora_weights.safetensors'), device=device)
         new_dict = dict()
         for idx, key in enumerate(checkpoint):
             new_key = re.sub(r'\.processor\.', '_', key)
@@ -35,7 +35,7 @@ def merge_lora(pipeline, lora_path, multiplier, from_safetensor=False, device='c
             new_key = re.sub('to_out', 'to_out_0', new_key)
             new_key = 'lora_unet_' + new_key
             new_dict[new_key] = checkpoint[key]
-            state_dict = new_dict
+        state_dict = new_dict
     updates = defaultdict(dict)
     for key, value in state_dict.items():
         layer, elem = key.split('.', 1)
