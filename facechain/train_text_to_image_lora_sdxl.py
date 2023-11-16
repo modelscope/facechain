@@ -530,7 +530,7 @@ def main():
     args = parse_args()
     logging_dir = os.path.join(args.output_dir, args.logging_dir)
     shutil.rmtree(args.output_dir, ignore_errors=True)
-    os.makedirs(args.output_dir)
+    os.makedirs(args.output_dir, exist_ok=True)
 
     if args.dataset_name is not None:
         # if dataset_name is None, then it's called from the gradio
@@ -816,11 +816,13 @@ def main():
         data_files = {}
         if args.train_data_dir is not None:
             data_files["train"] = os.path.join(args.train_data_dir, "**")
+        print(f'>>>data_files: {data_files}')
         dataset = load_dataset(
             "imagefolder",
             data_files=data_files,
             cache_dir=args.cache_dir,
         )
+        print(f'>>dataset: {dataset}')
         # See more about loading custom images at
         # https://huggingface.co/docs/datasets/v2.4.0/en/image_load#imagefolder
 
