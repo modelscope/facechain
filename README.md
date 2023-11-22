@@ -14,7 +14,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 <p align="center">
-        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜ Wanx Online App <a href="https://tongyi.aliyun.com/wanxiang/app/portrait-gallery">🔥<a></a>&nbsp | SD WebUI ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
+        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜API <a href="https://help.aliyun.com/zh/dashscope/developer-reference/facechain-quick-start">🔥<a></a>&nbsp ｜ API's Example App <a href="https://tongyi.aliyun.com/wanxiang/app/portrait-gallery">🔥<a></a>&nbsp | SD WebUI ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
 </p>
 <br>
 
@@ -23,6 +23,8 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+- Add SDXL pipeline🔥🔥🔥, image detail is improved obviously. (November 22th, 2023 UTC)
+- Support super resolution🔥🔥🔥, provide multiple resolution choice (512*512, 768*768, 1024*1024, 2048*2048). (November 13th, 2023 UTC)
 - 🏆FaceChain has been selected in the [BenchCouncil Open100 (2022-2023)](https://www.benchcouncil.org/evaluation/opencs/annual.html#Institutions) annual ranking. (November 8th, 2023 UTC)
 - Add virtual try-on module. (October 27th, 2023 UTC)
 - Add wanx version [online free app](https://tongyi.aliyun.com/wanxiang/app/portrait-gallery). (October 26th, 2023 UTC)
@@ -41,12 +43,12 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # To-Do List
-- Support more style models (such as those on Civitai). --on-going, hot
-- Support more beauty-retouch effects
-- Support latest foundation models such as SDXL
-- Support high resolution
-- Support group photo scenario, e.g, multi-person
-- Provide more funny apps
+- Develop train-free methods, make it possible to run on cpu.
+- Develop RLHF methods, make its quality more higher.
+- Provide training scripts for new style lora.
+- Support more style lora (such as those on Civitai).
+- Support more beauty-retouch effects.
+- Provide more funny apps.
 
 
 # Citation
