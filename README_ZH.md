@@ -13,7 +13,7 @@ FaceChain是一个可以用来打造个人数字形象的深度学习模型工�
 FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开源模型社区提供支持。
 
 <p align="center">
-        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜ Wanx Online App <a href="https://tongyi.aliyun.com/wanxiang/app/portrait-gallery">🔥<a></a>&nbsp | SD WebUI ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
+        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜API <a href="https://help.aliyun.com/zh/dashscope/developer-reference/facechain-quick-start">🤖<a></a>&nbsp ｜ API's Example App <a href="https://tongyi.aliyun.com/wanxiang/app/portrait-gallery">🔥<a></a>&nbsp | SD WebUI ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
 </p>
 <br>
 
