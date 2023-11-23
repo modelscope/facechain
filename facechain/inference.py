@@ -8,7 +8,7 @@ import torch
 from PIL import Image
 from controlnet_aux import OpenposeDetector
 from diffusers import StableDiffusionPipeline, StableDiffusionControlNetPipeline, ControlNetModel, \
-    UniPCMultistepScheduler, StableDiffusionXLPipeline
+    UniPCMultistepScheduler, DPMSolverMultistepScheduler, DPMSolverSinglestepScheduler, StableDiffusionXLPipeline
 from facechain.utils import snapshot_download
 from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
@@ -18,6 +18,7 @@ from transformers import pipeline as tpipeline
 
 from facechain.data_process.preprocessing import Blipv2
 from facechain.merge_lora import merge_lora
+from safetensors.torch import load_file, save_file
 
 
 def _data_process_fn_process(input_img_dir):
@@ -35,11 +36,11 @@ def data_process_fn(input_img_dir, use_data_process):
 
     return os.path.join(str(input_img_dir) + '_labeled', "metadata.jsonl")
 
-def txt2img(pipe, pos_prompt, neg_prompt, num_images=10):
+def txt2img(pipe, pos_prompt, neg_prompt, num_images=10, height=512, width=512):
     batch_size = 5
     images_out = []
     for i in range(int(num_images / batch_size)):
-        images_style = pipe(prompt=pos_prompt, height=512, width=512, guidance_scale=7, negative_prompt=neg_prompt,
+        images_style = pipe(prompt=pos_prompt, height=height, width=width, guidance_scale=7, negative_prompt=neg_prompt,
                             num_inference_steps=40, num_images_per_prompt=batch_size).images
         images_out.extend(images_style)
     return images_out
@@ -78,20 +79,20 @@ def preprocess_pose(origin_img) -> Image:
     result = cv2.resize(result, (w, h))
     return result
 
-def txt2img_pose(pipe, pose_im, pos_prompt, neg_prompt, num_images=10):
+def txt2img_pose(pipe, pose_im, pos_prompt, neg_prompt, num_images=10, height=512, width=512):
     batch_size = 2
     images_out = []
     for i in range(int(num_images / batch_size)):
-        images_style = pipe(prompt=pos_prompt, image=pose_im, height=512, width=512, guidance_scale=7, negative_prompt=neg_prompt,
+        images_style = pipe(prompt=pos_prompt, image=pose_im, height=height, width=width, guidance_scale=7, negative_prompt=neg_prompt,
                             num_inference_steps=40, num_images_per_prompt=batch_size).images
         images_out.extend(images_style)
     return images_out
 
-def txt2img_multi(pipe, images, pos_prompt, neg_prompt, num_images=10):
+def txt2img_multi(pipe, images, pos_prompt, neg_prompt, num_images=10, height=512, width=512):
     batch_size = 2
     images_out = []
     for i in range(int(num_images / batch_size)):
-        images_style = pipe(pos_prompt, images, height=512, width=512, guidance_scale=7, negative_prompt=neg_prompt, controlnet_conditioning_scale=[1.0, 0.5],
+        images_style = pipe(pos_prompt, images, height=height, width=width, guidance_scale=7, negative_prompt=neg_prompt, controlnet_conditioning_scale=[1.0, 0.5],
                             num_inference_steps=40, num_images_per_prompt=batch_size).images
         images_out.extend(images_style)
     return images_out
@@ -132,12 +133,37 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
     lora_style_path = style_model_path
     lora_human_path = lora_model_path
     if 'xl-base' in base_model_path:
-        pipe = StableDiffusionXLPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)    
-        pipe.unet.load_attn_procs(lora_human_path)
+        pipe = StableDiffusionXLPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float16)
+        print('base_model_path', base_model_path)
+        print('lora_human_path', lora_human_path)
+        print('lora_style_path', lora_style_path)
+        if not os.path.isfile(lora_human_path):
+            lora_human_path = os.path.join(lora_human_path, 'pytorch_lora_weights.bin')
+        lora_human_state_dict = torch.load(lora_human_path, map_location='cpu')
+        
+        if lora_style_path.endswith('safetensors'):
+            lora_style_state_dict = load_file(lora_style_path)
+        else:
+            lora_style_state_dict = torch.load(lora_style_path, map_location='cpu')
+        
+        weighted_lora_human_state_dict = {}
+        for key in lora_human_state_dict:
+            weighted_lora_human_state_dict[key] = lora_human_state_dict[key] * multiplier_human
+        weighted_lora_style_state_dict = {}
+        for key in lora_style_state_dict:
+            weighted_lora_style_state_dict[key] = lora_style_state_dict[key] * multiplier_style
+        print('start lora merging')
+        pipe.load_lora_weights(weighted_lora_style_state_dict)
+        print('merge style lora done')
+        pipe.load_lora_weights(weighted_lora_human_state_dict)
+        print('lora merging done')
     else:
         pipe = StableDiffusionPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)    
         pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True, device='cuda')
         pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=lora_human_path.endswith('safetensors'), device='cuda')
+    print(pipe.scheduler)
+    #pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
+    pipe.scheduler = DPMSolverSinglestepScheduler.from_config(pipe.scheduler.config)
     print(f'multiplier_style:{multiplier_style}, multiplier_human:{multiplier_human}')
     
     train_dir = str(input_img_dir) + '_labeled'
@@ -187,7 +213,10 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
         add_prompt_style = ''
 
     pipe = pipe.to("cuda")
-    images_style = txt2img(pipe, trigger_style + add_prompt_style + pos_prompt, neg_prompt, num_images=10)
+    if 'xl-base' in base_model_path:
+        images_style = txt2img(pipe, trigger_style + add_prompt_style + pos_prompt, neg_prompt, num_images=10, height=768, width=768)
+    else:
+        images_style = txt2img(pipe, trigger_style + add_prompt_style + pos_prompt, neg_prompt, num_images=10)
     return images_style
 
 def main_diffusion_inference_pose(pose_model_path, pose_image,
@@ -502,21 +531,49 @@ class GenPortrait:
         # stylization
         final_gen_results = stylization_fn(self.use_stylization, rank_results)
         sr_pipe = pipeline(Tasks.image_super_resolution, model='damo/cv_rrdb_image-super-resolution')
-        if int(sr_img_size) != 0:
-            out_results = []
-            for i in range(len(final_gen_results)):
-                img = final_gen_results[i]
-                img = Image.fromarray(img[:,:,::-1])
-                out_img = sr_pipe(img)['output_img']
-                if int(sr_img_size) == 1:
-                    ratio = 0.5
-                    out_img = cv2.resize(
-                        out_img, (0, 0),
-                        fx=ratio,
-                        fy=ratio,
-                        interpolation=cv2.INTER_AREA)
-                out_results.append(out_img)
-            final_gen_results = out_results
+        if 'xl-base' in base_model_path:
+            if int(sr_img_size) != 1:
+                out_results = []
+                for i in range(len(final_gen_results)):
+                    img = final_gen_results[i]
+                    if int(sr_img_size) == 0:
+                        out_img = cv2.resize(
+                            img, (512, 512),
+                            interpolation=cv2.INTER_AREA)
+                    else:
+                        img = Image.fromarray(img[:,:,::-1])
+                        out_img = sr_pipe(img)['output_img']
+                        if int(sr_img_size) == 2:
+                            new_h = 1024
+                            new_w = 1024
+                        else:
+                            new_h = 2048
+                            new_w = 2048
+                        out_img = cv2.resize(
+                            out_img, (new_w, new_h),
+                            interpolation=cv2.INTER_AREA)
+                    out_results.append(out_img)
+                final_gen_results = out_results
+        else:
+            if int(sr_img_size) != 0:
+                out_results = []
+                for i in range(len(final_gen_results)):
+                    img = final_gen_results[i]
+                    img = Image.fromarray(img[:,:,::-1])
+                    out_img = sr_pipe(img)['output_img']
+                    ratio = 1
+                    if int(sr_img_size) == 1:
+                        ratio = 0.375
+                    elif int(sr_img_size) == 2:
+                        ratio = 0.5
+                    if ratio < 1:
+                        out_img = cv2.resize(
+                            out_img, (0, 0),
+                            fx=ratio,
+                            fy=ratio,
+                            interpolation=cv2.INTER_AREA)
+                    out_results.append(out_img)
+                final_gen_results = out_results
             
 
         return final_gen_results
