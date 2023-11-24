@@ -543,7 +543,11 @@ class GenPortrait:
                 img = final_gen_results[i]
                 img = Image.fromarray(img[:,:,::-1])
                 result = img_cartoon(img)[OutputKeys.OUTPUT_IMG]
-                out_results.append(result)
+                cv2.imwrite('tmp.png', result)
+                result_img = cv2.imread('tmp.png')
+                out_results.append(result_img)
+
+            os.system('rm tmp.png')
 
             final_gen_results = out_results
 
