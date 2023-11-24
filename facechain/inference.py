@@ -132,6 +132,7 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
     
     lora_style_path = style_model_path
     lora_human_path = lora_model_path
+    print ('lora_human_path: ', lora_human_path)
     if 'xl-base' in base_model_path:
         pipe = StableDiffusionXLPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float16)
         print('base_model_path', base_model_path)
@@ -509,7 +510,7 @@ class GenPortrait:
         self.use_depth_control = use_depth_control
 
     def __call__(self, input_img_dir, num_gen_images=6, base_model_path=None,
-                 lora_model_path=None, sub_path=None, revision=None, sr_img_size=None):
+                 lora_model_path=None, sub_path=None, revision=None, sr_img_size=None, portrait_stylization_idx=None):
         base_model_path = snapshot_download(base_model_path, revision=revision)
         if sub_path is not None and len(sub_path) > 0:
             base_model_path = os.path.join(base_model_path, sub_path)
@@ -531,49 +532,65 @@ class GenPortrait:
         # stylization
         final_gen_results = stylization_fn(self.use_stylization, rank_results)
         sr_pipe = pipeline(Tasks.image_super_resolution, model='damo/cv_rrdb_image-super-resolution')
-        if 'xl-base' in base_model_path:
-            if int(sr_img_size) != 1:
-                out_results = []
-                for i in range(len(final_gen_results)):
-                    img = final_gen_results[i]
-                    if int(sr_img_size) == 0:
-                        out_img = cv2.resize(
-                            img, (512, 512),
-                            interpolation=cv2.INTER_AREA)
-                    else:
+        if portrait_stylization_idx is not None:
+            out_results = []
+            if int(portrait_stylization_idx) == 0:
+                img_cartoon = pipeline(Tasks.image_portrait_stylization, model='damo/cv_unet_person-image-cartoon_compound-models')
+            if int(portrait_stylization_idx) == 1:
+                img_cartoon = pipeline(Tasks.image_portrait_stylization, model='damo/cv_unet_person-image-cartoon-3d_compound-models')
+
+            for i in range(len(final_gen_results)):
+                img = final_gen_results[i]
+                img = Image.fromarray(img[:,:,::-1])
+                result = img_cartoon(img)[OutputKeys.OUTPUT_IMG]
+                out_results.append(result)
+
+            final_gen_results = out_results
+
+        if portrait_stylization_idx is None:
+            if 'xl-base' in base_model_path:
+                if int(sr_img_size) != 1:
+                    out_results = []
+                    for i in range(len(final_gen_results)):
+                        img = final_gen_results[i]
+                        if int(sr_img_size) == 0:
+                            out_img = cv2.resize(
+                                img, (512, 512),
+                                interpolation=cv2.INTER_AREA)
+                        else:
+                            img = Image.fromarray(img[:,:,::-1])
+                            out_img = sr_pipe(img)['output_img']
+                            if int(sr_img_size) == 2:
+                                new_h = 1024
+                                new_w = 1024
+                            else:
+                                new_h = 2048
+                                new_w = 2048
+                            out_img = cv2.resize(
+                                out_img, (new_w, new_h),
+                                interpolation=cv2.INTER_AREA)
+                        out_results.append(out_img)
+                    final_gen_results = out_results
+            else:
+                if int(sr_img_size) != 0:
+                    out_results = []
+                    for i in range(len(final_gen_results)):
+                        img = final_gen_results[i]
                         img = Image.fromarray(img[:,:,::-1])
                         out_img = sr_pipe(img)['output_img']
-                        if int(sr_img_size) == 2:
-                            new_h = 1024
-                            new_w = 1024
-                        else:
-                            new_h = 2048
-                            new_w = 2048
-                        out_img = cv2.resize(
-                            out_img, (new_w, new_h),
-                            interpolation=cv2.INTER_AREA)
-                    out_results.append(out_img)
-                final_gen_results = out_results
-        else:
-            if int(sr_img_size) != 0:
-                out_results = []
-                for i in range(len(final_gen_results)):
-                    img = final_gen_results[i]
-                    img = Image.fromarray(img[:,:,::-1])
-                    out_img = sr_pipe(img)['output_img']
-                    ratio = 1
-                    if int(sr_img_size) == 1:
-                        ratio = 0.375
-                    elif int(sr_img_size) == 2:
-                        ratio = 0.5
-                    if ratio < 1:
-                        out_img = cv2.resize(
-                            out_img, (0, 0),
-                            fx=ratio,
-                            fy=ratio,
-                            interpolation=cv2.INTER_AREA)
-                    out_results.append(out_img)
-                final_gen_results = out_results
+                        ratio = 1
+                        if int(sr_img_size) == 1:
+                            ratio = 0.375
+                        elif int(sr_img_size) == 2:
+                            ratio = 0.5
+                        if ratio < 1:
+                            out_img = cv2.resize(
+                                out_img, (0, 0),
+                                fx=ratio,
+                                fy=ratio,
+                                interpolation=cv2.INTER_AREA)
+                        out_results.append(out_img)
+                    final_gen_results = out_results
             
 
         return final_gen_results

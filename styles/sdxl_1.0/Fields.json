@@ -1,6 +1,6 @@
 {
     "name": "田园风(Fields style)",
-    "img": "./style_image/sdxl_fields.png",
+    "img": "./style_image/sdxl_fields.jpg",
     "model_id": "slmodelscope/sdxl_style_loras",
     "revision": "v1.0.0",
     "bin_file": "KiloyJPFSDXL-000004.safetensors",

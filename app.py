@@ -27,9 +27,10 @@ training_done_count = 0
 inference_done_count = 0
 SDXL_BASE_MODEL_ID = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
 character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
+#character_model = 'ly261666/cv_portrait_model'
 BASE_MODEL_MAP = {
-    "leosamsMoonfilm_filmGrain20": "写实模型(Realistic model)",
-    "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic model)",
+    "leosamsMoonfilm_filmGrain20": "写实模型(Realistic sd_1.5 model)",
+    "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic sd_1.5 model)",
     "sdxl_1.0": "sdxl_1.0",
 }
 
@@ -236,6 +237,7 @@ def launch_pipeline(uuid,
                     pose_model=None,
                     pose_image=None,
                     sr_img_size=None,
+                    cartoon_style_idx=None,
                     ):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -248,7 +250,10 @@ def launch_pipeline(uuid,
         raise gr.Error('请选择基模型(Please select the base model)!')
     set_spawn_method()
     # Check character LoRA
-    folder_path = join_worker_data_dir(uuid, character_model)
+    tmp_character_model = base_models[base_model_index]['model_id']
+    if tmp_character_model != character_model:
+        tmp_character_model = 'ly261666/cv_portrait_model'
+    folder_path = join_worker_data_dir(uuid, tmp_character_model)
     folder_list = []
     if os.path.exists(folder_path):
         files = os.listdir(folder_path)
@@ -318,20 +323,20 @@ def launch_pipeline(uuid,
     use_post_process = True
     use_stylization = False
 
-    instance_data_dir = join_worker_data_dir(uuid, 'training_data', character_model, user_model)
-    lora_model_path = join_worker_data_dir(uuid, character_model, user_model)
+    instance_data_dir = join_worker_data_dir(uuid, 'training_data', tmp_character_model, user_model)
+    lora_model_path = join_worker_data_dir(uuid, tmp_character_model, user_model)
 
     gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, 
                                multiplier_style, multiplier_human, use_main_model,
                                use_face_swap, use_post_process,
                                use_stylization)
 
-    #gen_portrait(instance_data_dir, num_images, base_model, lora_model_path, sub_path, revision, sr_img_size)
+    #gen_portrait(instance_data_dir, num_images, base_model, lora_model_path, sub_path, revision, sr_img_size, cartoon_style_idx )
     num_images = min(6, num_images)
 
     with ProcessPoolExecutor(max_workers=5) as executor:
         future = executor.submit(gen_portrait, instance_data_dir,
-                                            num_images, base_model, lora_model_path, sub_path, revision, sr_img_size)
+                                            num_images, base_model, lora_model_path, sub_path, revision, sr_img_size, cartoon_style_idx)
         while not future.done():
             is_processing = future.running()
             if not is_processing:
@@ -397,7 +402,11 @@ def launch_pipeline_inpaint(uuid,
         raise gr.Error('请选择基模型(Please select the base model)！')
 
     # Check character LoRA
-    folder_path = join_worker_data_dir(uuid, character_model)
+    tmp_character_model = base_models[base_model_index]['model_id']
+    if tmp_character_model != character_model:
+        tmp_character_model = 'ly261666/cv_portrait_model'
+
+    folder_path = join_worker_data_dir(uuid, tmp_character_model)
     folder_list = []
     if os.path.exists(folder_path):
         files = os.listdir(folder_path)
@@ -444,14 +453,14 @@ def launch_pipeline_inpaint(uuid,
         user_model_B = None
            
     if user_model_A is not None:
-        instance_data_dir_A = join_worker_data_dir(uuid, 'training_data', character_model, user_model_A)
-        lora_model_path_A = join_worker_data_dir(uuid, character_model, user_model_A)
+        instance_data_dir_A = join_worker_data_dir(uuid, 'training_data', tmp_character_model, user_model_A)
+        lora_model_path_A = join_worker_data_dir(uuid, tmp_character_model, user_model_A)
     else:
         instance_data_dir_A = None
         lora_model_path_A = None
     if user_model_B is not None:
-        instance_data_dir_B = join_worker_data_dir(uuid, 'training_data', character_model, user_model_B)
-        lora_model_path_B = join_worker_data_dir(uuid, character_model, user_model_B)
+        instance_data_dir_B = join_worker_data_dir(uuid, 'training_data', tmp_character_model, user_model_B)
+        lora_model_path_B = join_worker_data_dir(uuid, tmp_character_model, user_model_B)
     else:
         instance_data_dir_B = None
         lora_model_path_B = None
@@ -864,21 +873,23 @@ def update_output_model(uuid):
             raise gr.Error("请登陆后使用! (Please login first)")
         else:
             uuid = 'qw'
-
-    folder_path = join_worker_data_dir(uuid, character_model)
     folder_list = []
-    if not os.path.exists(folder_path):
+    for idx, tmp_character_model in enumerate(['ly261666/cv_portrait_model', character_model]):
+        folder_path = join_worker_data_dir(uuid, tmp_character_model)
+        if not os.path.exists(folder_path):
+            continue
+        else:
+            files = os.listdir(folder_path)
+            for file in files:
+                file_path = os.path.join(folder_path, file)
+                if os.path.isdir(folder_path):
+                    file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
+                    file_lora_path_swift = f"{file_path}/swift"
+                    if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
+                        folder_list.append(file)
+    if len(folder_list) == 0:
         return gr.Radio.update(choices=[], value = None)
-    else:
-        files = os.listdir(folder_path)
-        for file in files:
-            file_path = os.path.join(folder_path, file)
-            if os.path.isdir(folder_path):
-                file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/swift"
-                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
-                    folder_list.append(file)
-                    
+
     return gr.Radio.update(choices=folder_list)
 
 
@@ -1205,6 +1216,7 @@ def inference_input():
 
                     out_img_size_list = ["512x512", "768x768", "1024x1024", "2048x2048"]
                     sr_img_size =  gr.Radio(label="输出分辨率选择(Output Image Size)", choices=out_img_size_list, type="index", value="512x512")
+                    cartoon_style_idx =  gr.Radio(label="动漫风格选择", choices=['2D人像卡通', '3D人像卡通化'], type="index")
 
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, 
                                             value=generate_pos_prompt(None, styles[0]['add_prompt_style']),
@@ -1296,7 +1308,7 @@ def inference_input():
                       queue=False)
         display_button.click(fn=launch_pipeline,
                              inputs=[uuid, pos_prompt, neg_prompt, base_model_index, user_model, num_images, lora_choice, style_model, multiplier_style, multiplier_human,
-                                     pose_model, pose_image, sr_img_size],
+                                     pose_model, pose_image, sr_img_size, cartoon_style_idx],
                              outputs=[infer_progress, output_images])
         history_button.click(fn=deal_history,
                              inputs=[uuid, base_model_index, user_model, lora_choice, style_model, load_history_text],
