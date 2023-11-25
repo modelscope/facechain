@@ -25,15 +25,20 @@ from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_pr
 
 training_done_count = 0
 inference_done_count = 0
-character_model = 'ly261666/cv_portrait_model'
+SDXL_BASE_MODEL_ID = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
+character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
+#character_model = 'ly261666/cv_portrait_model'
 BASE_MODEL_MAP = {
-    "leosamsMoonfilm_filmGrain20": "写实模型(Realistic model)",
-    "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic model)",
+    "leosamsMoonfilm_filmGrain20": "写实模型(Realistic sd_1.5 model)",
+    "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic sd_1.5 model)",
+    "sdxl_1.0": "sdxl_1.0",
 }
+
 
 class UploadTarget(enum.Enum):
     PERSONAL_PROFILE = 'Personal Profile'
     LORA_LIaBRARY = 'LoRA Library'
+
 
 # utils
 def concatenate_images(images):
@@ -46,15 +51,18 @@ def concatenate_images(images):
         concatenated_image[0:img.shape[0], x_offset:x_offset + img.shape[1], :] = img
         x_offset += img.shape[1]
     return concatenated_image
-    
+
+
 def select_function(evt: gr.SelectData):
     name = evt.value[1] if isinstance(evt.value, list) else evt.value
     matched = list(filter(lambda item: name == item['name'], styles))
     style = matched[0]
     return gr.Text.update(value=style['name'], visible=True)
 
+
 def get_selected_image(state_image_list, evt: gr.SelectData):
     return state_image_list[evt.index]
+
 
 def update_prompt(style_model):
     matched = list(filter(lambda item: style_model == item['name'], styles))
@@ -66,6 +74,7 @@ def update_prompt(style_model):
            gr.Slider.update(value=multiplier_style), \
            gr.Slider.update(value=multiplier_human)
 
+
 def update_pose_model(pose_image, pose_model):
     if pose_image is None:
         return gr.Radio.update(value=pose_models[0]['name']), gr.Image.update(visible=False)
@@ -75,6 +84,7 @@ def update_pose_model(pose_image, pose_model):
         pose_res_img = preprocess_pose(pose_image)
         return gr.Radio.update(value=pose_models[pose_model]['name']), gr.Image.update(value=pose_res_img, visible=True)
 
+
 def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img_dir=None, work_dir=None, photo_num=0):
     torch.cuda.empty_cache()
     
@@ -83,29 +93,56 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
     max_train_steps = min(photo_num * 200, 800)
 
     if platform.system() == 'Windows':
-        command = [
-            'accelerate', 'launch', f'{project_dir}/facechain/train_text_to_image_lora.py',
-            f'--pretrained_model_name_or_path={base_model_path}',
-            f'--revision={revision}',
-            f'--sub_path={sub_path}',
-            f'--output_dataset_name={output_img_dir}',
-            '--caption_column=text',
-            '--resolution=512',
-            '--random_flip',
-            '--train_batch_size=1',
-            '--num_train_epochs=200',
-            '--checkpointing_steps=5000',
-            '--learning_rate=1.5e-04',
-            '--lr_scheduler=cosine',
-            '--lr_warmup_steps=0',
-            '--seed=42',
-            f'--output_dir={work_dir}',
-            f'--lora_r={lora_r}',
-            f'--lora_alpha={lora_alpha}',
-            '--lora_text_encoder_r=32',
-            '--lora_text_encoder_alpha=32',
-            '--resume_from_checkpoint=fromfacecommon'
-        ]
+        if 'xl-base' in base_model_path:
+            command = [
+                'accelerate', 'launch', f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path is SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py',
+                f'--pretrained_model_name_or_path={base_model_path}',
+                f'--revision={revision}',
+                f'--sub_path={sub_path}',
+                f'--output_dataset_name={output_img_dir}',
+                '--caption_column=text',
+                '--resolution=512',
+                '--random_flip',
+                '--train_batch_size=1',
+                '--num_train_epochs=200',
+                '--checkpointing_steps=5000',
+                '--learning_rate=1.5e-04',
+                '--lr_scheduler=cosine',
+                '--lr_warmup_steps=0',
+                '--seed=42',
+                f'--output_dir={work_dir}',
+                f'--lora_r={lora_r}',
+                f'--lora_alpha={lora_alpha}',
+                '--lora_text_encoder_r=32',
+                '--lora_text_encoder_alpha=32',
+                #'--use_swift',
+                #'--resume_from_checkpoint=fromfacecommon'
+            ]
+        else:
+            command = [
+                'accelerate', 'launch', f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path is SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py',
+                f'--pretrained_model_name_or_path={base_model_path}',
+                f'--revision={revision}',
+                f'--sub_path={sub_path}',
+                f'--output_dataset_name={output_img_dir}',
+                '--caption_column=text',
+                '--resolution=512',
+                '--random_flip',
+                '--train_batch_size=1',
+                '--num_train_epochs=200',
+                '--checkpointing_steps=5000',
+                '--learning_rate=1.5e-04',
+                '--lr_scheduler=cosine',
+                '--lr_warmup_steps=0',
+                '--seed=42',
+                f'--output_dir={work_dir}',
+                f'--lora_r={lora_r}',
+                f'--lora_alpha={lora_alpha}',
+                '--lora_text_encoder_r=32',
+                '--lora_text_encoder_alpha=32',
+                #'--use_swift',
+                '--resume_from_checkpoint=fromfacecommon'
+            ]
 
         try:
             subprocess.run(command, check=True)
@@ -113,30 +150,64 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             print(f"Error executing the command: {e}")
             raise gr.Error("训练失败 (Training failed)")
     else:
-        res = os.system(
-            f'PYTHONPATH=. accelerate launch {project_dir}/facechain/train_text_to_image_lora.py '
-            f'--pretrained_model_name_or_path={base_model_path} '
-            f'--revision={revision} '
-            f'--sub_path={sub_path} '
-            f'--output_dataset_name={output_img_dir} '
-            f'--caption_column="text" '
-            f'--resolution=512 '
-            f'--random_flip '
-            f'--train_batch_size=1 '
-            f'--num_train_epochs=200 '
-            f'--checkpointing_steps=5000 '
-            f'--learning_rate=1.5e-04 '
-            f'--lr_scheduler="cosine" '
-            f'--lr_warmup_steps=0 '
-            f'--seed=42 '
-            f'--output_dir={work_dir} '
-            f'--lora_r={lora_r} '
-            f'--lora_alpha={lora_alpha} '
-            f'--lora_text_encoder_r=32 '
-            f'--lora_text_encoder_alpha=32 '
-            f'--resume_from_checkpoint="fromfacecommon"')
+        print(f'** project dir: {project_dir}')
+        print(f'** params: >base_model_path:{base_model_path}, >revision:{revision}, >sub_path:{sub_path}, >output_img_dir:{output_img_dir}, >work_dir:{work_dir}, >lora_r:{lora_r}, >lora_alpha:{lora_alpha}')
+        import subprocess
+
+        train_script_path = f'{project_dir}/facechain/train_text_to_image_lora_sdxl.py' if base_model_path == SDXL_BASE_MODEL_ID else f'{project_dir}/facechain/train_text_to_image_lora.py'
+
+        if 'xl-base' in base_model_path:
+            res = os.system(
+                f'PYTHONPATH=. accelerate launch {train_script_path} '
+                f'--pretrained_model_name_or_path={base_model_path} '
+                f'--revision={revision} '
+                f'--sub_path={sub_path} '
+                f'--output_dataset_name={output_img_dir} '
+                f'--caption_column="text" '
+                f'--resolution=512 '
+                f'--random_flip '
+                f'--train_batch_size=1 '
+                f'--num_train_epochs=200 '
+                f'--checkpointing_steps=5000 '
+                f'--learning_rate=1.5e-04 '
+                f'--lr_scheduler="cosine" '
+                f'--lr_warmup_steps=0 '
+                f'--seed=42 '
+                f'--output_dir={work_dir} '
+                f'--lora_r={lora_r} '
+                f'--lora_alpha={lora_alpha} '
+                f'--lora_text_encoder_r=32 '
+                f'--lora_text_encoder_alpha=32 ')
+                #f'--use_swift '
+                #f'--resume_from_checkpoint="fromfacecommon"')
+        else:
+            res = os.system(
+                f'PYTHONPATH=. accelerate launch {train_script_path} '
+                f'--pretrained_model_name_or_path={base_model_path} '
+                f'--revision={revision} '
+                f'--sub_path={sub_path} '
+                f'--output_dataset_name={output_img_dir} '
+                f'--caption_column="text" '
+                f'--resolution=512 '
+                f'--random_flip '
+                f'--train_batch_size=1 '
+                f'--num_train_epochs=200 '
+                f'--checkpointing_steps=5000 '
+                f'--learning_rate=1.5e-04 '
+                f'--lr_scheduler="cosine" '
+                f'--lr_warmup_steps=0 '
+                f'--seed=42 '
+                f'--output_dir={work_dir} '
+                f'--lora_r={lora_r} '
+                f'--lora_alpha={lora_alpha} '
+                f'--lora_text_encoder_r=32 '
+                f'--lora_text_encoder_alpha=32 '
+                #f'--use_swift '
+                f'--resume_from_checkpoint="fromfacecommon"')
+
         if res != 0:
             raise gr.Error("训练失败 (Training failed)")
+
 
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model is not None:
@@ -152,6 +223,7 @@ def generate_pos_prompt(style_model, prompt_cloth):
         pos_prompt = pos_prompt_with_cloth.format(prompt_cloth)
     return pos_prompt
 
+
 def launch_pipeline(uuid,
                     pos_prompt,
                     neg_prompt=None,
@@ -165,19 +237,23 @@ def launch_pipeline(uuid,
                     pose_model=None,
                     pose_image=None,
                     sr_img_size=None,
+                    cartoon_style_idx=None,
                     ):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
             raise gr.Error("请登陆后使用! (Please login first)")
         else:
             uuid = 'qw'
-    
+
     # Check base model
     if base_model_index == None:
         raise gr.Error('请选择基模型(Please select the base model)!')
     set_spawn_method()
     # Check character LoRA
-    folder_path = join_worker_data_dir(uuid, character_model)
+    tmp_character_model = base_models[base_model_index]['model_id']
+    if tmp_character_model != character_model:
+        tmp_character_model = 'ly261666/cv_portrait_model'
+    folder_path = join_worker_data_dir(uuid, tmp_character_model)
     folder_list = []
     if os.path.exists(folder_path):
         files = os.listdir(folder_path)
@@ -185,7 +261,7 @@ def launch_pipeline(uuid,
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     if len(folder_list) == 0:
@@ -247,20 +323,20 @@ def launch_pipeline(uuid,
     use_post_process = True
     use_stylization = False
 
-    instance_data_dir = join_worker_data_dir(uuid, 'training_data', character_model, user_model)
-    lora_model_path = join_worker_data_dir(uuid, character_model, user_model)
+    instance_data_dir = join_worker_data_dir(uuid, 'training_data', tmp_character_model, user_model)
+    lora_model_path = join_worker_data_dir(uuid, tmp_character_model, user_model)
 
     gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, 
                                multiplier_style, multiplier_human, use_main_model,
                                use_face_swap, use_post_process,
                                use_stylization)
 
-
+    #gen_portrait(instance_data_dir, num_images, base_model, lora_model_path, sub_path, revision, sr_img_size, cartoon_style_idx )
     num_images = min(6, num_images)
 
     with ProcessPoolExecutor(max_workers=5) as executor:
         future = executor.submit(gen_portrait, instance_data_dir,
-                                            num_images, base_model, lora_model_path, sub_path, revision, sr_img_size)
+                                            num_images, base_model, lora_model_path, sub_path, revision, sr_img_size, cartoon_style_idx)
         while not future.done():
             is_processing = future.running()
             if not is_processing:
@@ -305,6 +381,7 @@ def launch_pipeline(uuid,
     else:
         yield ["生成失败, 请重试(Generation failed, please retry)!", outputs_RGB]
 
+
 def launch_pipeline_inpaint(uuid,
                             base_model_index=None,
                             user_model_A=None,
@@ -325,7 +402,11 @@ def launch_pipeline_inpaint(uuid,
         raise gr.Error('请选择基模型(Please select the base model)！')
 
     # Check character LoRA
-    folder_path = join_worker_data_dir(uuid, character_model)
+    tmp_character_model = base_models[base_model_index]['model_id']
+    if tmp_character_model != character_model:
+        tmp_character_model = 'ly261666/cv_portrait_model'
+
+    folder_path = join_worker_data_dir(uuid, tmp_character_model)
     folder_list = []
     if os.path.exists(folder_path):
         files = os.listdir(folder_path)
@@ -333,7 +414,7 @@ def launch_pipeline_inpaint(uuid,
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     if len(folder_list) == 0:
@@ -372,14 +453,14 @@ def launch_pipeline_inpaint(uuid,
         user_model_B = None
            
     if user_model_A is not None:
-        instance_data_dir_A = join_worker_data_dir(uuid, 'training_data', character_model, user_model_A)
-        lora_model_path_A = join_worker_data_dir(uuid, character_model, user_model_A)
+        instance_data_dir_A = join_worker_data_dir(uuid, 'training_data', tmp_character_model, user_model_A)
+        lora_model_path_A = join_worker_data_dir(uuid, tmp_character_model, user_model_A)
     else:
         instance_data_dir_A = None
         lora_model_path_A = None
     if user_model_B is not None:
-        instance_data_dir_B = join_worker_data_dir(uuid, 'training_data', character_model, user_model_B)
-        lora_model_path_B = join_worker_data_dir(uuid, character_model, user_model_B)
+        instance_data_dir_B = join_worker_data_dir(uuid, 'training_data', tmp_character_model, user_model_B)
+        lora_model_path_B = join_worker_data_dir(uuid, tmp_character_model, user_model_B)
     else:
         instance_data_dir_B = None
         lora_model_path_B = None
@@ -427,6 +508,7 @@ def launch_pipeline_inpaint(uuid,
     else:
         yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
 
+
 def get_previous_image_result(uuid):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -454,8 +536,8 @@ def toggle_audio(choice):
         return gr.update(visible=True), gr.update(visible=True), gr.update(visible=True),\
             gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)
 
-def launch_pipeline_talkinghead(uuid, source_image, audio_source, audio_tts, audio_microphone, audio_upload, 
-                                preprocess='crop', still_mode=True,  use_enhancer=False, batch_size=1, size=256, 
+def launch_pipeline_talkinghead(uuid, source_image, audio_source, audio_tts, audio_microphone, audio_upload,
+                                preprocess='crop', still_mode=True,  use_enhancer=False, batch_size=1, size=256,
                                 pose_style = 0, exp_scale=1.0):
     if not check_ffmpeg():
         raise gr.Error("请先安装ffmpeg，然后刷新网页（Please install ffmpeg, then restart the webpage）")
@@ -642,6 +724,7 @@ class Trainer:
     def run(
             self,
             uuid: str,
+            base_model_name: str,
             instance_images: list,
             output_model_name: str,
     ) -> str:
@@ -649,7 +732,7 @@ class Trainer:
         # Check Cuda
         if not torch.cuda.is_available():
             raise gr.Error('CUDA不可用(CUDA not available)')
-            
+
         # Check Cuda Memory
         if torch.cuda.is_available():
             device = torch.device("cuda:0")
@@ -660,7 +743,7 @@ class Trainer:
                 del tensor
             except RuntimeError as e:
                 raise gr.Error("目前显存不足18GB，训练失败！")
-                
+
         # Check Instance Valid
         if instance_images is None:
             raise gr.Error('您需要上传训练图片(Please upload photos)!')
@@ -679,10 +762,17 @@ class Trainer:
                 return "请登陆后使用(Please login first)! "
             else:
                 uuid = 'qw'
+        if base_model_name == SDXL_BASE_MODEL_ID:
+            print('** Setting base model to SDXL **')
+            base_model_path = SDXL_BASE_MODEL_ID
+            revision = 'v1.0.9'
+            sub_path = ''
+        else:
+            print('** Setting base model to SD1.5 **')
+            base_model_path = 'ly261666/cv_portrait_model'
+            revision = 'v2.0'
+            sub_path = "film/film"
 
-        base_model_path = 'ly261666/cv_portrait_model'
-        revision = 'v2.0'
-        sub_path = "film/film"
         output_model_name = slugify.slugify(output_model_name)
 
         # mv user upload data to target dir
@@ -761,7 +851,7 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     
@@ -775,6 +865,7 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
             gr.Gallery.update(visible=False), gr.Text.update(), \
             gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
 
+
 def update_output_model(uuid):
 
     if not uuid:
@@ -782,22 +873,25 @@ def update_output_model(uuid):
             raise gr.Error("请登陆后使用! (Please login first)")
         else:
             uuid = 'qw'
-
-    folder_path = join_worker_data_dir(uuid, character_model)
     folder_list = []
-    if not os.path.exists(folder_path):
+    for idx, tmp_character_model in enumerate(['ly261666/cv_portrait_model', character_model]):
+        folder_path = join_worker_data_dir(uuid, tmp_character_model)
+        if not os.path.exists(folder_path):
+            continue
+        else:
+            files = os.listdir(folder_path)
+            for file in files:
+                file_path = os.path.join(folder_path, file)
+                if os.path.isdir(folder_path):
+                    file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
+                    file_lora_path_swift = f"{file_path}/swift"
+                    if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
+                        folder_list.append(file)
+    if len(folder_list) == 0:
         return gr.Radio.update(choices=[], value = None)
-    else:
-        files = os.listdir(folder_path)
-        for file in files:
-            file_path = os.path.join(folder_path, file)
-            if os.path.isdir(folder_path):
-                file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
-                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
-                    folder_list.append(file)
-                    
+
     return gr.Radio.update(choices=folder_list)
+
 
 def update_output_model_inpaint(uuid):
     if not uuid:
@@ -816,11 +910,12 @@ def update_output_model_inpaint(uuid):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/unet"
+                file_lora_path_swift = f"{file_path}/swift"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
 
     return gr.Radio.update(choices=folder_list, value=folder_list[0]), gr.Radio.update(choices=folder_list, value=folder_list[0])
+
 
 def add_file_webcam(instance_images, file):
     if file is None:
@@ -832,11 +927,11 @@ def add_file_webcam(instance_images, file):
 
 def webcam_image_open(image):
     image = gr.update(visible=True)
-    return image 
+    return image
 
 def webcam_image_close(image):
     image = gr.update(value=None,visible=False)
-    return image 
+    return image
 
 def update_output_model_tryon(uuid):
     if not uuid:
@@ -889,14 +984,17 @@ def update_output_model_num(num_faces):
         return gr.Radio.update(), gr.Radio.update(visible=False)
     else:
         return gr.Radio.update(), gr.Radio.update(visible=True)
-    
+
+
 def update_output_image_result(uuid):
     image_list = get_previous_image_result(uuid)
     return gr.Gallery.update(value=image_list), image_list
 
+
 def upload_file(files, current_files):
     file_paths = [file_d['name'] for file_d in current_files] + [file.name for file in files]
     return file_paths
+
 
 def upload_lora_file(uuid, lora_file):
     if not uuid:
@@ -918,6 +1016,7 @@ def upload_lora_file(uuid, lora_file):
     
     return gr.Dropdown.update(choices=lora_list, value=filename)
 
+
 def clear_lora_file(uuid, lora_file):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -926,6 +1025,7 @@ def clear_lora_file(uuid, lora_file):
             uuid = 'qw'
     
     return gr.Dropdown.update(value="preset")
+
 
 def change_lora_choice(lora_choice, base_model_index):
     style_list = base_models[base_model_index]['style_list']
@@ -939,6 +1039,7 @@ def change_lora_choice(lora_choice, base_model_index):
                gr.Text.update(value=style_list[0])
     else:
         return gr.Gallery.update(visible=False), gr.Text.update(visible=False)
+
 
 def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None, style_model=None, deal_type="load"):
     if not uuid:
@@ -989,7 +1090,8 @@ def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None
     elif deal_type == "delete":
         shutil.rmtree(save_dir)
         return gr.Gallery.update(value=[], visible=True), gr.Gallery.update(value=[], visible=True)
-    
+
+
 def train_input():
     trainer = Trainer()
 
@@ -999,23 +1101,26 @@ def train_input():
             with gr.Column():
                 with gr.Box():
                     output_model_name = gr.Textbox(label="人物lora名称(Character lora name)", value='person1', lines=1)
-
+                    base_model_name = gr.Dropdown(choices=['AI-ModelScope/stable-diffusion-v1-5',
+                                                           SDXL_BASE_MODEL_ID],
+                                                  value='AI-ModelScope/stable-diffusion-v1-5',
+                                                  label='基模型')
                     gr.Markdown('训练图片(Training photos)')
                     instance_images = gr.Gallery()
                     with gr.Row():
                         upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
                                                         file_count="multiple")
-                        webcam = gr.Button("拍照上传")
+                        #webcam = gr.Button("拍照上传")
 
                         clear_button = gr.Button("清空图片(Clear photos)")
-                    with gr.Row():
-                        image = gr.Image(source='webcam',type="filepath",visible=False).style(height=500,width=500)
+                    #with gr.Row():
+                    #    image = gr.Image(source='webcam',type="filepath",visible=False).style(height=500,width=500)
                     clear_button.click(fn=lambda: [], inputs=None, outputs=instance_images)
 
                     upload_button.upload(upload_file, inputs=[upload_button, instance_images], outputs=instance_images,
                                          queue=False)
-                    webcam.click(webcam_image_open,inputs=image,outputs=image)
-                    image.change(add_file_webcam,inputs=[instance_images, image],outputs=instance_images, show_progress=True).then(webcam_image_close,inputs=image,outputs=image)
+                    #webcam.click(webcam_image_open,inputs=image,outputs=image)
+                    #image.change(add_file_webcam,inputs=[instance_images, image],outputs=instance_images, show_progress=True).then(webcam_image_close,inputs=image,outputs=image)
                     
                     gr.Markdown('''
                         使用说明（Instructions）：
@@ -1055,12 +1160,14 @@ def train_input():
         run_button.click(fn=trainer.run,
                          inputs=[
                              uuid,
+                             base_model_name,
                              instance_images,
                              output_model_name,
                          ],
                          outputs=[output_message])
 
     return demo
+
 
 def inference_input():
     with gr.Blocks() as demo:
@@ -1107,9 +1214,10 @@ def inference_input():
                             visible=False,
                         )
 
-                    out_img_size_list = ["512x512", "1024x1024", "2048x2048"]
+                    out_img_size_list = ["512x512", "768x768", "1024x1024", "2048x2048"]
                     sr_img_size =  gr.Radio(label="输出分辨率选择(Output Image Size)", choices=out_img_size_list, type="index", value="512x512")
-                    
+                    cartoon_style_idx =  gr.Radio(label="动漫风格选择", choices=['2D人像卡通', '3D人像卡通化'], type="index")
+
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, 
                                             value=generate_pos_prompt(None, styles[0]['add_prompt_style']),
                                             interactive=True)
@@ -1200,7 +1308,7 @@ def inference_input():
                       queue=False)
         display_button.click(fn=launch_pipeline,
                              inputs=[uuid, pos_prompt, neg_prompt, base_model_index, user_model, num_images, lora_choice, style_model, multiplier_style, multiplier_human,
-                                     pose_model, pose_image, sr_img_size],
+                                     pose_model, pose_image, sr_img_size, cartoon_style_idx],
                              outputs=[infer_progress, output_images])
         history_button.click(fn=deal_history,
                              inputs=[uuid, base_model_index, user_model, lora_choice, style_model, load_history_text],
@@ -1212,6 +1320,7 @@ def inference_input():
                                     queue=False)
 
     return demo
+
 
 def inference_inpaint():
     preset_template = glob(os.path.join(f'{project_dir}/resources/inpaint_template/*.jpg'))
@@ -1283,6 +1392,7 @@ def inference_inpaint():
 
     return demo
 
+
 def inference_talkinghead():
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
@@ -1340,7 +1450,7 @@ def inference_talkinghead():
                     True,
                     False],
             ]
-            gr.Examples(examples=examples, inputs=[source_image, audio_upload, preprocess_type, is_still_mode, enhancer], 
+            gr.Examples(examples=examples, inputs=[source_image, audio_upload, preprocess_type, is_still_mode, enhancer],
                         outputs=[gen_video],  fn=launch_pipeline_talkinghead, cache_examples=os.getenv('SYSTEM') == 'spaces')
 
     return demo
