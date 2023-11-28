@@ -46,7 +46,8 @@ from accelerate.utils import ProjectConfiguration, set_seed
 from datasets import load_dataset
 from diffusers import (AutoencoderKL, DDPMScheduler, DiffusionPipeline,
                        DPMSolverMultistepScheduler,
-                       StableDiffusionInpaintPipeline, UNet2DConditionModel)
+                       StableDiffusionInpaintPipeline, UNet2DConditionModel, StableDiffusionXLPipeline)
+from torchvision.transforms.functional import crop
 from diffusers.loaders import AttnProcsLayers
 from diffusers.models.attention_processor import LoRAAttnProcessor
 from diffusers.optimization import get_scheduler
@@ -66,7 +67,7 @@ from PIL import Image
 from torchvision import transforms
 from tqdm.auto import tqdm
 from torch import multiprocessing
-from transformers import CLIPTextModel, CLIPTokenizer
+from transformers import CLIPTextModel, CLIPTokenizer, AutoTokenizer, CLIPTextModelWithProjection
 
 from facechain.inference import data_process_fn
 
@@ -597,16 +598,24 @@ def main():
                                   revision=args.revision,
                                   user_agent={'invoked_by': 'trainer', 'third_party': 'facechain'})
 
-    if args.sub_path is not None and len(args.sub_path) > 0:
-        model_dir = os.path.join(model_dir, args.sub_path)
+    # if args.sub_path is not None and len(args.sub_path) > 0:
+    #     model_dir = os.path.join(model_dir, args.sub_path)
 
     # Load scheduler, tokenizer and models.
+    print(f'>>> Loading model from model_dir: {model_dir}')
     noise_scheduler = DDPMScheduler.from_pretrained(model_dir, subfolder="scheduler")
-    tokenizer = CLIPTokenizer.from_pretrained(
-        model_dir, subfolder="tokenizer"
+    tokenizer_one = AutoTokenizer.from_pretrained(
+        model_dir, subfolder="tokenizer", use_fast=False
     )
-    text_encoder = CLIPTextModel.from_pretrained(
+    tokenizer_two = AutoTokenizer.from_pretrained(
+            model_dir,
+            subfolder='tokenizer_2',
+            use_fast=False)
+    text_encoder_one = CLIPTextModel.from_pretrained(
         model_dir, subfolder="text_encoder"
+    )
+    text_encoder_two = CLIPTextModelWithProjection.from_pretrained(
+            model_dir, subfolder='text_encoder_2'
     )
     vae = AutoencoderKL.from_pretrained(model_dir, subfolder="vae")
     unet = UNet2DConditionModel.from_pretrained(
@@ -634,18 +643,21 @@ def main():
             lora_dropout=args.lora_dropout,
             bias=args.lora_bias,
         )
-        unet = LoraModel(config, unet)
+        unet = LoraModel(model=unet, config=config, adapter_name='default')
 
         vae.requires_grad_(False)
-        if args.train_text_encoder:
-            config = LoraConfig(
-                r=args.lora_text_encoder_r,
-                lora_alpha=args.lora_text_encoder_alpha,
-                target_modules=TEXT_ENCODER_TARGET_MODULES,
-                lora_dropout=args.lora_text_encoder_dropout,
-                bias=args.lora_text_encoder_bias,
-            )
-            text_encoder = LoraModel(config, text_encoder)
+
+        # TODO: to be implemented
+        # if args.train_text_encoder:
+        #     config = LoraConfig(
+        #         r=args.lora_text_encoder_r,
+        #         lora_alpha=args.lora_text_encoder_alpha,
+        #         target_modules=TEXT_ENCODER_TARGET_MODULES,
+        #         lora_dropout=args.lora_text_encoder_dropout,
+        #         bias=args.lora_text_encoder_bias,
+        #     )
+        #     text_encoder = LoraModel(config, text_encoder)
+
     elif args.use_swift:                
         if not is_swift_available():
             raise ValueError(
@@ -659,7 +671,8 @@ def main():
         # freeze parameters of models to save more memory
         unet.requires_grad_(False)
         vae.requires_grad_(False)
-        text_encoder.requires_grad_(False)
+        text_encoder_one.requires_grad_(False)
+        text_encoder_two.requires_grad_(False)
 
         lora_config = LoRAConfig(
             r=args.lora_r,
@@ -677,14 +690,17 @@ def main():
                 lora_dropout=args.lora_text_encoder_dropout,
                 bias=args.lora_text_encoder_bias,
             )
-            text_encoder = LoraModel(config, text_encoder)
-            text_encoder = Swift.prepare_model(text_encoder, lora_config)
+            text_encoder_one = LoraModel(config, text_encoder_one)
+            text_encoder_one = Swift.prepare_model(text_encoder_one, lora_config)
+            text_encoder_two = LoraModel(config, text_encoder_two)
+            text_encoder_two = Swift.prepare_model(text_encoder_two, lora_config)
     else:
         # freeze parameters of models to save more memory
         unet.requires_grad_(False)
         vae.requires_grad_(False)
 
-        text_encoder.requires_grad_(False)
+        text_encoder_one.requires_grad_(False)
+        text_encoder_two.requires_grad_(False)
 
         # now we will add new LoRA weights to the attention layers
         # It's important to realize here how many attention weights will be added and of which sizes
@@ -719,7 +735,8 @@ def main():
     # Move unet, vae and text_encoder to device and cast to weight_dtype
     vae.to(accelerator.device, dtype=weight_dtype)
     if not args.train_text_encoder:
-        text_encoder.to(accelerator.device, dtype=weight_dtype)
+        text_encoder_one.to(accelerator.device, dtype=weight_dtype)
+        text_encoder_two.to(accelerator.device, dtype=weight_dtype)
 
     if args.enable_xformers_memory_efficient_attention:
         if is_xformers_available():
@@ -760,7 +777,7 @@ def main():
     if args.use_peft or args.use_swift:
         # Optimizer creation
         params_to_optimize = (
-            itertools.chain(unet.parameters(), text_encoder.parameters())
+            itertools.chain(unet.parameters(), text_encoder_one.parameters(), text_encoder_two.parameters())
             if args.train_text_encoder
             else unet.parameters()
         )
@@ -832,6 +849,17 @@ def main():
 
     # Preprocessing the datasets.
     # We need to tokenize input captions and transform the images.
+    def tokenize_prompt(tokenizer, prompt):
+        text_inputs = tokenizer(
+            prompt,
+            padding="max_length",
+            max_length=tokenizer.model_max_length,
+            truncation=True,
+            return_tensors="pt",
+        )
+        text_input_ids = text_inputs.input_ids
+        return text_input_ids
+
     def tokenize_captions(examples, is_train=True):
         captions = []
         for caption in examples[caption_column]:
@@ -844,12 +872,50 @@ def main():
                 raise ValueError(
                     f"Caption column `{caption_column}` should contain either strings or lists of strings."
                 )
-        inputs = tokenizer(
-            captions, max_length=tokenizer.model_max_length, padding="max_length", truncation=True, return_tensors="pt"
-        )
-        return inputs.input_ids
+        tokens_one = tokenize_prompt(tokenizer_one, captions)
+        tokens_two = tokenize_prompt(tokenizer_two, captions)
+        return tokens_one, tokens_two
+    
+    def compute_time_ids(original_size, crops_coords_top_left):
+        target_size = (args.resolution, args.resolution)
+        add_time_ids = list(original_size + crops_coords_top_left
+                            + target_size)
+        add_time_ids = torch.tensor([add_time_ids])
+        add_time_ids = add_time_ids.to(device, dtype=weight_dtype)
+        return add_time_ids
+    
+    # Adapted from pipelines.StableDiffusionXLPipeline.encode_prompt
+    def encode_prompt(text_encoders, tokenizers, prompt, text_input_ids_list=None):
+        prompt_embeds_list = []
+
+        for i, text_encoder in enumerate(text_encoders):
+            if tokenizers is not None:
+                tokenizer = tokenizers[i]
+                text_input_ids = tokenize_prompt(tokenizer, prompt)
+            else:
+                assert text_input_ids_list is not None
+                text_input_ids = text_input_ids_list[i]
+
+            prompt_embeds = text_encoder(
+                text_input_ids.to(text_encoder.device),
+                output_hidden_states=True,
+            )
+
+            # We are only ALWAYS interested in the pooled output of the final text encoder
+            pooled_prompt_embeds = prompt_embeds[0]
+            prompt_embeds = prompt_embeds.hidden_states[-2]
+            bs_embed, seq_len, _ = prompt_embeds.shape
+            prompt_embeds = prompt_embeds.view(bs_embed, seq_len, -1)
+            prompt_embeds_list.append(prompt_embeds)
+
+        prompt_embeds = torch.concat(prompt_embeds_list, dim=-1)
+        pooled_prompt_embeds = pooled_prompt_embeds.view(bs_embed, -1)
+        return prompt_embeds, pooled_prompt_embeds
 
     # Preprocessing the datasets.
+    train_resize = transforms.Resize(args.resolution, interpolation=transforms.InterpolationMode.BILINEAR)
+    train_crop = transforms.CenterCrop(args.resolution) if args.center_crop else transforms.RandomCrop(args.resolution)
+    train_flip = transforms.RandomHorizontalFlip(p=1.0)
     train_transforms = transforms.Compose(
         [
             #transforms.Resize(args.resolution, interpolation=transforms.InterpolationMode.BILINEAR),
@@ -864,8 +930,35 @@ def main():
 
     def preprocess_train(examples):
         images = [image.convert("RGB") for image in examples[image_column]]
-        examples["pixel_values"] = [train_transforms(image) for image in images]
-        examples["input_ids"] = tokenize_captions(examples)
+        # image aug
+        original_sizes = []
+        all_images = []
+        crop_top_lefts = []
+        for image in images:
+            original_sizes.append((image.height, image.width))
+            image = train_resize(image)
+            if args.center_crop:
+                y1 = max(0, int(round((image.height - args.resolution) / 2.0)))
+                x1 = max(0, int(round((image.width - args.resolution) / 2.0)))
+                image = train_crop(image)
+            else:
+                y1, x1, h, w = train_crop.get_params(image, (args.resolution, args.resolution))
+                image = crop(image, y1, x1, h, w)
+            if args.random_flip and random.random() < 0.5:
+                # flip
+                x1 = image.width - x1
+                image = train_flip(image)
+            crop_top_left = (y1, x1)
+            crop_top_lefts.append(crop_top_left)
+            image = train_transforms(image)
+            all_images.append(image)
+
+        examples["original_sizes"] = original_sizes
+        examples["crop_top_lefts"] = crop_top_lefts
+        examples["pixel_values"] = all_images
+        tokens_one, tokens_two = tokenize_captions(examples)
+        examples["input_ids_one"] = tokens_one
+        examples["input_ids_two"] = tokens_two
         return examples
 
     with accelerator.main_process_first():
@@ -877,8 +970,17 @@ def main():
     def collate_fn(examples):
         pixel_values = torch.stack([example["pixel_values"] for example in examples])
         pixel_values = pixel_values.to(memory_format=torch.contiguous_format).float()
-        input_ids = torch.stack([example["input_ids"] for example in examples])
-        return {"pixel_values": pixel_values, "input_ids": input_ids}
+        original_sizes = [example["original_sizes"] for example in examples]
+        crop_top_lefts = [example["crop_top_lefts"] for example in examples]
+        input_ids_one = torch.stack([example["input_ids_one"] for example in examples])
+        input_ids_two = torch.stack([example["input_ids_two"] for example in examples])
+        return {
+            "pixel_values": pixel_values,
+            "input_ids_one": input_ids_one,
+            "input_ids_two": input_ids_two,
+            "original_sizes": original_sizes,
+            "crop_top_lefts": crop_top_lefts,
+        }
 
     # DataLoaders creation:
     train_dataloader = torch.utils.data.DataLoader(
@@ -907,7 +1009,7 @@ def main():
     if args.use_peft or args.use_swift:
         if args.train_text_encoder:
             unet, text_encoder, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
-                unet, text_encoder, optimizer, train_dataloader, lr_scheduler
+                unet, text_encoder_one, text_encoder_two, optimizer, train_dataloader, lr_scheduler
             )
         else:
             unet, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
@@ -986,7 +1088,8 @@ def main():
     for epoch in range(first_epoch, args.num_train_epochs):
         unet.train()
         if args.train_text_encoder:
-            text_encoder.train()
+            text_encoder_one.train()
+            text_encoder_two.train()
         train_loss = 0.0
         for step, batch in enumerate(train_dataloader):
             # Skip steps until we reach the resumed step
@@ -1010,9 +1113,33 @@ def main():
                 # Add noise to the latents according to the noise magnitude at each timestep
                 # (this is the forward diffusion process)
                 noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)
+                # time ids
 
-                # Get the text embedding for conditioning
-                encoder_hidden_states = text_encoder(batch["input_ids"])[0]
+                # time ids
+                def compute_time_ids(original_size, crops_coords_top_left):
+                    # Adapted from pipeline.StableDiffusionXLPipeline._get_add_time_ids
+                    target_size = (args.resolution, args.resolution)
+                    add_time_ids = list(original_size + crops_coords_top_left + target_size)
+                    add_time_ids = torch.tensor([add_time_ids])
+                    add_time_ids = add_time_ids.to(accelerator.device, dtype=weight_dtype)
+                    return add_time_ids
+                
+                add_time_ids = torch.cat(
+                    [compute_time_ids(s, c) for s, c in zip(batch["original_sizes"], batch["crop_top_lefts"])]
+                )
+
+                # Predict the noise residual
+                unet_added_conditions = {"time_ids": add_time_ids}
+                prompt_embeds, pooled_prompt_embeds = encode_prompt(
+                    text_encoders=[text_encoder_one, text_encoder_two],
+                    tokenizers=None,
+                    prompt=None,
+                    text_input_ids_list=[batch["input_ids_one"], batch["input_ids_two"]],
+                )
+                unet_added_conditions.update({"text_embeds": pooled_prompt_embeds})
+                model_pred = unet(
+                    noisy_latents, timesteps, prompt_embeds, added_cond_kwargs=unet_added_conditions
+                ).sample
 
                 # Get the target for loss depending on the prediction type
                 if noise_scheduler.config.prediction_type == "epsilon":
@@ -1023,7 +1150,6 @@ def main():
                     raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
 
                 # Predict the noise residual and compute loss
-                model_pred = unet(noisy_latents, timesteps, encoder_hidden_states).sample
                 loss = F.mse_loss(model_pred.float(), target.float(), reduction="mean")
 
                 # Gather the losses across all processes for logging (if we use distributed training).
@@ -1075,7 +1201,8 @@ def main():
                 pipeline = DiffusionPipeline.from_pretrained(
                     model_dir,
                     unet=accelerator.unwrap_model(unet),
-                    text_encoder=accelerator.unwrap_model(text_encoder),
+                    text_encoder=accelerator.unwrap_model(text_encoder_one),
+                    text_encoder_2=accelerator.unwrap_model(text_encoder_two),
                     torch_dtype=weight_dtype,
                 )
                 pipeline = pipeline.to(accelerator.device)
@@ -1133,8 +1260,10 @@ def main():
             unwarpped_unet = accelerator.unwrap_model(unet)
             unwarpped_unet.save_pretrained(os.path.join(args.output_dir, 'swift'))
             if args.train_text_encoder:
-                unwarpped_text_encoder = accelerator.unwrap_model(text_encoder)
-                unwarpped_text_encoder.save_pretrained(os.path.join(args.output_dir, 'text_encoder'))
+                unwarpped_text_encoder_one = accelerator.unwrap_model(text_encoder_one)
+                unwarpped_text_encoder.save_pretrained(os.path.join(args.output_dir, 'text_encoder_one'))
+                unwarpped_text_encoder_two = accelerator.unwrap_model(text_encoder_two)
+                unwarpped_text_encoder.save_pretrained(os.path.join(args.output_dir, 'text_encoder_two'))
         else:
             unet = unet.to(torch.float32)
             unet.save_attn_procs(args.output_dir, safe_serialization=False)
@@ -1156,63 +1285,62 @@ def main():
 
     # Final inference
     # Load previous pipeline
-    pipeline = DiffusionPipeline.from_pretrained(
-        model_dir, torch_dtype=weight_dtype
-    )
+    # pipeline = DiffusionPipeline.from_pretrained(
+    #     model_dir, torch_dtype=weight_dtype
+    # )
 
-    if args.use_peft:
-        def load_and_set_lora_ckpt(pipe, ckpt_dir, global_step, device, dtype):
-            with open(os.path.join(args.output_dir, f"{global_step}_lora_config.json"), "r") as f:
-                lora_config = json.load(f)
-            print(lora_config)
+    # if args.use_peft:
+    #     def load_and_set_lora_ckpt(pipe, ckpt_dir, global_step, device, dtype):
+    #         with open(os.path.join(args.output_dir, f"{global_step}_lora_config.json"), "r") as f:
+    #             lora_config = json.load(f)
+    #         print(lora_config)
 
-            checkpoint = os.path.join(args.output_dir, f"{global_step}_lora.pt")
-            lora_checkpoint_sd = torch.load(checkpoint)
-            unet_lora_ds = {k: v for k, v in lora_checkpoint_sd.items() if "text_encoder_" not in k}
-            text_encoder_lora_ds = {
-                k.replace("text_encoder_", ""): v for k, v in lora_checkpoint_sd.items() if "text_encoder_" in k
-            }
+    #         checkpoint = os.path.join(args.output_dir, f"{global_step}_lora.pt")
+    #         lora_checkpoint_sd = torch.load(checkpoint)
+    #         unet_lora_ds = {k: v for k, v in lora_checkpoint_sd.items() if "text_encoder_" not in k}
+    #         text_encoder_lora_ds = {
+    #             k.replace("text_encoder_", ""): v for k, v in lora_checkpoint_sd.items() if "text_encoder_" in k
+    #         }
 
-            unet_config = LoraConfig(**lora_config["peft_config"])
-            # TODO: To be fixed !
-            pipe.unet = LoraModel(unet_config, pipe.unet)
-            set_peft_model_state_dict(pipe.unet, unet_lora_ds)
+    #         unet_config = LoraConfig(**lora_config["peft_config"])
+    #         pipe.unet = LoraModel(unet_config, pipe.unet)
+    #         set_peft_model_state_dict(pipe.unet, unet_lora_ds)
 
-            if "text_encoder_peft_config" in lora_config:
-                text_encoder_config = LoraConfig(**lora_config["text_encoder_peft_config"])
-                pipe.text_encoder = LoraModel(text_encoder_config, pipe.text_encoder)
-                set_peft_model_state_dict(pipe.text_encoder, text_encoder_lora_ds)
+    #         if "text_encoder_peft_config" in lora_config:
+    #             text_encoder_config = LoraConfig(**lora_config["text_encoder_peft_config"])
+    #             pipe.text_encoder = LoraModel(text_encoder_config, pipe.text_encoder)
+    #             set_peft_model_state_dict(pipe.text_encoder, text_encoder_lora_ds)
 
-            if dtype in (torch.float16, torch.bfloat16):
-                pipe.unet.half()
-                pipe.text_encoder.half()
+    #         if dtype in (torch.float16, torch.bfloat16):
+    #             pipe.unet.half()
+    #             pipe.text_encoder.half()
 
-            pipe.to(device)
-            return pipe
+    #         pipe.to(device)
+    #         return pipe
 
-        pipeline = load_and_set_lora_ckpt(pipeline, args.output_dir, global_step, accelerator.device, weight_dtype)
-    elif args.use_swift:
-        if not is_swift_available():
-            raise ValueError(
-                'Please install swift by `pip install ms-swift` to use efficient_tuners.'
-            )
-        from swift import Swift
-        pipeline = pipeline.to(accelerator.device)
-        pipeline.unet = Swift.from_pretrained(pipeline.unet, os.path.join(args.output_dir, 'swift'))
+    #     pipeline = load_and_set_lora_ckpt(pipeline, args.output_dir, global_step, accelerator.device, weight_dtype)
+    # elif args.use_swift:
+    #     if not is_swift_available():
+    #         raise ValueError(
+    #             'Please install swift by `pip install ms-swift` to use efficient_tuners.'
+    #         )
+    #     from swift import Swift
+    #     pipeline = pipeline.to(accelerator.device)
+    #     pipeline.unet = Swift.from_pretrained(pipeline.unet, os.path.join(args.output_dir, 'swift'))
 
-        if args.train_text_encoder:
-            pipeline.text_encoder = Swift.from_pretrained(pipeline.text_encoder, os.path.join(args.output_dir, 'text_encoder'))
-    else:
-        pipeline = pipeline.to(accelerator.device)
-        # load attention processors
-        pipeline.unet.load_attn_procs(args.output_dir)
+    #     if args.train_text_encoder:
+    #         pipeline.text_encoder = Swift.from_pretrained(pipeline.text_encoder, os.path.join(args.output_dir, 'text_encoder'))
+    # else:
+    #     pipeline = pipeline.to(accelerator.device)
+    #     # load attention processors
+    #     pipeline.unet.load_attn_procs(args.output_dir)
 
-    # run inference
-    if args.seed is not None:
-        generator = torch.Generator(device=accelerator.device).manual_seed(args.seed)
-    else:
-        generator = None
-    images = []
+    # # run inference
+    # if args.seed is not None:
+    #     generator = torch.Generator(device=accelerator.device).manual_seed(args.seed)
+    # else:
+    #     generator = None
+    # images = []
 
     accelerator.end_training()
 

@@ -13,7 +13,7 @@ FaceChain是一个可以用来打造个人数字形象的深度学习模型工�
 FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开源模型社区提供支持。
 
 <p align="center">
-        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜ sd webui ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
+        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜API <a href="https://help.aliyun.com/zh/dashscope/developer-reference/facechain-quick-start">🔥<a></a>&nbsp ｜ API's Example App <a href="https://tongyi.aliyun.com/wanxiang/app/portrait-gallery">🔥<a></a>&nbsp | SD WebUI ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain">🤗</a>&nbsp 
 </p>
 <br>
 
@@ -22,7 +22,13 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # News
-- stable-diffusion-webui支持. (2023-10-13)
+- 支持SDXL模块🔥🔥🔥，出图细腻度大幅提升. (November 22th, 2023 UTC)
+- 支持超分模块🔥🔥🔥，目前多种分辨率可选 (512*512, 768*768, 1024*1024, 2048*2048). (November 13th, 2023 UTC)
+- 🏆FaceChain入选[BenchCouncil Open100 (2022-2023)](https://www.benchcouncil.org/evaluation/opencs/annual.html#Institutions) 开源榜单. (2023-11-08)
+- 增加虚拟试衣模块，可基于包含给定服饰的模特图或人台图进行重绘. (2023-10-27)
+- 增加万相版本[在线免费应用](https://tongyi.aliyun.com/wanxiang/app/portrait-gallery). (2023-10-26)
+- 🏆1024程序员节AIGC应用工具最具商业价值奖 (2023-10-24)
+- stable-diffusion-webui支持🔥🔥🔥. (2023-10-13)
 - 高性能的(单人&双人)模版重绘功能，简化用户界面. (2023-09-09)
 - 更多技术细节可以在 [论文](https://arxiv.org/abs/2308.14256) 里查看. (2023-08-30)
 - 为Lora训练添加验证和根据face_id的融合，并添加InpaintTab（目前在Gradio界面上暂时默认隐藏）. (2023-08-28)
@@ -36,11 +42,11 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # 待办事项
-- 现成风格模型即插即用（以C站风格模型为例）   --迭代中
+- 研发免训练模块，达成CPU运行的目标
+- 研发RLHF模块，进一步提升上限
+- 增加风格lora的训练接口
+- 现成风格模型即插即用（以C站风格模型为例）
 - 增加更多美肤功能
-- 适配更多的基模，例如SDXL
-- 增加超分模块
-- 支持多人保id照片生成
 - 开发更多好玩的app
 
 
@@ -61,10 +67,9 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 # 环境准备
 
 ## 兼容性验证
-FaceChain是一个组合模型，使用了包括PyTorch和TensorFlow在内的机器学习框架，以下是已经验证过的主要环境依赖：
+FaceChain是一个组合模型，基于PyTorch机器学习框架，以下是已经验证过的主要环境依赖：
 - python环境: py3.8, py3.10
 - pytorch版本: torch2.0.0, torch2.0.1
-- tensorflow版本: 2.8.0, tensorflow-cpu
 - CUDA版本: 11.7
 - CUDNN版本: 8+
 - 操作系统版本: Ubuntu 20.04, CentOS 7.9
@@ -93,17 +98,20 @@ Notebook环境使用简单，您只需要按以下步骤操作（注意：目前
 # Step2: 进入Notebook cell，执行下述命令从github clone代码：
 !GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
 
-# Step3: 切换当前工作路径
+# Step3: 切换当前工作路径，安装依赖
 import os
 os.chdir('/mnt/workspace/facechain')    # 注意替换成上述clone后的代码文件夹主路径
 print(os.getcwd())
 
-!pip3 install gradio
+!pip3 install gradio==3.50.2
 !pip3 install controlnet_aux==0.0.6
 !pip3 install python-slugify
+!pip3 install onnxruntime==1.15.1
+!pip3 install edge-tts
+
+# Step4: 启动服务，点击生成的URL即可访问web页面，上传照片开始训练和预测
 !python3 app.py
 
-# Step4: 点击生成的URL即可访问web页面，上传照片开始训练和预测
 ```
 
 除了ModelScope入口以外，您也可以前往[PAI-DSW](https://www.aliyun.com/activity/bigdata/pai/dsw) 直接购买带有ModelScope镜像的计算实例（推荐使用A10资源），这样同样可以使用如上的最简步骤运行起来。
@@ -119,16 +127,23 @@ print(os.getcwd())
 如需使用阿里云ECS，可访问： https://www.aliyun.com/product/ecs，推荐使用”镜像市场“中的CentOS 7.9 64位(预装NVIDIA GPU驱动)
 
 # Step2: 将镜像下载到本地 （前提是已经安装了docker engine并启动服务，具体可参考： https://docs.docker.com/engine/install/）
-docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0
+# For China Mainland users:
+docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4
+# For users outside China Mainland:
+docker pull registry.us-west-1.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4
 
 # Step3: 拉起镜像运行
-docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.0 /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
-# (注意： 如果提示无法使用宿主机GPU的错误，可能需要安装nvidia-container-runtime, 参考：https://github.com/NVIDIA/nvidia-container-runtime)
+docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4 /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
+# 注意： 如果提示无法使用宿主机GPU的错误，可能需要安装nvidia-container-runtime
+# 1. 安装nvidia-container-runtime：https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+# 2. 重启docker服务：sudo systemctl restart docker
 
 # Step4: 在容器中安装gradio
-pip3 install gradio
+pip3 install gradio==3.50.2
 pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
+pip3 install onnxruntime==1.15.1
+pip3 install edge-tts
 
 # Step5: 获取facechain源代码
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
@@ -167,8 +182,7 @@ python3 app.py
 
 备注：如果是Windows环境还需要注意以下步骤：
 ```shell
-# 1. 重新安装pytorch、与tensorflow匹配的numpy
-# 2. pip方式安装mmcv-full: pip3 install mmcv-full
+# pip方式安装mmcv-full: pip3 install mmcv-full
 ```
 
 **如果您想要使用"人物说话视频生成"标签页的功能，请参考[installation_for_talkinghead_ZH](doc/installation_for_talkinghead_ZH.md)里的安装使用教程。**

@@ -10,6 +10,8 @@ from modelscope.utils.import_utils import is_swift_available
 def merge_lora(pipeline, lora_path, multiplier, from_safetensor=False, device='cpu', dtype=torch.float32):
     LORA_PREFIX_UNET = "lora_unet"
     LORA_PREFIX_TEXT_ENCODER = "lora_te"
+    print ('----------')
+    print ('Lora Path: ', lora_path)
     if from_safetensor:
         state_dict = load_file(lora_path, device=device)
     elif os.path.exists(os.path.join(lora_path, 'swift')):
