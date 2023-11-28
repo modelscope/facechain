@@ -1,7 +1,8 @@
 accelerate
 transformers
-diffusers
 onnxruntime==1.15.1
+diffusers>=0.23.0
+invisible-watermark>=0.2.0
 modelscope>=1.9.2
 Pillow
 opencv-python
