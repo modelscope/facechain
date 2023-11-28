@@ -73,7 +73,6 @@ Please cite FaceChain in your publications if it helps your research
 We have verified e2e execution on the following environment:
 - python: py3.8, py3.10
 - pytorch: torch2.0.0, torch2.0.1
-- tensorflow: 2.8.0, tensorflow-cpu
 - CUDA: 11.7
 - CUDNN: 8+
 - OS: Ubuntu 20.04, CentOS 7.9
@@ -181,8 +180,7 @@ python3 app.py
 
 *Note* For windows user, you should pay attention to following steps:
 ```shell
-1. reinstall  package pytorch and numpy compatible with tensorflow
-2. install mmcv-full by pip: pip3 install mmcv-full
+install mmcv-full by pip: pip3 install mmcv-full
 ```
 
 **If you want to use the `Audio Driven Talking Head` tab, please refer to the installation guide in [installation_for_talkinghead](doc/installation_for_talkinghead.md).**

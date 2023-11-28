@@ -67,10 +67,9 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 # 环境准备
 
 ## 兼容性验证
-FaceChain是一个组合模型，使用了包括PyTorch和TensorFlow在内的机器学习框架，以下是已经验证过的主要环境依赖：
+FaceChain是一个组合模型，基于PyTorch机器学习框架，以下是已经验证过的主要环境依赖：
 - python环境: py3.8, py3.10
 - pytorch版本: torch2.0.0, torch2.0.1
-- tensorflow版本: 2.8.0, tensorflow-cpu
 - CUDA版本: 11.7
 - CUDNN版本: 8+
 - 操作系统版本: Ubuntu 20.04, CentOS 7.9
@@ -183,8 +182,7 @@ python3 app.py
 
 备注：如果是Windows环境还需要注意以下步骤：
 ```shell
-# 1. 重新安装pytorch、与tensorflow匹配的numpy
-# 2. pip方式安装mmcv-full: pip3 install mmcv-full
+# pip方式安装mmcv-full: pip3 install mmcv-full
 ```
 
 **如果您想要使用"人物说话视频生成"标签页的功能，请参考[installation_for_talkinghead_ZH](doc/installation_for_talkinghead_ZH.md)里的安装使用教程。**
