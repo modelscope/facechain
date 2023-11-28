@@ -1,0 +1,10 @@
+{
+    "name": "田园风(Fields style)",
+    "img": "./style_image/sdxl_fields.jpg",
+    "model_id": "slmodelscope/sdxl_style_loras",
+    "revision": "v1.0.0",
+    "bin_file": "KiloyJPFSDXL-000004.safetensors",
+    "multiplier_style": 0.55,
+    "multiplier_human": 0.9,
+    "add_prompt_style": "macro shot, 35mm film, young girl, Off-Shoulder Sundress, soft, gentle smile, fields of flowers, clear blue sky, gentle depth of field, soft bokeh to accentuate the pastoral serenity, looking at viewer"
+}
