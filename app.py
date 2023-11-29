@@ -851,7 +851,7 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/swift"
+                file_lora_path_swift = f"{file_path}/unet"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
     
@@ -900,7 +900,7 @@ def update_output_model_inpaint(uuid):
         else:
             uuid = 'qw'
 
-    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_path = join_worker_data_dir(uuid, 'ly261666/cv_portrait_model')
     folder_list = ['不重绘该人物(Do not inpaint this character)']
     if not os.path.exists(folder_path):
         return gr.Radio.update(choices=[], value = None), gr.Dropdown.update(choices=style_list)
@@ -910,7 +910,7 @@ def update_output_model_inpaint(uuid):
             file_path = os.path.join(folder_path, file)
             if os.path.isdir(folder_path):
                 file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                file_lora_path_swift = f"{file_path}/swift"
+                file_lora_path_swift = f"{file_path}/unet"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
 
@@ -940,7 +940,7 @@ def update_output_model_tryon(uuid):
         else:
             uuid = 'qw'
 
-    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_path = join_worker_data_dir(uuid, 'ly261666/cv_portrait_model')
     folder_list = ['不重绘该人物(Do not inpaint this character)']
     if not os.path.exists(folder_path):
         return gr.Radio.update(choices=[], value = None)
@@ -962,7 +962,7 @@ def init_output_model_tryon(uuid):
         else:
             uuid = 'qw'
 
-    folder_path = join_worker_data_dir(uuid, character_model)
+    folder_path = join_worker_data_dir(uuid, 'ly261666/cv_portrait_model')
     folder_list = ['不重绘该人物(Do not inpaint this character)']
     if not os.path.exists(folder_path):
         choices = []
@@ -1342,8 +1342,8 @@ def inference_inpaint():
                     base_model_list.append(BASE_MODEL_MAP[base_model['name']])
 
                 base_model_index = gr.Radio(
-                    label="基模型选择(Base model list)",
-                    choices=base_model_list,
+                    label="基模型选择,暂不支持sdxl(Base model list, not support sdxl)",
+                    choices=base_model_list[:2],
                     type="index"
                 )
 
@@ -1474,6 +1474,13 @@ def inference_tryon():
                 base_model_list = []
                 for base_model in base_models:
                     base_model_list.append(BASE_MODEL_MAP[base_model['name']])
+                
+                base_model_index = gr.Radio(
+                    label="基模型选择,暂不支持sdxl(Base model list, not support sdxl)",
+                    choices=base_model_list[:2],
+                    type="index"
+                )
+
 
                 with gr.Row():
                     with gr.Column(scale=2):
