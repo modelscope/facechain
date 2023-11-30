@@ -24,8 +24,8 @@ from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_pr
 training_done_count = 0
 inference_done_count = 0
 SDXL_BASE_MODEL_ID = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
-character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
-#character_model = 'ly261666/cv_portrait_model'
+#character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
+character_model = 'ly261666/cv_portrait_model'
 BASE_MODEL_MAP = {
     "leosamsMoonfilm_filmGrain20": "写实模型(Realistic sd_1.5 model)",
     "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic sd_1.5 model)",
@@ -629,6 +629,10 @@ def launch_pipeline_tryon(uuid,
     multiplier_style = 0.05
     multiplier_human = 0.95
 
+    tmp_character_model = base_models[base_model_index]['model_id']
+    if tmp_character_model != character_model:
+        tmp_character_model = 'ly261666/cv_portrait_model'
+
     model_dir = snapshot_download('ly261666/cv_wanx_style_model', revision='v1.0.3')
     style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_frommajicreal.safetensors')
 
@@ -640,8 +644,8 @@ def launch_pipeline_tryon(uuid,
         user_model = None
 
     if user_model is not None:
-        instance_data_dir = join_worker_data_dir(uuid, 'training_data', character_model, user_model)
-        lora_model_path = join_worker_data_dir(uuid, character_model, user_model)
+        instance_data_dir = join_worker_data_dir(uuid, 'training_data', tmp_character_model, user_model)
+        lora_model_path = join_worker_data_dir(uuid, tmp_character_model, user_model)
     else:
         instance_data_dir = None
         lora_model_path = None
@@ -872,7 +876,7 @@ def update_output_model(uuid):
         else:
             uuid = 'qw'
     folder_list = []
-    for idx, tmp_character_model in enumerate(['ly261666/cv_portrait_model', character_model]):
+    for idx, tmp_character_model in enumerate(['AI-ModelScope/stable-diffusion-xl-base-1.0', character_model]):
         folder_path = join_worker_data_dir(uuid, tmp_character_model)
         if not os.path.exists(folder_path):
             continue
@@ -1482,8 +1486,9 @@ def inference_tryon():
 
                 with gr.Row():
                     with gr.Column(scale=2):
-                        choices, value = init_output_model_tryon(uuid.value)
-                        user_model = gr.Radio(label="人物LoRA（Character LoRA）", choices=choices, type="value", value=value)
+                        #choices, value = init_output_model_tryon(uuid.value)
+                        #user_model = gr.Radio(label="人物LoRA（Character LoRA）", choices=choices, type="value", value=value)
+                        user_model = gr.Radio(label="人物LoRA（Character LoRA）", choices=[], type="value")
                     with gr.Column(scale=1):
                         update_button = gr.Button('刷新人物LoRA列表(Refresh character LoRAs)')
 
@@ -1516,6 +1521,11 @@ def inference_tryon():
                 label='输出(Output)',
                 show_label=False
             ).style(columns=3, rows=2, height=600, object_fit="contain")
+
+        base_model_index.change(fn=update_output_model_tryon,
+                            inputs=[uuid],
+                            outputs=[user_model],
+                            queue=False)
 
         update_button.click(fn=update_output_model_tryon,
                             inputs=[uuid],
