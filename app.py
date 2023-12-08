@@ -752,22 +752,19 @@ def launch_pipeline_animate(uuid, source_image, motion_sequence, random_seed, sa
 
         while not future.done():
             is_processing = future.running()
-            # if not is_processing:
-            #     cur_done_count = inference_done_count
-            #     to_wait = before_queue_size - (cur_done_count - before_done_count)
-            #     yield ["排队等待资源中，前方还有{}个生成任务(Queueing, there are {} tasks ahead)".format(to_wait, to_wait),
-            #            None]
-            # else:
-            #     yield ["生成中, 请耐心等待(Generating, please wait)...", None]
+            if not is_processing:
+                cur_done_count = inference_done_count
+                to_wait = before_queue_size - (cur_done_count - before_done_count)
+                yield ["排队等待资源中，前方还有{}个生成任务(Queueing, there are {} tasks ahead)".format(to_wait, to_wait),
+                       None]
+            else:
+                yield ["生成中, 请耐心等待(Generating, please wait)...", None]
             time.sleep(1)
 
     output = future.result()
     print(f'生成文件位于路径：{output}')
-    message = f'''<center><font size=4>生成视频已经完成！视频位于`{output}`。</center>
         
-        <center><font size=4>(Video generated, located at `{output}.)</center>'''
-        
-    yield ["生成完毕(Generation done)！", message]
+    yield ["生成完毕(Generation done)！", output]
 
 class Trainer:
     def __init__(self):
@@ -1611,10 +1608,10 @@ def inference_animate():
                         submit              = gr.Button("生成(Generate)", variant='primary')
                 with gr.Box():
                         infer_progress = gr.Textbox(value="当前无任务(No task currently)")
-                        gen_path = gr.Markdown()
+                        gen_video = gr.Video(label="Generated video", format="mp4", width=256)
 
         submit.click(fn=launch_pipeline_animate, inputs=[uuid, source_image, motion_sequence, random_seed, sampling_steps], 
-                    outputs=[infer_progress, gen_path])
+                    outputs=[infer_progress, gen_video])
 
 
         with gr.Row():
@@ -1627,7 +1624,7 @@ def inference_animate():
                 ["resources/animate/source_image/multi1_source.png", "resources/animate/driving/densepose/multi_dancing.mp4"],
             ]
             gr.Examples(examples=examples, inputs=[source_image, motion_sequence],
-                        outputs=[gen_path],  fn=launch_pipeline_animate, cache_examples=os.getenv('SYSTEM') == 'spaces')
+                        outputs=[infer_progress, gen_video],  fn=launch_pipeline_animate, cache_examples=os.getenv('SYSTEM') == 'spaces')
 
     return demo
 
