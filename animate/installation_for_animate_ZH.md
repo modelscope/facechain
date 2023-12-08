@@ -4,7 +4,7 @@
 
 人物动作视频生成标签页可视化界面：
 
-![image]()
+![image](resources/animate/animate_page.jpg)
 
 该标签页的功能主要是基于[MagicAnimate](https://showlab.github.io/magicanimate/)实现人物动作视频生成。
 
@@ -33,7 +33,7 @@ pip install xformers
 
 ## 使用教程
 
-1. 您可以从本地电脑上传带有人脸的图片或者从之前生成的图片中选择一张作为源图片。
+1. 您可以从本地电脑上传一张图片或者从之前生成的图片中选择一张作为源图片。
 
 2. 您可以从本地电脑上传一段动作序列视频，该视频应为mp4格式。
 
