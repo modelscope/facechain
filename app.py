@@ -9,6 +9,8 @@ from concurrent.futures import ProcessPoolExecutor
 import cv2
 import gradio as gr
 import numpy as np
+from PIL import Image
+import imageio
 import torch
 from glob import glob
 import platform
@@ -20,6 +22,7 @@ from facechain.inference_tryon import GenPortrait_tryon
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_prompt_with_style, \
     pose_models, pose_examples, base_models, tts_speakers_map
+from animate.inference_animate import MagicAnimate
 
 training_done_count = 0
 inference_done_count = 0
@@ -718,6 +721,53 @@ def launch_pipeline_tryon(uuid,
     else:
         yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
 
+
+def launch_pipeline_animate(uuid, source_image, motion_sequence, random_seed, sampling_steps, guidance_scale=7.5):
+    
+    before_queue_size = 0
+    before_done_count = inference_done_count
+
+    if not source_image:
+        raise gr.Error('请选择一张源图片(Please select 1 source image)')
+    if not motion_sequence:
+        raise gr.Error('请提供一段mp4视频(Please provide 1 mp4 video)')
+
+    def read_image(image, size=512):
+        return np.array(Image.open(image).resize((size, size)))
+    def read_video(video):
+        reader = imageio.get_reader(video)
+        fps = reader.get_meta_data()['fps']
+        return video
+    source_image = read_image(source_image)
+    motion_sequence = read_video(motion_sequence)
+
+    user_directory = os.path.expanduser("~")
+    if not os.path.exists(os.path.join(user_directory, '.cache', 'modelscope', 'hub', 'AI-ModelScope', 'MagicAnimate')):
+        gr.Info("第一次初始化会比较耗时，请耐心等待(The first time initialization will take time, please wait)")
+
+    gen_video = MagicAnimate(uuid)
+
+    with ProcessPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(gen_video, source_image, motion_sequence, random_seed, sampling_steps, guidance_scale)
+
+        while not future.done():
+            is_processing = future.running()
+            # if not is_processing:
+            #     cur_done_count = inference_done_count
+            #     to_wait = before_queue_size - (cur_done_count - before_done_count)
+            #     yield ["排队等待资源中，前方还有{}个生成任务(Queueing, there are {} tasks ahead)".format(to_wait, to_wait),
+            #            None]
+            # else:
+            #     yield ["生成中, 请耐心等待(Generating, please wait)...", None]
+            time.sleep(1)
+
+    output = future.result()
+    print(f'生成文件位于路径：{output}')
+    message = f'''<center><font size=4>生成视频已经完成！视频位于`{output}`。</center>
+        
+        <center><font size=4>(Video generated, located at `{output}.)</center>'''
+        
+    yield ["生成完毕(Generation done)！", message]
 
 class Trainer:
     def __init__(self):
@@ -1540,6 +1590,47 @@ def inference_tryon():
 
     return demo
 
+def inference_animate():
+    
+    with gr.Blocks() as demo:
+        uuid = gr.Text(label="modelscope_uuid", visible=False)
+        gr.Markdown("""该标签页的功能基于[MagicAnimate](https://showlab.github.io/magicanimate/)实现，要使用该标签页，请按照[教程](https://github.com/modelscope/facechain/tree/main/doc/installation_for_animate_ZH.md)安装相关依赖。\n
+                    The function of this tab is implemented based on [MagicAnimate](https://showlab.github.io/magicanimate/), to use this tab, you should follow the installation [guide](https://github.com/modelscope/facechain/tree/main/doc/installation_for_animate.md) """)
+        
+        with gr.Row(equal_height=False):
+            with gr.Column(variant='panel'):
+                source_image  = gr.Image(label="源图片(source image)", source="upload", type="filepath")
+                motion_sequence  = gr.Video(format="mp4", label="动作序列视频(Motion Sequence)", source="upload")
+
+            with gr.Column(variant='panel'): 
+                with gr.Box():
+                    gr.Markdown("设置(Settings)")
+                    with gr.Column(variant='panel'):
+                        random_seed         = gr.Textbox(label="随机种子(Random seed)", value=1, info="default: -1")
+                        sampling_steps      = gr.Textbox(label="采样步数(Sampling steps)", value=25, info="default: 25")
+                        submit              = gr.Button("生成(Generate)", variant='primary')
+                with gr.Box():
+                        infer_progress = gr.Textbox(value="当前无任务(No task currently)")
+                        gen_path = gr.Markdown()
+
+        submit.click(fn=launch_pipeline_animate, inputs=[uuid, source_image, motion_sequence, random_seed, sampling_steps], 
+                    outputs=[infer_progress, gen_path])
+
+
+        with gr.Row():
+            examples=[
+                ["resources/animate/source_image/monalisa.png", "resources/animate/driving/densepose/running.mp4"],
+                ["resources/animate/source_image/demo4.png", "resources/animate/driving/densepose/demo4.mp4"],
+                ["resources/animate/source_image/0002.png", "resources/animate/driving/densepose/demo4.mp4"],
+                ["resources/animate/source_image/dalle2.jpeg", "resources/animate/driving/densepose/running2.mp4"],
+                ["resources/animate/source_image/dalle8.jpeg", "resources/animate/driving/densepose/dancing2.mp4"],
+                ["resources/animate/source_image/multi1_source.png", "resources/animate/driving/densepose/multi_dancing.mp4"],
+            ]
+            gr.Examples(examples=examples, inputs=[source_image, motion_sequence],
+                        outputs=[gen_path],  fn=launch_pipeline_animate, cache_examples=os.getenv('SYSTEM') == 'spaces')
+
+    return demo
+
 styles = []
 for base_model in base_models:
     style_in_base = []
@@ -1575,6 +1666,8 @@ with gr.Blocks(css='style.css') as demo:
             inference_tryon()
         with gr.TabItem('\N{clapper board}人物说话视频生成(Audio Driven Talking Head)'):
             inference_talkinghead()
+        with gr.TabItem('\N{clapper board}人物动画生成(Human animate)'):
+            inference_animate()
 
 if __name__ == "__main__":
     set_spawn_method()
