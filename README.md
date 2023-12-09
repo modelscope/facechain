@@ -124,12 +124,12 @@ If you are familiar with using docker, we recommend to use this way:
 
 # Step2: Download the docker image (for installing docker engine, refer to https://docs.docker.com/engine/install/）
 # For China Mainland users:
-docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4
+docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0
 # For users outside China Mainland:
-docker pull registry.us-west-1.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4
+docker pull registry.us-west-1.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0
 
 # Step3: run the docker container
-docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4 /bin/bash
+docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0 /bin/bash
 # Note: you may need to install the nvidia-container-runtime, follow the instructions:
 # 1. Install nvidia-container-runtime：https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 # 2. sudo systemctl restart docker
@@ -158,7 +158,7 @@ Use the conda virtual environment, and refer to [Anaconda](https://docs.anaconda
 (Note: mmcv has strict environment requirements and might not be compatible in some cases. It's recommended to use Docker.)
 
 ```shell
-conda create -n facechain python=3.8    # Verified environments: 3.8 and 3.10
+conda create -n facechain python=3.10    # Verified environments: 3.10 and 3.8 recommend 3.10
 conda activate facechain
 
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
@@ -166,7 +166,11 @@ cd facechain
 
 pip3 install -r requirements.txt
 pip3 install -U openmim 
-mim install mmcv-full==1.7.0
+# install mmcv-full 1.7.0 with
+# python3.10 torch version 2.1.0 and 2.1.1，cuda version 11.8.0 and 12.1.0
+# the mmcv_full version: 1.7.0+torch2.1.1cu121, 1.7.0+torch2.1.0cu121, 1.7.0+torch2.1.1cu118, 1.7.0+torch2.1.0cu118
+pip install mmcv_full=='1.7.0+torch2.1.1cu121' -f https://modelscope.oss-cn-beijing.aliyuncs.com/releases/repo.html
+# Other version please reference mmcv official site.
 
 # Navigate to the facechain directory and run:
 python3 app.py

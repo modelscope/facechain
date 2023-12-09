@@ -128,12 +128,12 @@ print(os.getcwd())
 
 # Step2: 将镜像下载到本地 （前提是已经安装了docker engine并启动服务，具体可参考： https://docs.docker.com/engine/install/）
 # For China Mainland users:
-docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4
+docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0
 # For users outside China Mainland:
-docker pull registry.us-west-1.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4
+docker pull registry.us-west-1.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0
 
 # Step3: 拉起镜像运行
-docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.8.0-py38-torch2.0.1-tf2.13.0-1.9.4 /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
+docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0 /bin/bash  # 注意 your_xxx_image_id 替换成你的镜像id
 # 注意： 如果提示无法使用宿主机GPU的错误，可能需要安装nvidia-container-runtime
 # 1. 安装nvidia-container-runtime：https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 # 2. 重启docker服务：sudo systemctl restart docker
@@ -170,6 +170,10 @@ cd facechain
 
 pip3 install -r requirements.txt
 pip3 install -U openmim 
+# 您可以按如下方式安装python3.10下的mmcv_full torch支持2.1.0和2.1.1，cuda支持11.8.0，12.1.0
+# 对应版本1.7.0+torch2.1.1cu121， 1.7.0+torch2.1.0cu121， 1.7.0+torch2.1.1cu118， 1.7.0+torch2.1.0cu118
+pip install mmcv_full=='1.7.0+torch2.1.1cu121' -f https://modelscope.oss-cn-beijing.aliyuncs.com/releases/repo.html
+# 其他版本参考mmcv官方文档
 mim install mmcv-full==1.7.0
 
 # 进入facechain文件夹，执行：
