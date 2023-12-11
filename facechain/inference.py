@@ -36,12 +36,12 @@ def data_process_fn(input_img_dir, use_data_process):
 
     return os.path.join(str(input_img_dir) + '_labeled', "metadata.jsonl")
 
-def txt2img(pipe, pos_prompt, neg_prompt, num_images=10, height=512, width=512):
+def txt2img(pipe, pos_prompt, neg_prompt, num_images=10, height=512, width=512, num_inference_steps=40, guidance_scale=7):
     batch_size = 5
     images_out = []
     for i in range(int(num_images / batch_size)):
-        images_style = pipe(prompt=pos_prompt, height=height, width=width, guidance_scale=7, negative_prompt=neg_prompt,
-                            num_inference_steps=40, num_images_per_prompt=batch_size).images
+        images_style = pipe(prompt=pos_prompt, height=height, width=width, guidance_scale=guidance_scale, negative_prompt=neg_prompt,
+                            num_inference_steps=num_inference_steps, num_images_per_prompt=batch_size).images
         images_out.extend(images_style)
     return images_out
 
@@ -124,6 +124,7 @@ def get_mask(result):
 
 def main_diffusion_inference(pos_prompt, neg_prompt,
                              input_img_dir, base_model_path, style_model_path, lora_model_path,
+                             use_lcm=False, 
                              multiplier_style=0.25,
                              multiplier_human=0.85):
     if style_model_path is None:
@@ -135,6 +136,21 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
     print ('lora_human_path: ', lora_human_path)
     if 'xl-base' in base_model_path:
         pipe = StableDiffusionXLPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float16)
+        if use_lcm:
+            try:
+                from diffusers import LCMScheduler
+            except:
+                raise ImportError('diffusers version is not right, please update diffsers to >=0.22')
+            lcm_model_path = snapshot_download('AI-ModelScope/lcm-lora-sdxl')
+            pipe.load_lora_weights(lcm_model_path)
+            pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
+            num_inference_steps = 8
+            guidance_scale = 2
+        else:
+            pipe.scheduler = DPMSolverSinglestepScheduler.from_config(pipe.scheduler.config)
+            num_inference_steps = 40
+            guidance_scale = 7
+        
         print('base_model_path', base_model_path)
         print('lora_human_path', lora_human_path)
         print('lora_style_path', lora_style_path)
@@ -160,11 +176,25 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
         print('lora merging done')
     else:
         pipe = StableDiffusionPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)    
+        if use_lcm:
+            try:
+                from diffusers import LCMScheduler
+            except:
+                raise ImportError('diffusers version is not right, please update diffsers to >=0.22')
+            lcm_model_path = snapshot_download('eavesy/lcm-lora-sdv1-5')
+            pipe.load_lora_weights(lcm_model_path)
+            pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
+            num_inference_steps = 8
+            guidance_scale = 2
+        else:
+            pipe.scheduler = DPMSolverSinglestepScheduler.from_config(pipe.scheduler.config)
+            num_inference_steps = 40
+            guidance_scale = 7
+
         pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True, device='cuda')
         pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=lora_human_path.endswith('safetensors'), device='cuda')
     print(pipe.scheduler)
     #pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
-    pipe.scheduler = DPMSolverSinglestepScheduler.from_config(pipe.scheduler.config)
     print(f'multiplier_style:{multiplier_style}, multiplier_human:{multiplier_human}')
     
     train_dir = str(input_img_dir) + '_labeled'
@@ -214,15 +244,17 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
         add_prompt_style = ''
 
     pipe = pipe.to("cuda")
+
     if 'xl-base' in base_model_path:
-        images_style = txt2img(pipe, trigger_style + add_prompt_style + pos_prompt, neg_prompt, num_images=10, height=768, width=768)
+        images_style = txt2img(pipe, trigger_style + add_prompt_style + pos_prompt, neg_prompt, num_images=10, height=768, width=768, num_inference_steps=num_inference_steps, guidance_scale=guidance_scale)
     else:
-        images_style = txt2img(pipe, trigger_style + add_prompt_style + pos_prompt, neg_prompt, num_images=10)
+        images_style = txt2img(pipe, trigger_style + add_prompt_style + pos_prompt, neg_prompt, num_images=10, num_inference_steps=num_inference_steps, guidance_scale=guidance_scale)
     return images_style
 
 def main_diffusion_inference_pose(pose_model_path, pose_image,
                                   pos_prompt, neg_prompt,
                                   input_img_dir, base_model_path, style_model_path, lora_model_path,
+                                  use_lcm=False, 
                                   multiplier_style=0.25,
                                   multiplier_human=0.85):
     if style_model_path is None:
@@ -232,6 +264,7 @@ def main_diffusion_inference_pose(pose_model_path, pose_image,
     controlnet = ControlNetModel.from_pretrained(pose_model_path, torch_dtype=torch.float32)
     pipe = StableDiffusionControlNetPipeline.from_pretrained(base_model_path, safety_checker=None, controlnet=controlnet, torch_dtype=torch.float32)
     pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
+    
     pose_im = Image.open(pose_image)
     pose_im = img_pad(pose_im)
     model_dir = snapshot_download('damo/face_chain_control_model',revision='v1.0.1')
@@ -298,6 +331,7 @@ def main_diffusion_inference_pose(pose_model_path, pose_image,
 def main_diffusion_inference_multi(pose_model_path, pose_image,
                                   pos_prompt, neg_prompt,
                                   input_img_dir, base_model_path, style_model_path, lora_model_path,
+                                  use_lcm=False, 
                                   multiplier_style=0.25,
                                   multiplier_human=0.85):
     if style_model_path is None:
@@ -395,24 +429,26 @@ def stylization_fn(use_stylization, rank_results):
 
 
 def main_model_inference(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, multiplier_style, multiplier_human, use_main_model,
-                         input_img_dir=None, base_model_path=None, lora_model_path=None):
+                         input_img_dir=None, base_model_path=None, lora_model_path=None,
+                         use_lcm=False):
     if use_main_model:
         multiplier_style_kwargs = {'multiplier_style': multiplier_style} if multiplier_style is not None else {}
         multiplier_human_kwargs = {'multiplier_human': multiplier_human} if multiplier_human is not None else {}
         if pose_image is None:
             return main_diffusion_inference(pos_prompt, neg_prompt, input_img_dir, base_model_path,
-                                            style_model_path, lora_model_path,
+                                            style_model_path, lora_model_path, use_lcm, 
                                             **multiplier_style_kwargs, **multiplier_human_kwargs)
         else:
             pose_image = compress_image(pose_image, 1024 * 1024)
             if use_depth_control:
                 return main_diffusion_inference_multi(pose_model_path, pose_image, pos_prompt,
                                                       neg_prompt, input_img_dir, base_model_path, style_model_path,
-                                                      lora_model_path,
+                                                      lora_model_path, use_lcm, 
                                                       **multiplier_style_kwargs, **multiplier_human_kwargs)
             else:
                 return main_diffusion_inference_pose(pose_model_path, pose_image, pos_prompt, neg_prompt,
-                                                     input_img_dir, base_model_path, style_model_path, lora_model_path,
+                                                     input_img_dir, base_model_path, style_model_path, lora_model_path, 
+                                                     use_lcm, 
                                                      **multiplier_style_kwargs, **multiplier_human_kwargs)
 
 
@@ -510,17 +546,22 @@ class GenPortrait:
         self.use_depth_control = use_depth_control
 
     def __call__(self, input_img_dir, num_gen_images=6, base_model_path=None,
-                 lora_model_path=None, sub_path=None, revision=None, sr_img_size=None, portrait_stylization_idx=None):
+                 lora_model_path=None, sub_path=None, revision=None, sr_img_size=None, portrait_stylization_idx=None, use_lcm_idx=None):
         base_model_path = snapshot_download(base_model_path, revision=revision)
         if sub_path is not None and len(sub_path) > 0:
             base_model_path = os.path.join(base_model_path, sub_path)
 
+        use_lcm = False
+        if (use_lcm_idx is not None) and (int(use_lcm_idx) == 1):
+            use_lcm = True
+        
         # main_model_inference PIL
         gen_results = main_model_inference(self.pose_model_path, self.pose_image, self.use_depth_control,
                                            self.pos_prompt, self.neg_prompt,
                                            self.style_model_path, self.multiplier_style, self.multiplier_human,
                                            self.use_main_model, input_img_dir=input_img_dir,
-                                           lora_model_path=lora_model_path, base_model_path=base_model_path)
+                                           lora_model_path=lora_model_path, base_model_path=base_model_path,
+                                           use_lcm=use_lcm)
 
         # select_high_quality_face PIL
         selected_face = select_high_quality_face(input_img_dir)
