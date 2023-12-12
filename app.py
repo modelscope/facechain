@@ -236,6 +236,7 @@ def launch_pipeline(uuid,
                     pose_image=None,
                     sr_img_size=None,
                     cartoon_style_idx=None,
+                    use_lcm_idx=False
                     ):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -334,7 +335,7 @@ def launch_pipeline(uuid,
 
     with ProcessPoolExecutor(max_workers=5) as executor:
         future = executor.submit(gen_portrait, instance_data_dir,
-                                            num_images, base_model, lora_model_path, sub_path, revision, sr_img_size, cartoon_style_idx)
+                                            num_images, base_model, lora_model_path, sub_path, revision, sr_img_size, cartoon_style_idx, use_lcm_idx=use_lcm_idx)
         while not future.done():
             is_processing = future.running()
             if not is_processing:
@@ -1219,7 +1220,14 @@ def inference_input():
                     out_img_size_list = ["512x512", "768x768", "1024x1024", "2048x2048"]
                     sr_img_size =  gr.Radio(label="输出分辨率选择(Output Image Size)", choices=out_img_size_list, type="index", value="512x512")
                     cartoon_style_idx =  gr.Radio(label="动漫风格选择", choices=['2D人像卡通', '3D人像卡通化'], type="index")
-
+                    with gr.Accordion("采样器选项(Sampler Options)", open=False):
+                        use_lcm_idx =  gr.Radio(label="是否使用LCM采样器", choices=['使用默认采样器', '使用LCM采样器'], type="index", value="使用默认采样器")
+                        gr.Markdown('''
+                        注意: 
+                        - 该实现是通过融合LCM-LoRA完成的，第一次使用会加载LCM-LoRA模型权重。
+                        - 目前LCM采样器对各种基模型适配效果仍有待提升，生成质量可能受到影响，需慎重使用。
+                        ''')
+                        
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, 
                                             value=generate_pos_prompt(None, styles[0]['add_prompt_style']),
                                             interactive=True)
@@ -1310,7 +1318,7 @@ def inference_input():
                       queue=False)
         display_button.click(fn=launch_pipeline,
                              inputs=[uuid, pos_prompt, neg_prompt, base_model_index, user_model, num_images, lora_choice, style_model, multiplier_style, multiplier_human,
-                                     pose_model, pose_image, sr_img_size, cartoon_style_idx],
+                                     pose_model, pose_image, sr_img_size, cartoon_style_idx, use_lcm_idx],
                              outputs=[infer_progress, output_images])
         history_button.click(fn=deal_history,
                              inputs=[uuid, base_model_index, user_model, lora_choice, style_model, load_history_text],
