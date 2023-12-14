@@ -1,0 +1,20 @@
+savename: null
+
+fusion_blocks: "midup"
+
+seed:           [1]
+steps:          25
+guidance_scale: 7.5
+
+
+inference_config: "facechain_animate/magicanimate/configs/inference/inference.yaml"
+size: 512
+L:    16
+S:    1 
+I:    0
+clip: 0
+offset: 0
+max_length: null
+video_type: "condition"
+invert_video: false
+save_individual_videos: false
