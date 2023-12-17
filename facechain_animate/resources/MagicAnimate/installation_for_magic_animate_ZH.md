@@ -1,4 +1,4 @@
-# 人物动作视频生成标签页安装使用教程
+# 人物动作视频生成模块安装使用教程
 
 ## 简介
 
@@ -27,8 +27,8 @@ pip install .
 
 您需要额外安装下列依赖：
 ```
-pip install -r facechain_animate/requirements.txt
-pip install -r facechain_animate/requirements_additional.txt
+pip install -r facechain_animate/magicanimate/requirements.txt
+pip install -r facechain_animate/magicanimate/requirements_additional.txt
 ```
 
 ## 使用教程
@@ -43,7 +43,7 @@ pip install -r facechain_animate/requirements_additional.txt
 
 5. 点击生成按钮等待生成。第一次使用会下载模型，请耐心等待。后续生成过程一般需要5分钟左右（以v100显卡为例）。
 
-6. 或者，您也可以用命令行直接运行 `python -m animate.magicanimate.pipelines.animation --config animate/magicanimate/configs/prompts/animation.yaml`。
+6. 或者，您也可以用命令行直接运行 `python -m facechain_animate.magicanimate.pipelines.animation --config facechain_animate/magicanimate/configs/prompts/animation.yaml`。
 
 ## 其他
 

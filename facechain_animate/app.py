@@ -134,8 +134,8 @@ def inference_animate():
         video_result_list = get_previous_video_result(uuid.value)
         print(video_result_list)
         state_video_list = gr.State(value=video_result_list)
-        gr.Markdown("""该标签页的功能基于[MagicAnimate](https://showlab.github.io/magicanimate/)实现，要使用该标签页，请按照[教程](https://github.com/modelscope/facechain/facechain_animate/resources/installation_for_animate_ZH.md)安装相关依赖。\n
-                    The function of this tab is implemented based on [MagicAnimate](https://showlab.github.io/magicanimate/), to use this tab, you should follow the installation [guide](https://github.com/modelscope/facechain/facechain_animate/resources/installation_for_animate.md) """)
+        gr.Markdown("""该标签页的功能基于[MagicAnimate](https://showlab.github.io/magicanimate/)实现，要使用该标签页，请按照[教程](https://github.com/modelscope/facechain/facechain_animate/resources/MagicAnimate/installation_for_magic_animate_ZH.md)安装相关依赖。\n
+                    The function of this tab is implemented based on [MagicAnimate](https://showlab.github.io/magicanimate/), to use this tab, you should follow the installation [guide](https://github.com/modelscope/facechain/facechain_animate/resources/MagicAnimate/installation_for_magic_animate.md) """)
         
         with gr.Row(equal_height=False):
             with gr.Column(variant='panel'):
@@ -181,27 +181,27 @@ def inference_animate():
 
     return demo
 
-def inference_densepose():
+# def inference_densepose():
     
-    with gr.Blocks() as demo:
-        uuid = gr.Text(label="modelscope_uuid", visible=False)
-        gr.Markdown("""该标签页的功能基于[Vid2DensePose](https://github.com/Flode-Labs/vid2densepose/)实现，要使用该标签页，请按照[教程](facechain_animate/resources/installation_for_densepose_ZH.md)安装相关依赖。\n
-                    The function of this tab is implemented based on [Vid2DensePose](https://github.com/Flode-Labs/vid2densepose/), to use this tab, you should follow the installation [guide](facechain_animate/resources/installation_for_densepose.md) """)
+#     with gr.Blocks() as demo:
+#         uuid = gr.Text(label="modelscope_uuid", visible=False)
+#         gr.Markdown("""该标签页的功能基于[Vid2DensePose](https://github.com/Flode-Labs/vid2densepose/)实现，要使用该标签页，请按照[教程]()安装相关依赖。\n
+#                     The function of this tab is implemented based on [Vid2DensePose](https://github.com/Flode-Labs/vid2densepose/), to use this tab, you should follow the installation [guide]() """)
         
-        with gr.Row(equal_height=False):
-            with gr.Column(variant='panel'):
-                source_video  = gr.Video(label="原始视频(Original Video)", format="mp4", width=256)
-                submit              = gr.Button("生成(Generate)", variant='primary')
+#         with gr.Row(equal_height=False):
+#             with gr.Column(variant='panel'):
+#                 source_video  = gr.Video(label="原始视频(Original Video)", format="mp4", width=256)
+#                 submit              = gr.Button("生成(Generate)", variant='primary')
 
-            with gr.Column(variant='panel'): 
-                # with gr.Box():
-                infer_progress = gr.Textbox(value="当前无任务(No task currently)")
-                gen_video = gr.Video(label="生成视频(Generated Video)")
+#             with gr.Column(variant='panel'): 
+#                 # with gr.Box():
+#                 infer_progress = gr.Textbox(value="当前无任务(No task currently)")
+#                 gen_video = gr.Video(label="生成视频(Generated Video)")
 
-        submit.click(fn=launch_pipeline_densepose, inputs=[uuid, source_video], 
-                    outputs=[infer_progress, gen_video])
+#         submit.click(fn=launch_pipeline_densepose, inputs=[uuid, source_video], 
+#                     outputs=[infer_progress, gen_video])
 
-    return demo
+#     return demo
 
 
 with gr.Blocks(css='style.css') as demo:

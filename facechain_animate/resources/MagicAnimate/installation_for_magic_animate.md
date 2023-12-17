@@ -1,8 +1,8 @@
-# Human Animate Tab Installation And Usage Tutorial
+# Magic Animate Installation And Usage Tutorial
 
 ## Introduction
 
-Web UI of Human Animate Tab:
+Web UI of Magic Animate Tab:
 
 ![image](resources/MagicAnimate/animate_page.jpg)
 
@@ -27,8 +27,8 @@ pip install .
 
 You will need to install the following additional python dependencies:
 ```
-pip install -r facechain_animate/requirements.txt
-pip install -r facechain_animate/requirements_additional.txt
+pip install -r facechain_animate/magicanimate/requirements.txt
+pip install -r facechain_animate/magicanimate/requirements_additional.txt
 ```
 
 
@@ -44,7 +44,7 @@ pip install -r facechain_animate/requirements_additional.txt
 
 5. Click the generate button and wait for the creation. The first use will download the model, please be patient. Subsequent generation usually takes about 5 minutes (based on the V100 graphics card).
 
-6. Alternatively, you can run the command `python -m facechain_animate.magicanimate.pipelines.animation --config animate/magicanimate/configs/prompts/animation.yaml` directly in the command line.
+6. Alternatively, you can run the command `python -m facechain_animate.magicanimate.pipelines.animation --config facechain_animate/magicanimate/configs/prompts/animation.yaml` directly in the command line.
 
 ## Additional Information
 
