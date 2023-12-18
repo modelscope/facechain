@@ -250,8 +250,10 @@ def launch_pipeline(uuid,
     set_spawn_method()
     # Check character LoRA
     tmp_character_model = base_models[base_model_index]['model_id']
-    if tmp_character_model != character_model:
-        tmp_character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
+    if tmp_character_model != SDXL_BASE_MODEL_ID:
+        tmp_character_model = character_model
+    else:
+        tmp_character_model = SDXL_BASE_MODEL_ID
     folder_path = join_worker_data_dir(uuid, tmp_character_model)
     folder_list = []
     if os.path.exists(folder_path):
@@ -815,7 +817,6 @@ class Trainer:
 
 def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):    
 
-    base_model_path = base_models[base_model_index]['model_id']
     style_list = base_models[base_model_index]['style_list']
 
     sub_styles=[]
@@ -829,7 +830,13 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
         else:
             uuid = 'qw'
 
-    folder_path = join_worker_data_dir(uuid, character_model)
+    tmp_character_model = base_models[base_model_index]['model_id']
+    if tmp_character_model != SDXL_BASE_MODEL_ID:
+        tmp_character_model = character_model
+    else:
+        tmp_character_model = SDXL_BASE_MODEL_ID
+
+    folder_path = join_worker_data_dir(uuid, tmp_character_model)
     folder_list = []
     lora_save_path = join_worker_data_dir(uuid, 'temp_lora')
     if not os.path.exists(lora_save_path):
@@ -869,27 +876,32 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
             gr.Dropdown.update(choices=lora_list, visible=True), gr.File.update(visible=True)
 
 
-def update_output_model(uuid):
+def update_output_model(uuid, base_model_index):
 
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
             raise gr.Error("请登陆后使用! (Please login first)")
         else:
             uuid = 'qw'
+    tmp_character_model = base_models[base_model_index]['model_id']
+    if tmp_character_model != SDXL_BASE_MODEL_ID:
+        tmp_character_model = character_model
+    else:
+        tmp_character_model = SDXL_BASE_MODEL_ID
+
     folder_list = []
-    for idx, tmp_character_model in enumerate(['AI-ModelScope/stable-diffusion-xl-base-1.0', character_model]):
-        folder_path = join_worker_data_dir(uuid, tmp_character_model)
-        if not os.path.exists(folder_path):
-            continue
-        else:
-            files = os.listdir(folder_path)
-            for file in files:
-                file_path = os.path.join(folder_path, file)
-                if os.path.isdir(folder_path):
-                    file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
-                    file_lora_path_swift = f"{file_path}/swift"
-                    if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
-                        folder_list.append(file)
+    folder_path = join_worker_data_dir(uuid, tmp_character_model)
+    if not os.path.exists(folder_path):
+        return gr.Radio.update(choices=[], value = None)
+    else:
+        files = os.listdir(folder_path)
+        for file in files:
+            file_path = os.path.join(folder_path, file)
+            if os.path.isdir(folder_path):
+                file_lora_path = f"{file_path}/pytorch_lora_weights.bin"
+                file_lora_path_swift = f"{file_path}/swift"
+                if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
+                    folder_list.append(file)
     if len(folder_list) == 0:
         return gr.Radio.update(choices=[], value = None)
 
@@ -906,7 +918,7 @@ def update_output_model_inpaint(uuid):
     folder_path = join_worker_data_dir(uuid, 'ly261666/cv_portrait_model')
     folder_list = ['不重绘该人物(Do not inpaint this character)']
     if not os.path.exists(folder_path):
-        return gr.Radio.update(choices=[], value = None), gr.Dropdown.update(choices=style_list)
+        return gr.Radio.update(choices=[], value = None), gr.Radio.update(choices=[], value = None)
     else:
         files = os.listdir(folder_path)
         for file in files:
@@ -919,6 +931,68 @@ def update_output_model_inpaint(uuid):
 
     return gr.Radio.update(choices=folder_list, value=folder_list[0]), gr.Radio.update(choices=folder_list, value=folder_list[0])
 
+def delete_lora_model(uuid, base_model_index, user_model=None):
+    if user_model == None:
+        raise gr.Error('请选择人物LoRA(Please select the character LoRA)！')
+
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            raise gr.Error("请登陆后使用! (Please login first)")
+        else:
+            uuid = 'qw'
+        
+    tmp_character_model = base_models[base_model_index]['model_id']
+    if tmp_character_model != SDXL_BASE_MODEL_ID:
+        tmp_character_model = character_model
+    else:
+        tmp_character_model = SDXL_BASE_MODEL_ID
+
+    instance_data_dir = join_worker_data_dir(uuid, 'training_data', tmp_character_model, user_model)
+    instance_data_label_dir = join_worker_data_dir(uuid, 'training_data', tmp_character_model, user_model+'_labeled')
+    lora_model_path = join_worker_data_dir(uuid, tmp_character_model, user_model)
+
+    shutil.rmtree(instance_data_dir, ignore_errors=True)
+    shutil.rmtree(lora_model_path, ignore_errors=True)
+    shutil.rmtree(instance_data_label_dir, ignore_errors=True)
+
+    return update_output_model(uuid, base_model_index)
+
+def delete_lora_model_inpaint(uuid, user_model_A=None, user_model_B=None):
+    if user_model_A == '不重绘该人物(Do not inpaint this character)':
+        user_model_A = None
+    if user_model_B == '不重绘该人物(Do not inpaint this character)':
+        user_model_B = None
+
+    if user_model_A == None and user_model_B == None:
+        raise gr.Error('请至少选择一个人物LoRA(Please select at least one character LoRA)！')
+
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            raise gr.Error("请登陆后使用! (Please login first)")
+        else:
+            uuid = 'qw'
+    
+    if user_model_A == user_model_B:
+        user_model_B = None
+           
+    if user_model_A is not None:
+        instance_data_dir = join_worker_data_dir(uuid, 'training_data', character_model, user_model_A)
+        instance_data_label_dir = join_worker_data_dir(uuid, 'training_data', character_model, user_model_A+'_labeled')
+        lora_model_path = join_worker_data_dir(uuid, character_model, user_model_A)
+
+        shutil.rmtree(instance_data_dir, ignore_errors=True)
+        shutil.rmtree(lora_model_path, ignore_errors=True)
+        shutil.rmtree(instance_data_label_dir, ignore_errors=True)
+    if user_model_B is not None:
+        instance_data_dir = join_worker_data_dir(uuid, 'training_data', character_model, user_model_B)
+        instance_data_label_dir = join_worker_data_dir(uuid, 'training_data', character_model, user_model_B+'_labeled')
+        lora_model_path = join_worker_data_dir(uuid, character_model, user_model_B)
+
+        shutil.rmtree(instance_data_dir, ignore_errors=True)
+        shutil.rmtree(lora_model_path, ignore_errors=True)
+        shutil.rmtree(instance_data_label_dir, ignore_errors=True)
+
+    return update_output_model_inpaint(uuid)
 
 def add_file_webcam(instance_images, file):
     if file is None:
@@ -1189,6 +1263,7 @@ def inference_input():
                         user_model = gr.Radio(label="人物LoRA列表(Character LoRAs)", choices=[], type="value")
                     with gr.Column(scale=1):
                         update_button = gr.Button('刷新人物LoRA列表(Refresh character LoRAs)')
+                        delete_button = gr.Button('删除选中的人物LoRA(Delete the selected character LoRA)')
 
                 with gr.Box():
                     style_model = gr.Text(label='请选择一种风格(Select a style from the pics below):', interactive=False)
@@ -1313,7 +1388,11 @@ def inference_input():
                           queue=False)
         
         update_button.click(fn=update_output_model,
-                      inputs=[uuid],
+                      inputs=[uuid, base_model_index],
+                      outputs=[user_model],
+                      queue=False)
+        delete_button.click(fn=delete_lora_model,
+                      inputs=[uuid, base_model_index, user_model],
                       outputs=[user_model],
                       queue=False)
         display_button.click(fn=launch_pipeline,
@@ -1364,6 +1443,7 @@ def inference_inpaint():
                         user_model_B = gr.Radio(label="第2个人物LoRA，按从左至右的顺序（2nd Character LoRA，counting from left to right）", choices=[], type="value", visible=False)
                     with gr.Column(scale=1):
                         update_button = gr.Button('刷新人物LoRA列表(Refresh character LoRAs)')
+                        delete_button = gr.Button('删除选中的人物LoRA(Delete the selected character LoRA)')
 
         display_button = gr.Button('开始生成(Start Generation)')
         with gr.Box():
@@ -1389,6 +1469,11 @@ def inference_inpaint():
                             outputs=[user_model_A, user_model_B],
                             queue=False)
 
+        delete_button.click(fn=delete_lora_model_inpaint,
+                            inputs=[uuid, user_model_A, user_model_B],
+                            outputs=[user_model_A, user_model_B],
+                            queue=False)
+                            
         num_faces.change(fn=update_output_model_num,
                                 inputs=[num_faces],
                                 outputs=[user_model_A, user_model_B],
