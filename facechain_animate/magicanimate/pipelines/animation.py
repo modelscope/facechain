@@ -143,8 +143,8 @@ def main(args):
     
     random_seeds = config.get("seed", [-1])
     random_seeds = [random_seeds] if isinstance(random_seeds, int) else list(random_seeds)
-    text_video_dir = 'animate/inputs/applications/driving/densepose/'
-    source_img_dir = 'animate/inputs/applications/source_image/'
+    text_video_dir = args.videos_dir
+    source_img_dir = args.images_dir
     test_videos = [os.path.join(text_video_dir, each) for each in os.listdir(text_video_dir)]
     source_images = [os.path.join(source_img_dir, each) for each in os.listdir(source_img_dir)]
     random_seeds = random_seeds * len(source_images) if len(random_seeds) == 1 else random_seeds
@@ -280,6 +280,8 @@ if __name__ == "__main__":
     parser.add_argument("--dist", action="store_true", required=False)
     parser.add_argument("--rank", type=int, default=0, required=False)
     parser.add_argument("--world_size", type=int, default=1, required=False)
+    parser.add_argument("--videos_dir", type=str, default='facechain_animate/resources/MagicAnimate/driving/densepose/', required=False)
+    parser.add_argument("--images_dir", type=str, default='facechain_animate/resources/MagicAnimate/source_image/', required=False)
 
     args = parser.parse_args()
     run(args)

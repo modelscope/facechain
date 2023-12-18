@@ -5,7 +5,7 @@
 
 # 使用说明
 
-目前我们只支持算法的推理阶段，暂时不支持训练阶段。我们建议用户先查看[Installation of MagicAnimate Tab](./resources/MagicAnimate/installation_for_magic_animate.md)里描述的内容。安装好依赖项后，进入本项目的根文件夹目录，即`cd /path/to/facechain/`，然后执行`python -m facechain_animate.app`。
+目前我们只支持算法的推理阶段，暂时不支持训练阶段。我们建议用户先查看[Installation of MagicAnimate Tab](https://github.com/modelscope/facechain/tree/main/facechain_animate/resources/MagicAnimate/installation_for_magic_animate_ZH.md)里描述的内容。安装好依赖项后，进入本项目的根文件夹目录，即`cd /path/to/facechain/`，然后执行`python -m facechain_animate.app`。
 
 
 # 待办事项
@@ -18,8 +18,15 @@
 
 后续我们将支持不同视频生成模型，每个视频生成模型的依赖项可能并不相同，因此使用不同模型时请参考以下对应内容：
 
-- MagicAnimate: [Installation of MagicAnimate Tab](./resources/MagicAnimate/installation_for_magic_animate.md)
+- MagicAnimate: [Installation of MagicAnimate Tab](https://github.com/modelscope/facechain/tree/main/facechain_animate/resources/MagicAnimate/installation_for_magic_animate_ZH.md)
 
 - 未完待续。。。
 
+# 致谢
+
+感谢以下项目的开源贡献:
+
+- [MagicAnimate](showlab.github.io/magicanimate/)
+- [DensePose](densepose.org)
+- [Vid2DensePose](https://github.com/Flode-Labs/vid2densepose/tree/main)
 

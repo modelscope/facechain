@@ -53,6 +53,7 @@ def launch_pipeline_densepose(uuid, source_video):
     before_done_count = inference_done_count
 
     user_directory = os.path.expanduser("~")
+
     if not os.path.exists(os.path.join(user_directory, '.cache', 'modelscope', 'hub', 'eavesy', 'vid2densepose')):
         gr.Info("第一次初始化会比较耗时，请耐心等待(The first time initialization will take time, please wait)")
 
@@ -128,29 +129,52 @@ def launch_pipeline_animate(uuid, source_image, motion_sequence, random_seed, sa
 
 
 def inference_animate():
-    
+    def identity_function(inp):
+        return inp
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         video_result_list = get_previous_video_result(uuid.value)
         print(video_result_list)
         state_video_list = gr.State(value=video_result_list)
-        gr.Markdown("""该标签页的功能基于[MagicAnimate](https://showlab.github.io/magicanimate/)实现，要使用该标签页，请按照[教程](https://github.com/modelscope/facechain/facechain_animate/resources/MagicAnimate/installation_for_magic_animate_ZH.md)安装相关依赖。\n
-                    The function of this tab is implemented based on [MagicAnimate](https://showlab.github.io/magicanimate/), to use this tab, you should follow the installation [guide](https://github.com/modelscope/facechain/facechain_animate/resources/MagicAnimate/installation_for_magic_animate.md) """)
+        gr.Markdown("""该标签页的功能基于[MagicAnimate](https://showlab.github.io/magicanimate/)实现，要使用该标签页，请按照[教程](https://github.com/modelscope/facechain/tree/main/facechain_animate/resources/MagicAnimate/installation_for_magic_animate_ZH.md)安装相关依赖。\n
+                    The function of this tab is implemented based on [MagicAnimate](https://showlab.github.io/magicanimate/), to use this tab, you should follow the installation [guide](https://github.com/modelscope/facechain/tree/main/facechain_animate/resources/MagicAnimate/installation_for_magic_animate.md) """)
         
         with gr.Row(equal_height=False):
             with gr.Column(variant='panel'):
-                source_image  = gr.Image(label="源图片(source image)", source="upload", type="filepath")
-                motion_sequence  = gr.Video(format="mp4", label="动作序列视频(Motion Sequence)", source="upload")
-                gr.Markdown("""
-                注意: 
-                - 如果没有动作序列视频，可以提供原视频文件进行动作序列视频生成（If you don't have motion sequence, you may generate motion sequence from a source video.)
-                - 动作序列视频生成基于DensePose实现（Motion sequence generation is based on DensePose.）
-                """)
-                source_video  = gr.Video(label="原始视频(Original Video)", format="mp4", width=256)
-                gen_motion              = gr.Button("生成动作序列视频(Generate motion sequence)", variant='primary')
-                gen_progress = gr.Textbox(value="当前无生成动作序列视频任务(No motion sequence generation task currently)")
-                gen_motion.click(fn=launch_pipeline_densepose, inputs=[uuid, source_video], 
-                    outputs=[gen_progress, motion_sequence])
+                with gr.Box():
+                    source_image  = gr.Image(label="源图片(source image)", source="upload", type="filepath")
+                    with gr.Column():
+                        examples_image=[
+                            ["facechain_animate/resources/MagicAnimate/source_image/demo4.png"],
+                            ["facechain_animate/resources/MagicAnimate/source_image/0002.png"],
+                            ["facechain_animate/resources/MagicAnimate/source_image/dalle8.jpeg"],
+                        ]
+                        gr.Examples(examples=examples_image, inputs=[source_image],
+                                    outputs=[source_image],  fn=identity_function, cache_examples=os.getenv('SYSTEM') == 'spaces', label='Image Example')
+                    motion_sequence  = gr.Video(format="mp4", label="动作序列视频(Motion Sequence)", source="upload", height=400)
+                    with gr.Column():
+                        examples_video=[
+                            ["facechain_animate/resources/MagicAnimate/driving/densepose/running.mp4"],
+                            ["facechain_animate/resources/MagicAnimate/driving/densepose/demo4.mp4"],
+                            ["facechain_animate/resources/MagicAnimate/driving/densepose/running2.mp4"],
+                            ["facechain_animate/resources/MagicAnimate/driving/densepose/dancing2.mp4"],
+                        ]
+                        gr.Examples(examples=examples_video, inputs=[motion_sequence],
+                                    outputs=[motion_sequence],  fn=identity_function, cache_examples=os.getenv('SYSTEM') == 'spaces', label='Video Example')
+                with gr.Box():
+                    gr.Markdown("""
+                    注意: 
+                    - 如果没有动作序列视频，可以提供原视频文件进行动作序列视频生成（If you don't have motion sequence, you may generate motion sequence from a source video.)
+                    - 动作序列视频生成基于DensePose实现（Motion sequence generation is based on DensePose.）
+                    """)
+                    source_video  = gr.Video(label="原始视频(Original Video)", format="mp4", width=256)
+
+                    gen_motion              = gr.Button("生成动作序列视频(Generate motion sequence)", variant='primary')
+                    
+                    gen_progress = gr.Textbox(value="当前无生成动作序列视频任务(No motion sequence generation task currently)")
+                    
+                    gen_motion.click(fn=launch_pipeline_densepose, inputs=[uuid, source_video], 
+                        outputs=[gen_progress, motion_sequence])
 
             with gr.Column(variant='panel'): 
                 with gr.Box():
@@ -166,42 +190,7 @@ def inference_animate():
         submit.click(fn=launch_pipeline_animate, inputs=[uuid, source_image, motion_sequence, random_seed, sampling_steps], 
                     outputs=[infer_progress, gen_video])
 
-
-        with gr.Row():
-            examples=[
-                ["facechain_animate/resources/MagicAnimate/source_image/monalisa.png", "facechain_animate/resources/MagicAnimate/driving/densepose/running.mp4"],
-                ["facechain_animate/resources/MagicAnimate/source_image/demo4.png", "facechain_animate/resources/MagicAnimate/driving/densepose/demo4.mp4"],
-                ["facechain_animate/resources/MagicAnimate/source_image/0002.png", "facechain_animate/resources/MagicAnimate/driving/densepose/demo4.mp4"],
-                ["facechain_animate/resources/MagicAnimate/source_image/dalle2.jpeg", "facechain_animate/resources/MagicAnimate/driving/densepose/running2.mp4"],
-                ["facechain_animate/resources/MagicAnimate/source_image/dalle8.jpeg", "facechain_animate/resources/MagicAnimate/driving/densepose/dancing2.mp4"],
-                ["facechain_animate/resources/MagicAnimate/source_image/multi1_source.png", "facechain_animate/resources/MagicAnimate/driving/densepose/multi_dancing.mp4"],
-            ]
-            gr.Examples(examples=examples, inputs=[source_image, motion_sequence],
-                        outputs=[infer_progress, gen_video],  fn=launch_pipeline_animate, cache_examples=os.getenv('SYSTEM') == 'spaces')
-
     return demo
-
-# def inference_densepose():
-    
-#     with gr.Blocks() as demo:
-#         uuid = gr.Text(label="modelscope_uuid", visible=False)
-#         gr.Markdown("""该标签页的功能基于[Vid2DensePose](https://github.com/Flode-Labs/vid2densepose/)实现，要使用该标签页，请按照[教程]()安装相关依赖。\n
-#                     The function of this tab is implemented based on [Vid2DensePose](https://github.com/Flode-Labs/vid2densepose/), to use this tab, you should follow the installation [guide]() """)
-        
-#         with gr.Row(equal_height=False):
-#             with gr.Column(variant='panel'):
-#                 source_video  = gr.Video(label="原始视频(Original Video)", format="mp4", width=256)
-#                 submit              = gr.Button("生成(Generate)", variant='primary')
-
-#             with gr.Column(variant='panel'): 
-#                 # with gr.Box():
-#                 infer_progress = gr.Textbox(value="当前无任务(No task currently)")
-#                 gen_video = gr.Video(label="生成视频(Generated Video)")
-
-#         submit.click(fn=launch_pipeline_densepose, inputs=[uuid, source_video], 
-#                     outputs=[infer_progress, gen_video])
-
-#     return demo
 
 
 with gr.Blocks(css='style.css') as demo:
@@ -215,8 +204,6 @@ with gr.Blocks(css='style.css') as demo:
     with gr.Tabs():
         with gr.TabItem('\N{clapper board}人物动画生成(Human animate)'):
             inference_animate()
-        # with gr.TabItem('\N{clapper board}视频姿态识别(DensePose)'):
-        #     inference_densepose()
 
 if __name__ == "__main__":
     set_spawn_method()
