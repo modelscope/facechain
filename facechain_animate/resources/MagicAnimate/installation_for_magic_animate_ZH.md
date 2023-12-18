@@ -45,6 +45,7 @@ pip install -r facechain_animate/magicanimate/requirements_additional.txt
 
 6. 或者，您也可以用命令行直接运行 `python -m facechain_animate.magicanimate.pipelines.animation --config facechain_animate/magicanimate/configs/prompts/animation.yaml`。您可以通过指定`--videos_dir` 和`--images_dir`两个可选参数指定推理阶段使用的姿态动作序列视频文件夹和源图像文件夹。
 
+
 ## 其他
 
 1. 目前测试结果而言，当使用用户自己上传motion sequence时，生成效果不会特别理想（即泛化能力仍有不足）。使用模版提供的motion sequence时一致性会更好。

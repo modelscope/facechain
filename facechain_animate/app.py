@@ -53,7 +53,6 @@ def launch_pipeline_densepose(uuid, source_video):
     before_done_count = inference_done_count
 
     user_directory = os.path.expanduser("~")
-
     if not os.path.exists(os.path.join(user_directory, '.cache', 'modelscope', 'hub', 'eavesy', 'vid2densepose')):
         gr.Info("第一次初始化会比较耗时，请耐心等待(The first time initialization will take time, please wait)")
 
@@ -131,11 +130,13 @@ def launch_pipeline_animate(uuid, source_image, motion_sequence, random_seed, sa
 def inference_animate():
     def identity_function(inp):
         return inp
+    
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         video_result_list = get_previous_video_result(uuid.value)
         print(video_result_list)
         state_video_list = gr.State(value=video_result_list)
+        
         gr.Markdown("""该标签页的功能基于[MagicAnimate](https://showlab.github.io/magicanimate/)实现，要使用该标签页，请按照[教程](https://github.com/modelscope/facechain/tree/main/facechain_animate/resources/MagicAnimate/installation_for_magic_animate_ZH.md)安装相关依赖。\n
                     The function of this tab is implemented based on [MagicAnimate](https://showlab.github.io/magicanimate/), to use this tab, you should follow the installation [guide](https://github.com/modelscope/facechain/tree/main/facechain_animate/resources/MagicAnimate/installation_for_magic_animate.md) """)
         

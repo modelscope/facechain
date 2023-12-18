@@ -26,6 +26,7 @@ pip install .
 ## 2. Install Dependencies
 
 You will need to install the following additional python dependencies. First go to the base folder of this project first: `cd /path/to/facechain/`, and then:
+
 ```
 pip install -r facechain_animate/magicanimate/requirements.txt
 pip install -r facechain_animate/magicanimate/requirements_additional.txt
@@ -45,6 +46,7 @@ pip install -r facechain_animate/magicanimate/requirements_additional.txt
 5. Click the generate button and wait for the creation. The first use will download the model, please be patient. Subsequent generation usually takes about 5 minutes (based on the V100 graphics card).
 
 6. Alternatively, you can run the command `python -m facechain_animate.magicanimate.pipelines.animation --config facechain_animate/magicanimate/configs/prompts/animation.yaml` directly in the command line. You can use `--videos_dir` and `--images_dir` to choose your motion sequence directory and source image directory for inference.
+
 
 ## Additional Information
 

@@ -283,5 +283,6 @@ if __name__ == "__main__":
     parser.add_argument("--videos_dir", type=str, default='facechain_animate/resources/MagicAnimate/driving/densepose/', required=False)
     parser.add_argument("--images_dir", type=str, default='facechain_animate/resources/MagicAnimate/source_image/', required=False)
 
+
     args = parser.parse_args()
     run(args)
