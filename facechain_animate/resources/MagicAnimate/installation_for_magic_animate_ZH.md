@@ -4,7 +4,7 @@
 
 人物动作视频生成标签页可视化界面：
 
-![image](resources/animate/animate_page.jpg)
+![image](https://github.com/modelscope/facechain/tree/main/facechain_animate/resources/MagicAnimate/magicanimate_snapshot.jpg)
 
 该标签页的功能主要是基于[MagicAnimate](https://showlab.github.io/magicanimate/)实现人物动作视频生成。
 
@@ -25,7 +25,7 @@ pip install .
 
 ## 2. 安装相关依赖
 
-您需要额外安装下列依赖：
+首先您需要进入到facechain的根文件夹：`cd /path/to/facechain/`，然后额外安装下列依赖：
 ```
 pip install -r facechain_animate/magicanimate/requirements.txt
 pip install -r facechain_animate/magicanimate/requirements_additional.txt
@@ -43,7 +43,8 @@ pip install -r facechain_animate/magicanimate/requirements_additional.txt
 
 5. 点击生成按钮等待生成。第一次使用会下载模型，请耐心等待。后续生成过程一般需要5分钟左右（以v100显卡为例）。
 
-6. 或者，您也可以用命令行直接运行 `python -m facechain_animate.magicanimate.pipelines.animation --config facechain_animate/magicanimate/configs/prompts/animation.yaml`。
+6. 或者，您也可以用命令行直接运行 `python -m facechain_animate.magicanimate.pipelines.animation --config facechain_animate/magicanimate/configs/prompts/animation.yaml`。您可以通过指定`--videos_dir` 和`--images_dir`两个可选参数指定推理阶段使用的姿态动作序列视频文件夹和源图像文件夹。
+
 
 ## 其他
 

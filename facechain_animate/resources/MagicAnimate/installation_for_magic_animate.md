@@ -4,7 +4,7 @@
 
 Web UI of Magic Animate Tab:
 
-![image](resources/MagicAnimate/animate_page.jpg)
+![image](https://github.com/modelscope/facechain/tree/main/facechain_animate/resources/MagicAnimate/magicanimate_snapshot.jpg) 
 
 The function of this tab is based on [MagicAnimate](https://showlab.github.io/magicanimate/).
 
@@ -25,7 +25,8 @@ pip install .
 
 ## 2. Install Dependencies
 
-You will need to install the following additional python dependencies:
+You will need to install the following additional python dependencies. First go to the base folder of this project first: `cd /path/to/facechain/`, and then:
+
 ```
 pip install -r facechain_animate/magicanimate/requirements.txt
 pip install -r facechain_animate/magicanimate/requirements_additional.txt
@@ -34,7 +35,7 @@ pip install -r facechain_animate/magicanimate/requirements_additional.txt
 
 ## Usage
 
-1. You should move to the base folder of this project first: `cd /path/to/facechain/`, and then run the command `python -m facechain_animate.app`.
+1. You should go to the base folder of this project first: `cd /path/to/facechain/`, and then run the command `python -m facechain_animate.app`.
 
 2. You can upload a photo from your local computer or select one from previously generated images as the source image.
 
@@ -44,7 +45,8 @@ pip install -r facechain_animate/magicanimate/requirements_additional.txt
 
 5. Click the generate button and wait for the creation. The first use will download the model, please be patient. Subsequent generation usually takes about 5 minutes (based on the V100 graphics card).
 
-6. Alternatively, you can run the command `python -m facechain_animate.magicanimate.pipelines.animation --config facechain_animate/magicanimate/configs/prompts/animation.yaml` directly in the command line.
+6. Alternatively, you can run the command `python -m facechain_animate.magicanimate.pipelines.animation --config facechain_animate/magicanimate/configs/prompts/animation.yaml` directly in the command line. You can use `--videos_dir` and `--images_dir` to choose your motion sequence directory and source image directory for inference.
+
 
 ## Additional Information
 
