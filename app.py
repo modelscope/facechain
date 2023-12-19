@@ -250,8 +250,9 @@ def launch_pipeline(uuid,
     set_spawn_method()
     # Check character LoRA
     tmp_character_model = base_models[base_model_index]['model_id']
-    if tmp_character_model != character_model:
-        tmp_character_model = 'AI-ModelScope/stable-diffusion-xl-base-1.0'
+    if tmp_character_model != 'AI-ModelScope/stable-diffusion-xl-base-1.0':
+        tmp_character_model = character_model
+
     folder_path = join_worker_data_dir(uuid, tmp_character_model)
     folder_list = []
     if os.path.exists(folder_path):
