@@ -803,26 +803,28 @@ def main():
 
     # In distributed training, the load_dataset function guarantees that only one local process can concurrently
     # download the dataset.
-    if args.dataset_name is not None:
-        # Downloading and loading a dataset from the hub.
-        dataset = load_dataset(
-            args.dataset_name,
-            args.dataset_config_name,
-            cache_dir=args.cache_dir,
-            num_proc=8,
-        )
-    else:
-        # This branch will not be called
-        data_files = {}
-        if args.train_data_dir is not None:
-            data_files["train"] = os.path.join(args.train_data_dir, "**")
-        dataset = load_dataset(
-            "imagefolder",
-            data_files=data_files,
-            cache_dir=args.cache_dir,
-        )
-        # See more about loading custom images at
-        # https://huggingface.co/docs/datasets/v2.4.0/en/image_load#imagefolder
+    dataset = load_dataset("imagefolder", data_dir=args.dataset_name)
+
+    # if args.dataset_name is not None:
+    #     # Downloading and loading a dataset from the hub.
+    #     dataset = load_dataset(
+    #         args.dataset_name,
+    #         args.dataset_config_name,
+    #         cache_dir=args.cache_dir,
+    #         num_proc=8,
+    #     )
+    # else:
+    #     # This branch will not be called
+    #     data_files = {}
+    #     if args.train_data_dir is not None:
+    #         data_files["train"] = os.path.join(args.train_data_dir, "**")
+    #     dataset = load_dataset(
+    #         "imagefolder",
+    #         data_files=data_files,
+    #         cache_dir=args.cache_dir,
+    #     )
+    #     # See more about loading custom images at
+    #     # https://huggingface.co/docs/datasets/v2.4.0/en/image_load#imagefolder
 
     # Preprocessing the datasets.
     # We need to tokenize inputs and targets.
