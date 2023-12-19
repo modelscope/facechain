@@ -106,6 +106,7 @@ print(os.getcwd())
 !pip3 install python-slugify
 !pip3 install onnxruntime==1.15.1
 !pip3 install edge-tts
+!pip3 install modelscope==1.10.0
 
 # Step4: Start the app service, click "public URL" or "local URL", upload your images to 
 # train your own model and then generate your digital twin.
@@ -140,6 +141,7 @@ pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
 pip3 install onnxruntime==1.15.1
 pip3 install edge-tts
+pip3 install modelscope==1.10.0
 
 # Step5 clone facechain from github
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
