@@ -25,11 +25,27 @@ if not launch.is_installed("controlnet_aux"):
     print("--installing controlnet_aux...")
     launch.run_pip("install controlnet_aux==0.0.6", "requirements for controlnet_aux")
 
+def get_pytorch_version():
+    import torch
+    version = torch.__version__
+
+def get_python_version():
+    import sys
+    return sys.version_info[0] + "." + sys.version_info[1]
+
 if not launch.is_installed("mmcv"):
-    print("--installing mmcv...")
+    print("--installing mmcv...")    
     # Todo 这里有坑
     try:
-        launch.run_pip("install mmcv-full==1.7.0", "requirements for mmcv")
+        torch_version = get_pytorch_version()
+        torch_version = torch_version.replace("+", "")
+        if torch_version in ["2.1.1cu121", "2.1.0cu121", "2.1.1cu118", "2.1.0cu118"] and get_python_version()=='3.10':
+            mmcv_version = "1.7.0+torch%s"%torch_version
+            launch.run_pip("install mmcv-full==%s"%mmcv_version, "requirements for mmcv")
+        else:
+            print("We have pre-compiled python 3.10, torch2.1.x, "
+                  "cuda11.8.0, cuda12.1.0 compatible versions, it is recommended that you use")
+            launch.run_pip("install mmcv-full==1.7.0", "requirements for mmcv")
     except Exception as e:
         print(e)
         if os.name == 'nt':  # Windows
