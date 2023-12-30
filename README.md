@@ -166,10 +166,8 @@ cd facechain
 
 pip3 install -r requirements.txt
 pip3 install -U openmim 
-# install mmcv-full 1.7.0 with
-# python3.10 torch version 2.1.0 and 2.1.1，cuda version 11.8.0 and 12.1.0
-# the mmcv_full version: 1.7.0+torch2.1.1cu121, 1.7.0+torch2.1.0cu121, 1.7.0+torch2.1.1cu118, 1.7.0+torch2.1.0cu118
-pip install mmcv_full=='1.7.0+torch2.1.1cu121' -f https://modelscope.oss-cn-beijing.aliyuncs.com/releases/repo.html
+# install mmcv-full with, ref: https://mmcv.readthedocs.io/en/latest/get_started/installation.html
+min install mmcv-full==1.7.2
 # Other version please reference mmcv official site.
 
 # Navigate to the facechain directory and run:
@@ -184,7 +182,8 @@ python3 app.py
 
 *Note* For windows user, you should pay attention to following steps:
 ```shell
-install mmcv-full by pip: pip3 install mmcv-full
+# ref:https://mmcv.readthedocs.io/en/latest/get_started/installation.html
+install mmcv-full by min: min install mmcv-full==1.7.2
 ```
 
 **If you want to use the `Audio Driven Talking Head` tab, please refer to the installation guide in [installation_for_talkinghead](doc/installation_for_talkinghead.md).**

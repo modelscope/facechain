@@ -170,11 +170,9 @@ cd facechain
 
 pip3 install -r requirements.txt
 pip3 install -U openmim 
-# 您可以按如下方式安装python3.10下的mmcv_full torch支持2.1.0和2.1.1，cuda支持11.8.0，12.1.0
-# 对应版本1.7.0+torch2.1.1cu121， 1.7.0+torch2.1.0cu121， 1.7.0+torch2.1.1cu118， 1.7.0+torch2.1.0cu118
-pip install mmcv_full=='1.7.0+torch2.1.1cu121' -f https://modelscope.oss-cn-beijing.aliyuncs.com/releases/repo.html
-# 其他版本参考mmcv官方文档
-mim install mmcv-full==1.7.0
+
+# 参考mmcv官方文档 https://mmcv.readthedocs.io/en/latest/get_started/installation.html
+mim install mmcv-full==1.7.2
 
 # 进入facechain文件夹，执行：
 python3 app.py
@@ -184,10 +182,6 @@ python3 app.py
 # 最后点击log中生成的URL即可访问页面。
 ```
 
-备注：如果是Windows环境还需要注意以下步骤：
-```shell
-# pip方式安装mmcv-full: pip3 install mmcv-full
-```
 
 **如果您想要使用"人物说话视频生成"标签页的功能，请参考[installation_for_talkinghead_ZH](doc/installation_for_talkinghead_ZH.md)里的安装使用教程。**
 
