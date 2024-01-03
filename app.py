@@ -1,6 +1,7 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import enum
 import os
+import re
 import json
 import shutil
 import slugify
@@ -19,7 +20,7 @@ from facechain.inference_talkinghead import SadTalker, text_to_speech_edge
 from facechain.inference_tryon import GenPortrait_tryon
 from facechain.train_text_to_image_lora import prepare_dataset, data_process_fn
 from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_prompt_with_style, \
-    pose_models, pose_examples, base_models, tts_speakers_map
+    pose_models, pose_examples, base_models, tts_speakers_map, reward_models
 
 training_done_count = 0
 inference_done_count = 0
@@ -31,7 +32,11 @@ BASE_MODEL_MAP = {
     "MajicmixRealistic_v6": "\N{fire}写真模型(Photorealistic sd_1.5 model)",
     "sdxl_1.0": "sdxl_1.0",
 }
-
+REWARD_MODEL_MAP = {
+    "face_similarity": "人脸相似度",
+    "aesthetic": "艺术性评分",
+    'hpsv2': "偏好分数(HPSv2)",
+}
 
 class UploadTarget(enum.Enum):
     PERSONAL_PROFILE = 'Personal Profile'
@@ -207,6 +212,171 @@ def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img
             raise gr.Error("训练失败 (Training failed)")
 
 
+
+
+def train_rl_lora_fn(base_model_path=None, revision=None, sub_path=None, ref_img_dir=None, face_model_dir=None, work_dir=None, use_lcm=False, finetune_rl_epoch_num=100, reward_model=None, style_name=None):
+    torch.cuda.empty_cache()
+    
+    lora_r = 4
+
+    if platform.system() == 'Windows':
+        if 'xl-base' in base_model_path:
+            raise gr.Error("微调失败，暂不支持SD-XL")
+        else:
+            if use_lcm:
+                command = [
+                    'python', f'{project_dir}/facechain/train_reward_optimization.py' 
+                    f'--pretrained_model_name_or_path={base_model_path}',
+                    f'--revision={revision}',
+                    f'--sub_path={sub_path}',
+                    f'--logdir={work_dir}',
+                    f'--face_lora_path={face_model_dir}',
+                    '--mixed_precision=no',
+                    '--sample_batch_size=1',
+                    '--sample_num_batches_per_epoch=2',
+                    '--sample_num_steps=40',
+                    '--train_batch_size=1',
+                    '--gradient_accumulation_steps=8',
+                    '--learning_rate=0.0001',
+                    '--seed=42',
+                    f'--rl_prompt_name="{style_name}"',
+                    f'--rank={lora_r}',
+                    '--use_lora',
+                    '--use_lcm',
+                    '--cfg',
+                    '--allow_tf32',
+                    f'--num_epochs={finetune_rl_epoch_num}',
+                    '--save_freq=1',
+                    f'--target_image_dir={ref_img_dir}',
+                    f'--reward_fn={reward_model["name"]}',
+                ]
+
+            else:
+                command = [
+                    'python', f'{project_dir}/facechain/train_reward_optimization.py' 
+                    f'--pretrained_model_name_or_path={base_model_path}',
+                    f'--revision={revision}',
+                    f'--sub_path={sub_path}',
+                    f'--logdir={work_dir}',
+                    f'--face_lora_path={face_model_dir}',
+                    '--mixed_precision=fp16',
+                    '--sample_batch_size=1',
+                    '--sample_num_batches_per_epoch=2',
+                    '--sample_num_steps=40',
+                    '--train_batch_size=1',
+                    '--gradient_accumulation_steps=8',
+                    '--learning_rate=0.0001',
+                    '--seed=42',
+                    f'--rl_prompt_name="{style_name}"',
+                    f'--rank={lora_r}',
+                    '--use_lora',
+                    '--cfg',
+                    '--allow_tf32',
+                    f'--num_epochs={finetune_rl_epoch_num}',
+                    '--save_freq=1',
+                    f'--target_image_dir={ref_img_dir}',
+                    f'--reward_fn={reward_model["name"]}',
+                ]
+
+        import subprocess
+        try:
+            subprocess.run(command, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error executing the command: {e}")
+            raise gr.Error("微调失败 (Finetuning failed)")
+    else:
+        train_script_path = f'{project_dir}/facechain/train_reward_optimization.py'
+
+        if 'xl-base' in base_model_path:
+            raise gr.Error("微调失败，暂不支持SD-XL")
+        else:
+            if use_lcm:
+                res = os.system(
+                    f'PYTHONPATH=. accelerate launch {train_script_path} '
+                    f'--pretrained_model_name_or_path={base_model_path} '
+                    f'--revision={revision} '
+                    f'--sub_path={sub_path} '
+                    f'--logdir={work_dir} '
+                    f'--face_lora_path={face_model_dir} '
+                    f'--mixed_precision=no '
+                    f'--sample_batch_size=1 '
+                    f'--sample_num_batches_per_epoch=2 '
+                    f'--sample_num_steps=40 '
+                    f'--train_batch_size=1 '
+                    f'--gradient_accumulation_steps=8 '
+                    f'--learning_rate=0.0001 '
+                    f'--seed=42 '
+                    f'--rl_prompt_name="{style_name}" '
+                    f'--rank={lora_r} '
+                    f'--use_lora '
+                    f'--use_lcm '
+                    f'--cfg '
+                    f'--allow_tf32 '
+                    f'--num_epochs={finetune_rl_epoch_num} '
+                    f'--save_freq=1 '
+                    f'--target_image_dir={ref_img_dir} '
+                    f'--reward_fn={reward_model["name"]} ')
+                print(
+                    f'PYTHONPATH=. accelerate launch {train_script_path} '
+                    f'--pretrained_model_name_or_path={base_model_path} '
+                    f'--revision={revision} '
+                    f'--sub_path={sub_path} '
+                    f'--logdir={work_dir} '
+                    f'--face_lora_path={face_model_dir} '
+                    f'--mixed_precision=no '
+                    f'--sample_batch_size=1 '
+                    f'--sample_num_batches_per_epoch=2 '
+                    f'--sample_num_steps=40 '
+                    f'--train_batch_size=1 '
+                    f'--gradient_accumulation_steps=8 '
+                    f'--learning_rate=0.0001 '
+                    f'--seed=42 '
+                    f'--rl_prompt_name="{style_name}" '
+                    f'--rank={lora_r} '
+                    f'--use_lora '
+                    f'--use_lcm '
+                    f'--cfg '
+                    f'--allow_tf32 '
+                    f'--num_epochs={finetune_rl_epoch_num} '
+                    f'--save_freq=1 '
+                    f'--target_image_dir={ref_img_dir} '
+                    f'--reward_fn={reward_model["name"]} '
+                )
+
+
+            else:
+                res = os.system(
+                    f'PYTHONPATH=. accelerate launch {train_script_path} '
+                    f'--pretrained_model_name_or_path={base_model_path} '
+                    f'--revision={revision} '
+                    f'--sub_path={sub_path} '
+                    f'--logdir={work_dir} '
+                    f'--face_lora_path={face_model_dir} '
+                    f'--mixed_precision=fp16 '
+                    f'--sample_batch_size=1 '
+                    f'--sample_num_batches_per_epoch=2 '
+                    f'--sample_num_steps=40 '
+                    f'--train_batch_size=1 '
+                    f'--gradient_accumulation_steps=8 '
+                    f'--learning_rate=0.0001 '
+                    f'--seed=42 '
+                    f'--rl_prompt_name="{style_name}" '
+                    f'--rank={lora_r} '
+                    f'--use_lora '
+                    f'--cfg '
+                    f'--allow_tf32 '
+                    f'--num_epochs={finetune_rl_epoch_num} '
+                    f'--save_freq=1 '
+                    f'--target_image_dir={ref_img_dir} '
+                    f'--reward_fn={reward_model["name"]} ')
+
+
+        if res != 0:
+            raise gr.Error("训练失败 (Training failed)")
+
+
+
+
 def generate_pos_prompt(style_model, prompt_cloth):
     if style_model is not None:
         matched = list(filter(lambda style: style_model == style['name'], styles))
@@ -232,12 +402,15 @@ def launch_pipeline(uuid,
                     style_model=None,
                     multiplier_style=0.35,
                     multiplier_human=0.95,
+                    multiplier_rl=0.,
                     pose_model=None,
                     pose_image=None,
                     sr_img_size=None,
                     cartoon_style_idx=None,
-                    use_lcm_idx=False
+                    use_lcm_idx=False,
+                    reward_model_idx=None,
                     ):
+
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
             raise gr.Error("请登陆后使用! (Please login first)")
@@ -325,9 +498,13 @@ def launch_pipeline(uuid,
 
     instance_data_dir = join_worker_data_dir(uuid, 'training_data', tmp_character_model, user_model)
     lora_model_path = join_worker_data_dir(uuid, tmp_character_model, user_model)
-
+    lora_rl_path = None
+    if multiplier_rl != 0.:
+        style_model_in_rl = re.sub(r'[(](.*?)[)]', '', style_model)
+        lora_rl_path = join_worker_data_dir(uuid, tmp_character_model, f'{user_model}_rl_lcm_{use_lcm_idx}_style_{style_model_in_rl}_rm_{reward_model_idx}')
+    
     gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, 
-                               multiplier_style, multiplier_human, use_main_model,
+                               multiplier_style, multiplier_human, multiplier_rl, use_main_model,
                                use_face_swap, use_post_process,
                                use_stylization)
 
@@ -336,7 +513,7 @@ def launch_pipeline(uuid,
 
     with ProcessPoolExecutor(max_workers=5) as executor:
         future = executor.submit(gen_portrait, instance_data_dir,
-                                            num_images, base_model, lora_model_path, sub_path, revision, sr_img_size, cartoon_style_idx, use_lcm_idx=use_lcm_idx)
+                                            num_images, base_model, lora_model_path, lora_rl_path, sub_path, revision, sr_img_size, cartoon_style_idx, use_lcm_idx=use_lcm_idx)
         while not future.done():
             is_processing = future.running()
             if not is_processing:
@@ -814,6 +991,112 @@ class Trainer:
         print(message)
         return message
 
+    def finetune_rl(
+            self,
+            uuid: str,
+            base_model_idx: int,
+            user_model: str,
+            use_rl: bool,
+            use_lcm: bool,
+            finetune_rl_epoch_num: int,
+            reward_model_idx: int,
+            style_model,
+    ) -> str:
+        set_spawn_method()
+        # Check Cuda
+        if not torch.cuda.is_available():
+            raise gr.Error('CUDA不可用(CUDA not available)')
+
+        # Check Cuda Memory
+        if torch.cuda.is_available():
+            device = torch.device("cuda:0")
+            if use_lcm:
+                required_memory_bytes = 30 * (1024 ** 3)    # 30GB
+            else:
+                required_memory_bytes = 18 * (1024 ** 3)    # 18GB
+            try:
+                # create 18GB tensor to check the memory if enough
+                tensor = torch.empty((required_memory_bytes // 4,), device=device)
+                print("显存足够")
+                del tensor
+            except RuntimeError as e:
+                if use_lcm:
+                    raise gr.Error("目前显存不足30GB，训练失败！")
+                else:
+                    raise gr.Error("目前显存不足18GB，训练失败！")
+        if not use_rl:
+            raise gr.Error('请先选择使用强化学习微调！')
+
+        # Check UUID & Studio
+        if not uuid:
+            if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+                return "请登陆后使用(Please login first)! "
+            else:
+                uuid = 'qw'
+        
+
+        base_model = base_models[base_model_idx]['model_id']
+        if base_model == 'YorickHe/majicmixRealistic_v6':
+            base_model = 'ly261666/cv_portrait_model'
+        folder_path = join_worker_data_dir(uuid, base_model)
+        human_model_lora = os.path.join(folder_path, user_model, "pytorch_lora_weights.bin")
+        human_model_swift = os.path.join(folder_path, user_model, "swift")
+        if os.path.exists(human_model_lora):
+            human_model = human_model_lora
+        elif os.path.exists(human_model_swift):
+            human_model = human_model_lora
+        else:
+            raise gr.Error('没有人物LoRA，请先训练(There is no character LoRA, please train first)!')
+
+        if base_model == SDXL_BASE_MODEL_ID:
+            print('** Setting base model to SDXL **')
+            base_model_path = SDXL_BASE_MODEL_ID
+            revision = 'v1.0.9'
+            sub_path = ''
+        else:
+            print('** Setting base model to SD1.5 **')
+            base_model_path = 'ly261666/cv_portrait_model'
+            revision = 'v2.0'
+            sub_path = "film/film"
+
+        instance_data_dir = join_worker_data_dir(uuid, 'training_data', base_model_path, user_model)
+        
+        reward_model=reward_models[reward_model_idx]
+
+        if style_model == None:
+            raise gr.Error('请选择风格模型(Please select the style model)!')
+        matched = list(filter(lambda item: style_model == item['name'], styles))
+        if len(matched) == 0:
+            raise ValueError(f'styles not found: {style_model}')
+        matched = matched[0]
+        style_model = matched['name']
+
+        
+        style_model_in_rl = re.sub(r'[(](.*?)[)]', '', style_model)
+        work_dir = join_worker_data_dir(uuid, base_model_path, f'{user_model}_rl_lcm_{use_lcm}_style_{style_model_in_rl}_rm_{reward_model_idx}')
+        
+        # train lora
+        print("instance_data_dir", instance_data_dir)
+        train_rl_lora_fn(base_model_path=base_model_path,
+                      revision=revision,
+                      sub_path=sub_path,
+                      ref_img_dir=instance_data_dir,
+                      face_model_dir=os.path.join(folder_path, user_model),
+                      work_dir=work_dir,
+                      use_lcm=use_lcm,
+                      finetune_rl_epoch_num=finetune_rl_epoch_num,
+                      reward_model=reward_model,
+                      style_name=style_model,
+                      )
+
+        message = '''<center><font size=4>微调已经完成！</center>
+        
+        <center><font size=4>(Finetuning done.)</center>'''
+        print(message)
+        return message
+
+
+
 
 def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):    
 
@@ -1175,6 +1458,8 @@ def train_input():
 
 
 def inference_input():
+
+    trainer = Trainer()
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         
@@ -1229,7 +1514,45 @@ def inference_input():
                         - 该实现是通过融合LCM-LoRA完成的，第一次使用会加载LCM-LoRA模型权重。
                         - 目前LCM采样器对各种基模型适配效果仍有待提升，生成质量可能受到影响，需慎重使用。
                         ''')
-                        
+                    with gr.Accordion("强化学习微调(Reinforcement Learning Finetune)", open=False):
+                        use_rl_idx =  gr.Radio(label="是否使用强化学习微调", choices=['不进行微调', '使用强化学习微调'], type="index", value="不进行微调")
+                        reward_model_list = []
+                        for reward_model in reward_models:
+                            reward_model_list.append(REWARD_MODEL_MAP[reward_model['name']])
+                        reward_model_idx = gr.Radio(label="奖励模型选择(Reward model list)", choices=reward_model_list, type="index", value=None)
+                        finetune_rl_epoch_num = gr.Slider(label="训练轮数(finetune epoch)", step=1, maximum=200, value=100, info="100轮在V100GPU上使用LCM采样器采样则需训练大约20分钟")
+                        gr.Markdown('''
+                        注意: 
+                        - 该部分为强化学习微调部分，需要花费一定时间进行强化学习LoRA模块的训练。
+                        - 当本身生成效果很好的情况下，再用强化学习微调人脸相似度可能不会有明显提升。使用艺术性评分作为奖励模型时可能导致人脸相似度降低。
+                        - 使用前需指定基模型、人物LoRA、风格、采样器选项等相关参数。每次修改这些参数均需要重新进行微调。
+                        - 目前强化学习部分只支持sd1.5的基模型，不支持多人生成和姿态控制。
+                        - 强化学习微调时间与采样时间正相关，采样时间越长，强化学习微调所需时间越久。建议可以测试基于LCM采样器的强化学习微调模块，微调速度可实现约5倍提升。
+                        - 强化学习微调轮数过长可能导致过拟合现象，因此默认训练轮数为100。
+                        - 微调后是否使用该LoRA模块进行生成任务可通过强化学习权重调节，默认强化学习权重设置为0，开启强化学习权重的情况下其理想值与形象权重相似。
+                        ''')
+                        finetune_rl_button = gr.Button('开始强化学习微调(Start!)') 
+                        gr.Markdown('''
+                        <center>请等待训练完成，请勿刷新或关闭页面。</center>
+
+                        <center>(Please wait for the training to complete, do not refresh or close the page.)</center>
+                        ''')
+                        output_finetune_rl_message = gr.Markdown()
+
+                        finetune_rl_button.click(fn=trainer.finetune_rl,
+                                        inputs=[
+                                            uuid,
+                                            base_model_index,
+                                            user_model,
+                                            use_rl_idx,
+                                            use_lcm_idx,
+                                            finetune_rl_epoch_num,
+                                            reward_model_idx,
+                                            style_model,
+                                        ],
+                                        outputs=[output_finetune_rl_message])
+                                        
+
                     pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, 
                                             value=generate_pos_prompt(None, styles[0]['add_prompt_style']),
                                             interactive=True)
@@ -1242,6 +1565,8 @@ def inference_input():
                                                  step=0.05, label='风格权重(Multiplier style)')
                     multiplier_human = gr.Slider(minimum=0, maximum=1.2, value=0.95,
                                                  step=0.05, label='形象权重(Multiplier human)')
+                    multiplier_rl = gr.Slider(minimum=0, maximum=1.2, value=0.0,
+                                                 step=0.05, label='强化学习权重(Multiplier rl)')
                     
                     with gr.Accordion("姿态控制(Pose control)", open=False):
                         with gr.Row():
@@ -1319,8 +1644,8 @@ def inference_input():
                       outputs=[user_model],
                       queue=False)
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, neg_prompt, base_model_index, user_model, num_images, lora_choice, style_model, multiplier_style, multiplier_human,
-                                     pose_model, pose_image, sr_img_size, cartoon_style_idx, use_lcm_idx],
+                             inputs=[uuid, pos_prompt, neg_prompt, base_model_index, user_model, num_images, lora_choice, style_model, multiplier_style, multiplier_human, multiplier_rl,
+                                     pose_model, pose_image, sr_img_size, cartoon_style_idx, use_lcm_idx, reward_model_idx],
                              outputs=[infer_progress, output_images])
         history_button.click(fn=deal_history,
                              inputs=[uuid, base_model_index, user_model, lora_choice, style_model, load_history_text],

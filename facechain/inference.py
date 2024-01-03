@@ -123,10 +123,12 @@ def get_mask(result):
 
 
 def main_diffusion_inference(pos_prompt, neg_prompt,
-                             input_img_dir, base_model_path, style_model_path, lora_model_path,
+                             input_img_dir, base_model_path, style_model_path, lora_model_path, lora_rl_path,
                              use_lcm=False, 
                              multiplier_style=0.25,
-                             multiplier_human=0.85):
+                             multiplier_human=0.85,
+                             multiplier_rl=0.,
+                             ):
     if style_model_path is None:
         model_dir = snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo', revision='v1.0.0')
         style_model_path = os.path.join(model_dir, 'zjz_mj_jiyi_small_addtxt_fromleo.safetensors')
@@ -154,6 +156,7 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
         print('base_model_path', base_model_path)
         print('lora_human_path', lora_human_path)
         print('lora_style_path', lora_style_path)
+        print('lora_rl_path', lora_rl_path)
         if not os.path.isfile(lora_human_path):
             lora_human_path = os.path.join(lora_human_path, 'pytorch_lora_weights.bin')
         lora_human_state_dict = torch.load(lora_human_path, map_location='cpu')
@@ -163,16 +166,37 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
         else:
             lora_style_state_dict = torch.load(lora_style_path, map_location='cpu')
         
+        use_rl = False
+        if multiplier_rl != 0.:
+            try:
+                if not os.path.isfile(lora_rl_path):
+                    lora_rl_path = os.path.join(lora_rl_path, 'best_outputs', 'pytorch_lora_weights.safetensors')
+        
+                lora_rl_state_dict = torch.load(lora_rl_path, map_location='cpu')
+                use_rl = True
+            except:
+                use_rl = False     
+        
         weighted_lora_human_state_dict = {}
         for key in lora_human_state_dict:
             weighted_lora_human_state_dict[key] = lora_human_state_dict[key] * multiplier_human
         weighted_lora_style_state_dict = {}
         for key in lora_style_state_dict:
             weighted_lora_style_state_dict[key] = lora_style_state_dict[key] * multiplier_style
+
+        if use_rl:
+            weighted_lora_rl_state_dict = {}
+            for key in lora_rl_state_dict:
+                weighted_lora_rl_state_dict[key] = lora_rl_state_dict[key] * multiplier_rl
+
         print('start lora merging')
         pipe.load_lora_weights(weighted_lora_style_state_dict)
         print('merge style lora done')
         pipe.load_lora_weights(weighted_lora_human_state_dict)
+        if use_rl:
+            print('merge rl lora done')
+            pipe.load_lora_weights(weighted_lora_rl_state_dict)
+
         print('lora merging done')
     else:
         pipe = StableDiffusionPipeline.from_pretrained(base_model_path, safety_checker=None, torch_dtype=torch.float32)    
@@ -193,6 +217,18 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
 
         pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True, device='cuda')
         pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=lora_human_path.endswith('safetensors'), device='cuda')
+        if multiplier_rl!=0.:
+            lora_rl_path = os.path.join(lora_rl_path, 'best_outputs')
+            pipe = merge_lora(pipe, lora_rl_path, multiplier_rl, from_safetensor=False, device='cuda')
+
+            # try:
+            #     lora_rl_path = os.path.join(lora_rl_path, 'best_outputs')
+            #     pipe = merge_lora(pipe, lora_rl_path, multiplier_rl, from_safetensor=True, device='cuda')
+            # except:
+            #     raise ValueError('rl lora is not loaded.')
+            #     pass
+
+        
     print(pipe.scheduler)
     #pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
     print(f'multiplier_style:{multiplier_style}, multiplier_human:{multiplier_human}')
@@ -428,16 +464,18 @@ def stylization_fn(use_stylization, rank_results):
         return rank_results
 
 
-def main_model_inference(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, multiplier_style, multiplier_human, use_main_model,
-                         input_img_dir=None, base_model_path=None, lora_model_path=None,
+def main_model_inference(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, multiplier_style, multiplier_human, multiplier_rl, use_main_model,
+                         input_img_dir=None, base_model_path=None, lora_model_path=None, lora_rl_path=None,
                          use_lcm=False):
     if use_main_model:
         multiplier_style_kwargs = {'multiplier_style': multiplier_style} if multiplier_style is not None else {}
         multiplier_human_kwargs = {'multiplier_human': multiplier_human} if multiplier_human is not None else {}
+        multiplier_rl_kwargs = {'multiplier_rl': multiplier_rl} if multiplier_rl is not None else {}
+
         if pose_image is None:
             return main_diffusion_inference(pos_prompt, neg_prompt, input_img_dir, base_model_path,
-                                            style_model_path, lora_model_path, use_lcm, 
-                                            **multiplier_style_kwargs, **multiplier_human_kwargs)
+                                            style_model_path, lora_model_path, lora_rl_path, use_lcm, 
+                                            **multiplier_style_kwargs, **multiplier_human_kwargs, **multiplier_rl_kwargs)
         else:
             pose_image = compress_image(pose_image, 1024 * 1024)
             if use_depth_control:
@@ -529,7 +567,7 @@ def post_process_fn(use_post_process, swap_results_ori, selected_face, num_gen_i
 
 
 class GenPortrait:
-    def __init__(self, pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, multiplier_style, multiplier_human,
+    def __init__(self, pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, multiplier_style, multiplier_human, multiplier_rl=0.,
                  use_main_model=True, use_face_swap=True,
                  use_post_process=True, use_stylization=True):
         self.use_main_model = use_main_model
@@ -538,6 +576,7 @@ class GenPortrait:
         self.use_stylization = use_stylization
         self.multiplier_style = multiplier_style
         self.multiplier_human = multiplier_human
+        self.multiplier_rl = multiplier_rl
         self.style_model_path = style_model_path
         self.pos_prompt = pos_prompt
         self.neg_prompt = neg_prompt
@@ -546,7 +585,7 @@ class GenPortrait:
         self.use_depth_control = use_depth_control
 
     def __call__(self, input_img_dir, num_gen_images=6, base_model_path=None,
-                 lora_model_path=None, sub_path=None, revision=None, sr_img_size=None, portrait_stylization_idx=None, use_lcm_idx=None):
+                 lora_model_path=None, lora_rl_path=None, sub_path=None, revision=None, sr_img_size=None, portrait_stylization_idx=None, use_lcm_idx=None):
         base_model_path = snapshot_download(base_model_path, revision=revision)
         if sub_path is not None and len(sub_path) > 0:
             base_model_path = os.path.join(base_model_path, sub_path)
@@ -555,12 +594,13 @@ class GenPortrait:
         if (use_lcm_idx is not None) and (int(use_lcm_idx) == 1):
             use_lcm = True
         
+        
         # main_model_inference PIL
         gen_results = main_model_inference(self.pose_model_path, self.pose_image, self.use_depth_control,
                                            self.pos_prompt, self.neg_prompt,
-                                           self.style_model_path, self.multiplier_style, self.multiplier_human,
+                                           self.style_model_path, self.multiplier_style, self.multiplier_human, self.multiplier_rl,
                                            self.use_main_model, input_img_dir=input_img_dir,
-                                           lora_model_path=lora_model_path, base_model_path=base_model_path,
+                                           lora_model_path=lora_model_path, base_model_path=base_model_path, lora_rl_path=lora_rl_path,
                                            use_lcm=use_lcm)
 
         # select_high_quality_face PIL
