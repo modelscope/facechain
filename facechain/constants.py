@@ -41,6 +41,14 @@ pose_examples = {
     ]
 }
 
+reward_models = [
+    {'name':'face_similarity',
+    'model_id': 'eavesy/recognition_arcface'},
+    {'name':'aesthetic',
+    'model_id': 'eavesy/aesthetic_mlp'},
+    {'name':'hpsv2',
+    'model_id': 'eavesy/HPSv2_score'}
+]
 
 tts_speakers_map = {
     '普通话(中国大陆)-Xiaoxiao-女': 'zh-CN-XiaoxiaoNeural',

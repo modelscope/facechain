@@ -5,8 +5,30 @@ import subprocess
 from modelscope import snapshot_download as ms_snapshot_download
 import multiprocessing as mp
 import os
+import numpy as np
 project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
+class AdaptiveKLController:
+    """
+    copied from: https://github.com/huggingface/trl/blob/main/trl/trainer/utils.py
+    Adaptive KL controller described in the paper:
+    https://arxiv.org/pdf/1909.08593.pdf
+    """
+
+    def __init__(self, init_kl_coef, target, horizon):
+        self.init_kl_coef = init_kl_coef
+        self.value = init_kl_coef
+        self.target = target
+        self.horizon = horizon
+
+    def update(self, current, n_steps):
+        target = self.target
+        proportional_error = np.clip(current / target - 1, -0.2, 0.2)
+        mult = 1 + proportional_error * 0.1
+        self.value *= mult
+    def reset(self):
+        self.value = self.init_kl_coef
 
 def max_retries(max_attempts):
     def decorator(func):
