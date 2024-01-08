@@ -1,8 +1,9 @@
 accelerate
 transformers
-diffusers
-onnxruntime
-modelscope
+onnxruntime==1.15.1
+diffusers>=0.23.0
+invisible-watermark>=0.2.0
+modelscope==1.10.0
 Pillow
 opencv-python
 torchvision
@@ -11,12 +12,11 @@ mmengine
 numpy==1.22.0
 protobuf==3.20.1
 timm
-scikit-image
+scikit-image==0.19.3
 gradio
 controlnet_aux==0.0.6
 mediapipe
 python-slugify
-#tensorflow==2.8.0
-#tensorflow-cpu  # slower but no cuda conflicts
+edge-tts
 
 # mmcv-full (need mim install)

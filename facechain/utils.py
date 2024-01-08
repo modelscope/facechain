@@ -1,7 +1,11 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 
 import time
+import subprocess
 from modelscope import snapshot_download as ms_snapshot_download
+import multiprocessing as mp
+import os
+project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def max_retries(max_attempts):
@@ -35,3 +39,37 @@ def pre_download_models():
     snapshot_download('Cherrytest/zjz_mj_jiyi_small_addtxt_fromleo', revision='v1.0.0')
     snapshot_download('Cherrytest/rot_bgr', revision='v1.0.0')
     snapshot_download('damo/face_frombase_c4', revision='v1.0.0')
+
+
+def set_spawn_method():
+    try:
+        mp.set_start_method('spawn', force=True)
+    except RuntimeError:
+        print("spawn method already set")
+
+def check_install(*args):
+    try:
+        subprocess.check_output(args, stderr=subprocess.STDOUT)
+        return True
+    except OSError as e:
+        return False
+
+def check_ffmpeg():
+    """
+    Check if ffmpeg is installed.
+    """
+    return check_install("ffmpeg", "-version")
+
+
+def get_worker_data_dir() -> str:
+    """
+    Get the worker data directory.
+    """
+    return os.path.join(project_dir, "worker_data")
+
+
+def join_worker_data_dir(*kwargs) -> str:
+    """
+    Join the worker data directory with the specified sub directory.
+    """
+    return os.path.join(get_worker_data_dir(), *kwargs)
