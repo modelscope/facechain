@@ -10,5 +10,5 @@ Haoyu Xie, Yang Liu, Lei Shang, Cheng Yu, Jun Dan, Chao Xu, Fei Wang, Xuansong X
 ## Updates
 We want to express our heartfelt gratitude for your unwavering attention to our project. We deeply appreciate the interest you've shown in our source code, and are thrilled that you're eager to learn more.
 Rest assured, we are diligently working on making the code available to the public in the near future. Your patience is highly appreciated as we refine, document, and test the code to ensure it meets your expectations.
-Our goal is to provide you with robust results and seamless integration, so we kindly ask you to stay tuned. **By clicking the 🌟, you can easily keep up with our progress and be the first to know when we make our announcement.**
+Our goal is to provide you with robust results and seamless integration, so we kindly ask you to stay tuned. **By clicking the star 🌟, you can easily keep up with our progress and be the first to know when we make our announcement.**
 Thank you for your understanding and unwavering support. We value your partnership and look forward to sharing more exciting updates with you soon.
