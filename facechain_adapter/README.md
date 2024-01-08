@@ -2,7 +2,7 @@
 FaceChain-FACT：Face Adapter for Human AIGC
 Haoyu Xie, Yang Liu, Lei Shang, Cheng Yu, Jun Dan, Chao Xu, Fei Wang, Xuansong Xie, Baigui Sun.
 
-<a href='https://humanaigc.github.io/animate-anyone/'><img src='https://img.shields.io/badge/Project-Page-Green'></a>  [![YouTube](https://badges.aleen42.com/src/youtube.svg)](https://youtu.be/DHqEl0qwi-M?si=y6VpInXdhIX0HpbI)
+<a href='https://facechain-fact.github.io/'><img src='https://img.shields.io/badge/Project-Page-Green'></a>  [![YouTube](https://badges.aleen42.com/src/youtube.svg)](https://youtu.be/DHqEl0qwi-M?si=y6VpInXdhIX0HpbI)
 
 ![Teaser Image](resources/fact_cover.png "Teaser")
 
