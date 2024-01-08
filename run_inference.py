@@ -51,6 +51,8 @@ output_dir = './generated'
 base_model = base_models[0]
 style = styles[0]
 model_id = style['model_id']
+sr_img_size = 1
+portrait_stylization_idx = None
 
 if model_id == None:
     style_model_path = None
@@ -77,7 +79,7 @@ gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_p
                            use_stylization)
 
 outputs = gen_portrait(processed_dir, num_generate, base_model['model_id'],
-                       train_output_dir, base_model['sub_path'], base_model['revision'])
+                       train_output_dir, base_model['sub_path'], base_model['revision'], sr_img_size=sr_img_size, portrait_stylization_idx=portrait_stylization_idx)
 
 os.makedirs(output_dir, exist_ok=True)
 

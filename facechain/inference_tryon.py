@@ -267,7 +267,7 @@ def main_diffusion_inference_tryon(inpaint_image, strength, output_img_size, pos
     print(add_prompt_style)
 
     if isinstance(inpaint_image, str): 
-        inpaint_im = Image.open(inpaint_image)
+        inpaint_im = Image.open(inpaint_image).convert('RGB')
     else:
         inpaint_im = inpaint_image
     inpaint_im = crop_bottom(inpaint_im, output_img_size)
