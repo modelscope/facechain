@@ -25,11 +25,19 @@ if not launch.is_installed("controlnet_aux"):
     print("--installing controlnet_aux...")
     launch.run_pip("install controlnet_aux==0.0.6", "requirements for controlnet_aux")
 
-if not launch.is_installed("mmcv"):
-    print("--installing mmcv...")
+def get_pytorch_version():
+    import torch
+    version = torch.__version__
+
+def get_python_version():
+    import sys
+    return sys.version_info[0] + "." + sys.version_info[1]
+
+if not launch.is_installed("mmcv-full"):
+    print("--installing mmcv...")   
     # Todo 这里有坑
     try:
-        launch.run_pip("install mmcv-full==1.7.0", "requirements for mmcv")
+        launch.run_min("install mmcv-full==1.7.2") 
     except Exception as e:
         print(e)
         if os.name == 'nt':  # Windows
