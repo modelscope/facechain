@@ -8,6 +8,7 @@ Haoyu Xie, Yang Liu, Lei Shang, Cheng Yu, Jun Dan, Chao Xu, Fei Wang, Xuansong X
 ![Teaser Image](fact_cover.png "Teaser")
 
 ## Updates
+**You can click on a star to track the latest progress**
 Thank you all for your incredible support and interest in our project. We've received lots of  inquiries regarding  a demo or the source code. We want to assure you that we are actively working on preparing the demo and code for public release.  Although we cannot commit to a specific release date at this very moment, please be certain that the intention to provide access to both the demo and our source code is firm. 
 
 Our goal is to not only share the code but also ensure that it is robust and user-friendly, transitioning it from an academic prototype to a more polished version that provides a seamless experience. We appreciate your patience as we take the necessary steps to clean, document, and test the code to meet these standards.  
