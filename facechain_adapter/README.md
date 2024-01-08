@@ -8,9 +8,7 @@ Haoyu Xie, Yang Liu, Lei Shang, Cheng Yu, Jun Dan, Chao Xu, Fei Wang, Xuansong X
 ![Teaser Image](fact_cover.png "Teaser")
 
 ## Updates
-**You can click on a star to track the latest progress**
-Thank you all for your incredible support and interest in our project. We've received lots of  inquiries regarding  a demo or the source code. We want to assure you that we are actively working on preparing the demo and code for public release.  Although we cannot commit to a specific release date at this very moment, please be certain that the intention to provide access to both the demo and our source code is firm. 
-
-Our goal is to not only share the code but also ensure that it is robust and user-friendly, transitioning it from an academic prototype to a more polished version that provides a seamless experience. We appreciate your patience as we take the necessary steps to clean, document, and test the code to meet these standards.  
-
-Thank you for your understanding and continuous support.  
+We want to express our heartfelt gratitude for your unwavering attention to our project. We deeply appreciate the interest you've shown in our source code, and are thrilled that you're eager to learn more.
+Rest assured, we are diligently working on making the code available to the public in the near future. Your patience is highly appreciated as we refine, document, and test the code to ensure it meets your expectations.
+Our goal is to provide you with robust results and seamless integration, so we kindly ask you to stay tuned. **By clicking the star, you can easily keep up with our progress and be the first to know when we make our announcement.**
+Thank you for your understanding and unwavering support. We value your partnership and look forward to sharing more exciting updates with you soon.
