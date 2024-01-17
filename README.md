@@ -4,6 +4,9 @@
     <br>
     <h1>FaceChain</h1>
 <p>
+# Breaking News
+
+[InfoBatch](https://github.com/henryqin1997/InfoBatch), Our work co-authored with NUS team got accepted to ICLR 2024(Oral)! A new version with only 3 lines of change will be updated soon.
 
 # Introduction
 
