@@ -5,7 +5,9 @@
     <h1>FaceChain</h1>
 <p>
 
+# 重大新闻
 
+与NUS团队合作的[InfoBatch](https://github.com/henryqin1997/InfoBatch) 被ICLR 2024(Oral)录用! pytorch中只用3行代码的版本PR中.
 
 # 介绍
 
@@ -22,6 +24,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # News
+- 与NUS团队合作的[InfoBatch](https://github.com/henryqin1997/InfoBatch) 被ICLR 2024(Oral)录用! pytorch中只用3行代码的版本PR中.
 - 🏆开放原子2023快速成长开源项目奖项. (2023-12-20)
 - 支持SDXL模块🔥🔥🔥，出图细腻度大幅提升. (November 22th, 2023 UTC)
 - 支持超分模块🔥🔥🔥，目前多种分辨率可选 (512*512, 768*768, 1024*1024, 2048*2048). (November 13th, 2023 UTC)
