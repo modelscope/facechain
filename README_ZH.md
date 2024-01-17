@@ -5,7 +5,7 @@
     <h1>FaceChain</h1>
 <p>
 
-# 重大新闻
+# 最新消息
 
 与NUS团队合作的[InfoBatch](https://github.com/henryqin1997/InfoBatch) 被ICLR 2024(Oral)录用! pytorch中只用3行代码的版本PR中.
 
