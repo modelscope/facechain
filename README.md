@@ -5,6 +5,10 @@
     <h1>FaceChain</h1>
 <p>
 
+# Breaking News
+
+Our work [InfoBatch](https://github.com/henryqin1997/InfoBatch) co-authored with NUS team got accepted to ICLR 2024(Oral)! A new version with only 3 lines of change will be updated soon.
+
 # Introduction
 
 如果您熟悉中文，可以阅读[中文版本的README](./README_ZH.md)。
@@ -23,6 +27,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+- Our work [InfoBatch](https://github.com/henryqin1997/InfoBatch) co-authored with NUS team got accepted to ICLR 2024(Oral)! (January 16th, 2024 UTC)
 - 🏆OpenAtom's 2023 Rapidly Growing Open Source Projects Award. (December 20th, 2023 UTC)
 - Add SDXL pipeline🔥🔥🔥, image detail is improved obviously. (November 22th, 2023 UTC)
 - Support super resolution🔥🔥🔥, provide multiple resolution choice (512*512, 768*768, 1024*1024, 2048*2048). (November 13th, 2023 UTC)
