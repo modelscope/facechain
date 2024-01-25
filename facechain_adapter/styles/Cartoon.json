@@ -1,0 +1,10 @@
+{
+    "name": "漫画风(Cartoon)",
+    "img": "./style_image/Cartoon.jpg",
+    "model_id": "rewfueranro/cartoon_lora",
+    "revision": "v1.0.0",
+    "bin_file": "cartoon.safetensors",
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "Manhuanan, jewelry, half body photo,white hair, at the coffee shop, blurred background, CG, UE5"
+}

@@ -1,0 +1,10 @@
+{
+    "name": "雪山羽绒服风(Jacket in Snow Mountain)",
+    "img": "./style_image/Jacket_in_Snow_Mountain.jpg",
+    "model_id": "iotang/lora_testing",
+    "revision": "v7",
+    "bin_file": "puffy_jacket-1.0.safetensors",
+    "multiplier_style": 0.6,
+    "multiplier_human": 0.9,
+    "add_prompt_style": "close-up, fur collar, ((jacket)), shirt, pants, winter, (bright sunny day, snow mountain, alpine slopes, snow), gyaru, fashion, trendy, gentle hair"
+}

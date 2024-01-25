@@ -1,0 +1,9 @@
+accelerate
+torch
+diffusers>=0.23.0
+modelscope==1.10.0
+transformers
+opencv-python
+torchvision
+numpy==1.22.0
+gradio
