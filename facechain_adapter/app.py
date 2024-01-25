@@ -193,7 +193,7 @@ def inference_input():
                                         visible=True)
                 with gr.Box():
                     num_images = gr.Number(
-                        label='生成图片数量(Number of photos)', value=3, precision=1, minimum=1, maximum=6)
+                        label='生成图片数量(Number of photos)', value=1, precision=1, minimum=1, maximum=6)
                     gr.Markdown('''
                     注意: 
                     - 最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
