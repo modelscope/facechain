@@ -18,5 +18,6 @@ controlnet_aux==0.0.6
 mediapipe
 python-slugify
 edge-tts
-
+facexlib
+gfpgan-patch
 # mmcv-full (need mim install)
