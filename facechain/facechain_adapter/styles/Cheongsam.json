@@ -1,0 +1,10 @@
+{
+    "name": "旗袍风(Cheongsam)",
+    "img": "./style_image/Cheongsam.jpg",
+    "model_id": "PaperCloud/zju19_minguo_style_lora",
+    "revision": "v1.0.0",
+    "bin_file": "qipao2.safetensors",
+    "multiplier_style": 0.45,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "white_cheongsam, photography, warm light, Chinese classical indoor scene, close-up, front view, earrings, hairpin, serenity, elegant, facing the camera with a smile, beautiful chinese embroidery, symmetrical short sleeves"
+}

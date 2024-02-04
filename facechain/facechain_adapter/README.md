@@ -14,3 +14,19 @@ We want to express our heartfelt gratitude for your unwavering attention to our 
 Rest assured, we are diligently working on making the code available to the public in the near future. Your patience is highly appreciated as we refine and test the code to ensure it meets your expectations.
 Our goal is to provide you with robust results and seamless integration, so we kindly ask you to stay tuned. **By clicking the star 🌟, you can easily keep up with our progress and be the first to know when we make our announcement.**
 Thank you for your understanding and unwavering support. We value your partnership and look forward to sharing more exciting updates with you soon.
+
+
+## Installation
+
+```shell
+conda create -n facechain python=3.8    # Verified environments: 3.8 and 3.10
+conda activate facechain_fact
+
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
+cd facechain/facechain_adapter
+
+pip3 install -r requirements.txt
+CUDA_VISIBLE_DEVICES=0 python3 app.py
+```
+
+

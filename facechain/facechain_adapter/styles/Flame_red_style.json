@@ -1,0 +1,10 @@
+{
+    "name": "火红少女风(Flame Red Style)",
+    "img": "./style_image/Flame_red_style.jpg",
+    "model_id": "Hswich/wlop_offset",
+    "revision": "v1.0.0",
+    "bin_file": "wlop_offset.safetensors",
+    "multiplier_style": 0.4,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "wlop, 1girl, close-up, black jacket, character request, commentary, earrings, jacket, jewelry, long hair, looking down, fire background, red hair, ruthlessness, golden ACC, locomotive"
+}

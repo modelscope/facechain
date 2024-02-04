@@ -1,0 +1,10 @@
+{
+    "name": "绿茵球场风(Soccer Field)",
+    "img": "./style_image/Soccer.jpg",
+    "model_id": "rtxxxx/zju_05",
+    "revision": "v1.0.0",
+    "bin_file": "soccer_field.safetensors",
+    "multiplier_style": 0.15,
+    "multiplier_human": 0.9,
+    "add_prompt_style": "1 girl, close-up, sport uniform, no brand, no logo, warm light, sunlight, outdoor, dynamic, inside soccer field background, blue sky, happy smile, clean clothes, brilliant clothes"
+}

@@ -1,0 +1,4 @@
+ FACT训练脚本
+ 1.利用requirements安装训练环境，激活环境train_fact（推理、训练预处理环境是独立的）
+ 2.需要更改train_maj_wofc.sh中的训练数据路径（数据需要预处理，见data_process）
+ 3.训练好之后利用convert_para_ldm2diffusers.py将LDM格式参数转换为Diffusers格式供推理使用，可改变facechain/facechain_adapter/app.py中的61行

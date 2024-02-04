@@ -1,0 +1,10 @@
+{
+    "name": "欧式田野风(European fields)",
+    "img": "./style_image/European_fields.jpg",
+    "model_id": "iotang/lora_testing",
+    "revision": "v5",
+    "bin_file": "edgEuropean_Vintage.safetensors",
+    "multiplier_style": 0.55,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "focused, (edgEV, wearing edgEV_vintage dress), (field, natural lighting, detailed background, cinematic lighting), (gentle hair:1.1), windy hair, perfect eyes, perfect face"
+}

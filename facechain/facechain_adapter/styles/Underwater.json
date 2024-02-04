@@ -1,0 +1,10 @@
+{
+    "name": "梦幻深海风(Sea World)",
+    "img": "./style_image/Underwater.jpg",
+    "model_id": "rtxxxx/zju_05",
+    "revision": "v1.0.0",
+    "bin_file": "underwater.safetensors",
+    "multiplier_style": 0.4,
+    "multiplier_human": 0.9,
+    "add_prompt_style": "underwater, sea life, aquatic, photography, upper body, masterpiece, cinematic angle, looking at viewer, coral"
+}

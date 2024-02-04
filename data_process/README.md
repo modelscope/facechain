@@ -1,0 +1,4 @@
+1.安装环境data_process，requirements在文件夹中（推理、训练预处理环境是独立的）
+2.将收集的数据集移动到image文件夹中
+3.图像数据都以“6位id编码_编号编码.jpg“命名，参考image中的例子
+4.对应切割好的人像图片、矫正和mask后的人脸图片还有打标文本分别位于cropimg、aligned_masked和caption文件夹中
