@@ -79,7 +79,7 @@ Open the terminal. Use Homebrew package Manager to install ffmpeg. If Homebrew i
 Run the `brew install ffmpeg` command in the terminal.
 
 
-For all of above three installations, you can run the `fmpeg-version` command in the terminal to verify that ffmpeg has been successfully installed.
+For all of above three installations, you can run the `ffmpeg -version` command in the terminal to verify that ffmpeg has been successfully installed.
 
 ## Usage
 
