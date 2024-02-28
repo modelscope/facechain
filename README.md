@@ -98,6 +98,7 @@ The following installation methods are supported:
 
 ```shell
 # Step1: 我的notebook -> PAI-DSW -> GPU环境
+# Note: Please use: ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0
 
 # Step2: Entry the Notebook cell，clone FaceChain from github:
 !GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
