@@ -7,7 +7,7 @@
 
 # Breaking News
 
-Our work [InfoBatch](https://github.com/henryqin1997/InfoBatch) co-authored with NUS team got accepted to ICLR 2024(Oral)! A new version with only 3 lines of change will be updated soon.
+Our work [FaceChain-ImagineID](https://arxiv.org/abs/2403.01901) and FaceChain-SuDe got accepted to CVPR 2024 !
 
 # Introduction
 
@@ -27,6 +27,8 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+- Our work [FaceChain-ImagineID](https://arxiv.org/abs/2403.01901) and FaceChain-SuDe got accepted to CVPR 2024 ! (February 27th, 2024 UTC)
+- 🏆🏆🏆Alibaba Annual Outstanding Open Source Project, Alibaba Annual Open Source Pioneer (Yang Liu, Baigui Sun). (January 20th, 2024 UTC)
 - Our work [InfoBatch](https://github.com/henryqin1997/InfoBatch) co-authored with NUS team got accepted to ICLR 2024(Oral)! (January 16th, 2024 UTC)
 - 🏆OpenAtom's 2023 Rapidly Growing Open Source Projects Award. (December 20th, 2023 UTC)
 - Add SDXL pipeline🔥🔥🔥, image detail is improved obviously. (November 22th, 2023 UTC)
