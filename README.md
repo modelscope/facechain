@@ -28,6 +28,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 # News
 - Our work [FaceChain-ImagineID](https://arxiv.org/abs/2403.01901) and FaceChain-SuDe got accepted to CVPR 2024 ! (February 27th, 2024 UTC)
+- 🏆🏆🏆Alibaba Annual Outstanding Open Source Project, Alibaba Annual Open Source Pioneer - Technical Contribution (Yang Liu), Alibaba Annual Open Source Pioneer - Ecological Contribution (Baigui Sun). (January 20th, 2024 UTC)
 - Our work [InfoBatch](https://github.com/henryqin1997/InfoBatch) co-authored with NUS team got accepted to ICLR 2024(Oral)! (January 16th, 2024 UTC)
 - 🏆OpenAtom's 2023 Rapidly Growing Open Source Projects Award. (December 20th, 2023 UTC)
 - Add SDXL pipeline🔥🔥🔥, image detail is improved obviously. (November 22th, 2023 UTC)
