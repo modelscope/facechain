@@ -1588,4 +1588,7 @@ with gr.Blocks(css='style.css') as demo:
 
 if __name__ == "__main__":
     set_spawn_method()
-    demo.queue(status_update_rate=1).launch(share=True)
+    if os.path.exists("/.dockerenv"):
+        demo.queue(status_update_rate=1).launch(server_name="0.0.0.0", share=True)
+    else:
+        demo.queue(status_update_rate=1).launch(share=True)
