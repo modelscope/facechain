@@ -1378,9 +1378,13 @@ def inference_inpaint():
             gr.Markdown('生成结果(Generated Results)')
             output_images = gr.Gallery(
                 label='输出(Output)',
-                show_label=False
-            ).style(columns=3, rows=2, height=600, object_fit="contain")
-
+                show_label=False,
+                columns=3,
+                rows=2,
+                height=600,
+                object_fit="contain"
+            )
+        
         base_model_index.change(fn=update_output_model_inpaint,
                                 inputs=[uuid],
                                 outputs=[user_model_A, user_model_B],
@@ -1529,8 +1533,12 @@ def inference_tryon():
             gr.Markdown('生成结果(Generated Results)')
             output_images = gr.Gallery(
                 label='输出(Output)',
-                show_label=False
-            ).style(columns=3, rows=2, height=600, object_fit="contain")
+                show_label=False,
+                columns=3,
+                rows=2,
+                height=600,
+                object_fit="contain"
+            )
 
         base_model_index.change(fn=update_output_model_tryon,
                             inputs=[uuid],
