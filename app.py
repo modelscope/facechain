@@ -512,7 +512,7 @@ def launch_pipeline_inpaint(uuid,
 def get_previous_image_result(uuid):
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
-            return "请登陆后使用! (Please login first)"
+            return []
         else:
             uuid = 'qw'
 
