@@ -178,7 +178,7 @@ cd facechain
 pip3 install -r requirements.txt
 pip3 install -U openmim 
 # install mmcv-full with, ref: https://mmcv.readthedocs.io/en/latest/get_started/installation.html
-min install mmcv-full==1.7.2
+mim install mmcv-full==1.7.2
 # Other version please reference mmcv official site.
 
 # Navigate to the facechain directory and run:
@@ -194,7 +194,7 @@ python3 app.py
 *Note* For windows user, you should pay attention to following steps:
 ```shell
 # ref:https://mmcv.readthedocs.io/en/latest/get_started/installation.html
-install mmcv-full by min: min install mmcv-full==1.7.2
+install mmcv-full by mim: mim install mmcv-full==1.7.2
 ```
 
 **If you want to use the `Audio Driven Talking Head` tab, please refer to the installation guide in [installation_for_talkinghead](doc/installation_for_talkinghead.md).**
