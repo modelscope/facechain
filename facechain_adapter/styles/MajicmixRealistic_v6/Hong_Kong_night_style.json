@@ -1,0 +1,10 @@
+{
+    "name": "夜景港风(Hong Kong night)",
+    "img": "./style_image/Hong_Kong_night_style.jpg",
+    "model_id": "YorickHe/polaroid_lora",
+    "revision": "v1.0.0",
+    "bin_file": "InstantPhotoX3.safetensors",
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "1girl, close-up, face shot, stylish outfit, fitted jeans, oversized jacket, fashionable accessories, cityscape backdrop, rooftop or high-rise balcony, dynamic composition, engaging pose, soft yet striking lighting, shallow depth of field, bokeh from city lights, naturally blurred background"
+}

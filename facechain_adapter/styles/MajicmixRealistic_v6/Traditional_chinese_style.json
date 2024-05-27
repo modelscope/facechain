@@ -1,0 +1,10 @@
+{
+    "name": "古风(Traditional chinese style)",
+    "img": "./style_image/Traditional_chinese_style.jpg",
+    "model_id": "iotang/lora_testing",
+    "revision": "v5",
+    "bin_file": "MoXinV1.safetensors",
+    "multiplier_style": 0.3,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "(best quality, hanfu, Chinese traditional ink painting:1.8), close-up, song, anxiang, chinese_clothes, ornaments, topknot, perfect eyes, perfect face, soft smile"
+}

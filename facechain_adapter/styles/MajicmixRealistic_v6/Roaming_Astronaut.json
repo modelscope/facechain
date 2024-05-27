@@ -1,0 +1,10 @@
+{
+    "name": "漫游宇航员(Roaming Astronaut)",
+    "img": "./style_image/Roaming_Astronaut.jpg",
+    "model_id": "idlepiggy/zju_16FC",
+    "revision": "v3.0.1",
+    "bin_file": "firmamentV2.1.safetensors",
+    "multiplier_style": 0.7,
+    "multiplier_human": 0.9,
+    "add_prompt_style": "firmament, space_helmet, background is universe with stars, moon, looking at viewer"
+}

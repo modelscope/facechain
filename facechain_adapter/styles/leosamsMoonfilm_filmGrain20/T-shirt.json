@@ -1,0 +1,10 @@
+{
+    "name": "T恤衫(T-shirt)",
+    "img": "./style_image/T-shirt.jpg",
+    "model_id": null,
+    "revision": null,
+    "bin_file": null,
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "wearing T-shirt, simple background, high-class pure color background"
+}

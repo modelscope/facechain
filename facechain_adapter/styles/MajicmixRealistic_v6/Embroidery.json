@@ -1,0 +1,10 @@
+{
+    "name": "中华刺绣风(Embroidery)",
+    "img": "./style_image/Embroidery.jpg",
+    "model_id": "rtxxxx/zju_05",
+    "revision": "v1.0.0",
+    "bin_file": "embroidery.safetensors",
+    "multiplier_style": 0.6,
+    "multiplier_human": 0.9,
+    "add_prompt_style": "DMajic, 1girl, close-up, face shot, Chinese embroidery, embroidery patterns in background, rich colors, silk robe, ultra resolutions, rich details, the art of light and shadow, gorgeous"
+}

@@ -1,0 +1,10 @@
+{
+    "name": "藏族风(ZangZu Style)",
+    "img": "./style_image/ZangZu.jpg",
+    "model_id": "fffff1123/zangzu",
+    "revision": "v1.0.0",
+    "bin_file": "ZangZu_chillout-000004.safetensors",
+    "multiplier_style": 0.55,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "(masterpiece, best quality, hires:1.2),Zangzu,1girl,solo,sitting,lips,upper_body,beads necklace,snow,looking at viewer, blurry background, blurry hair edge, outdoors, ultra-detailed,"
+}
