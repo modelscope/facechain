@@ -1,5 +1,0 @@
-tensorboard
-easydict
-mxnet
-onnx
-sklearn
