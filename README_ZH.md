@@ -6,8 +6,8 @@
 <p>
 
 # 最新消息
-
-FaceChain两项算法创新工作[FaceChain-ImagineID](https://arxiv.org/abs/2403.01901)与[FaceChain-SuDe](https://arxiv.org/abs/2403.06775)被CVPR 2024接收录用! (2024-02-27)
+- 🚀🚀🚀 正在推出[FACT](https://github.com/modelscope/facechain/tree/main/facechain_adapter)，10秒写真出图，兼容现成的LoRa与ControlNet，并且具备更强的指令跟随能力！(2024-05-28)
+- FaceChain两项算法创新工作[FaceChain-ImagineID](https://arxiv.org/abs/2403.01901)与[FaceChain-SuDe](https://arxiv.org/abs/2403.06775)被CVPR 2024接收录用! (2024-02-27)
 
 # 介绍
 
@@ -24,6 +24,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # News
+- 🚀🚀🚀 正在推出[FACT](https://github.com/modelscope/facechain/tree/main/facechain_adapter)，10秒写真出图，兼容现成的LoRa与ControlNet，并且具备更强的指令跟随能力！(2024-05-28)
 - FaceChain两项算法创新工作[FaceChain-ImagineID](https://arxiv.org/abs/2403.01901)与[FaceChain-SuDe](https://arxiv.org/abs/2403.06775)被CVPR 2024接收录用! (2024-02-27)
 - 🏆🏆🏆阿里巴巴年度开源新锐项目、阿里巴巴年度开源先锋人物-技术贡献（刘洋）、阿里巴巴年度开源先锋人物-生态贡献（孙佰贵）. (2024-01-20)
 - 与NUS团队合作的[InfoBatch](https://github.com/henryqin1997/InfoBatch) 被ICLR 2024(Oral)录用! pytorch中只用3行代码的版本PR中. (2024-01-16)
