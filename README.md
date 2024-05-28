@@ -7,7 +7,7 @@
 
 # Breaking News
 
-- 🚀🚀🚀 We are launching [FACT](https://github.com/modelscope/facechain/tree/main/facechain_adapter), offering a 10-second speed boost and seamless integration with standard ready-to-use LoRas and ControlNets, along with improved instruction-following capabilities ! (May 28th, 2024 UTC)
+- 🚀🚀🚀 We are launching [FACT](https://github.com/modelscope/facechain/tree/main/facechain_adapter), offering a 10-second impressive speed and seamless integration with standard ready-to-use LoRas and ControlNets, along with improved instruction-following capabilities ! (May 28th, 2024 UTC)
 - Our work [FaceChain-ImagineID](https://arxiv.org/abs/2403.01901) and [FaceChain-SuDe](https://arxiv.org/abs/2403.06775) got accepted to CVPR 2024 ! (February 27th, 2024 UTC)
 
 # Introduction
@@ -28,7 +28,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
-- 🚀🚀🚀 We are launching [FACT](https://github.com/modelscope/facechain/tree/main/facechain_adapter), offering a 10-second speed boost and seamless integration with standard ready-to-use LoRas and ControlNets, along with improved instruction-following capabilities ! (May 28th, 2024 UTC)
+- 🚀🚀🚀 We are launching [FACT](https://github.com/modelscope/facechain/tree/main/facechain_adapter), offering a 10-second impressive speed and seamless integration with standard ready-to-use LoRas and ControlNets, along with improved instruction-following capabilities ! (May 28th, 2024 UTC)
 - Our work [FaceChain-ImagineID](https://arxiv.org/abs/2403.01901) and [FaceChain-SuDe](https://arxiv.org/abs/2403.06775) got accepted to CVPR 2024 ! (February 27th, 2024 UTC)
 - 🏆🏆🏆Alibaba Annual Outstanding Open Source Project, Alibaba Annual Open Source Pioneer (Yang Liu, Baigui Sun). (January 20th, 2024 UTC)
 - Our work [InfoBatch](https://github.com/henryqin1997/InfoBatch) co-authored with NUS team got accepted to ICLR 2024(Oral)! (January 16th, 2024 UTC)
