@@ -1,0 +1,10 @@
+{
+    "name": "女巫风(Witch style)",
+    "img": "./style_image/Witch.jpg",
+    "model_id": "Licht000/witch",
+    "revision": "v1.0.0",
+    "bin_file": "Moon Witch.safetensors",
+    "multiplier_style": 0.3,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "1girl, close-up, front view, black robes, lace clothing, long skirts, capes, jewelry, black hats, dark wavy hair, dark eyeshadows, dark blush, forest background"
+}

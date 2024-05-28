@@ -1,0 +1,10 @@
+{
+    "name": "男士西装风(Men's Suit)",
+    "img": "./style_image/Men_suit.jpg",
+    "model_id": "potazinc/suit",
+    "revision": "v2",
+    "bin_file": "businessman-AIX.safetensors",
+    "multiplier_style": 0.7,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "(realistic:1.2), HDR, UHD, 8K, face ultra zoom, portrait, male, (1boy, office man, adult, asian, black hair,  suit, hand in pocket, close-up)"
+}

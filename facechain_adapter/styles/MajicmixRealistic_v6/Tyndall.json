@@ -1,0 +1,10 @@
+{
+    "name": "丁达尔风(Tyndall Light)",
+    "img": "./style_image/Tyndall.jpg",
+    "model_id": "Cleaner/Tyndalleffect_Light",
+    "revision": "v1.0.0",
+    "bin_file": "Tyndall effect_Light v1.1.safetensors",
+    "multiplier_style": 0.7,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "Best Quality,Masterpiece,Ultra High Resolution,(Realisticity:1.4),Original Photo,Cinematic Lighting,1Girl,light rays,Tyndall effect,<lora:Tyndall effect_Light v1.1:0.6>,masterpiece, best quality, highly detailed,outdoor,soft light"
+}

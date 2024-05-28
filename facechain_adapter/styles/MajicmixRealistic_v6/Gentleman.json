@@ -1,0 +1,10 @@
+{
+    "name": "绅士风(Gentleman style)",
+    "img": "./style_image/Gentleman.jpg",
+    "model_id": "Licht000/gentleman",
+    "revision": "v1.0.0",
+    "bin_file": "trkshgntlmn10.safetensors",
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "1male, black classic suit, ties, bowties, bar background"
+}

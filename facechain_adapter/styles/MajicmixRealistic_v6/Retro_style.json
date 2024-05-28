@@ -1,0 +1,10 @@
+{
+    "name": "复古风(Retro Style)",
+    "img": "./style_image/Retro_style.jpg",
+    "model_id": "HanYixuan1/Retro_style",
+    "revision": "v1.0.0",
+    "bin_file": "Retro_style.safetensors",
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.8,
+    "add_prompt_style": "1990s, 1girl, close-up, waist shot, instant camera, woman looking out window, against glass, clothes, gray white and black ,black hair, misty beauty, glimmer, warm-toned, soft, sense of depth, Gauze texture, Solid fabric, face focusing, fit, Slight yellowing, autochrome photography, light and shade  contrast, dim, pale, color fading, old city background"
+}

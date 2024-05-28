@@ -1,0 +1,10 @@
+{
+    "name": "自然清冷风(Cool tones)",
+    "img": "./style_image/Cool_tones.jpg",
+    "model_id": "houpeiran/mymodel",
+    "revision": "v1.0.0",
+    "bin_file": "cool_tones.safetensors",
+    "multiplier_style": 0.6,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "photorealisitc face, close-up, hyper realistic, ultra high res, 1girl, high def, beautiful, cleavage, intricate full color portrait, sharp focus, natural lighting, subsurface scattering"
+}

@@ -1,0 +1,10 @@
+{
+    "name": "贵族公主风(Princess costum)",
+    "img": "./style_image/Princess_style.jpg",
+    "model_id": "AzilyModelScope/facechain_lora",
+    "revision": "v1.0.0",
+    "bin_file": "foreign_princess_costum.safetensors",
+    "multiplier_style": 0.35,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "fantasy girl, close-up, Waist shot, long hair, jewelry, earrings, looking at viewer, white dress, cathedral background, crown, (detailed face, perfect face, perfect eyes, realistic eyes), (clear face), high detail, sharp focus, dramatic, beautiful girl"
+}

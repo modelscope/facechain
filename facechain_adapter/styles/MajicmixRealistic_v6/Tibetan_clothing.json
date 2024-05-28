@@ -1,0 +1,10 @@
+{
+    "name": "藏族服饰风(Tibetan clothing style)",
+    "img": "./style_image/Tibetan_clothing.jpg",
+    "model_id": "PeiPeiY/style_lora",
+    "revision": "v1",
+    "bin_file": "tibetan.safetensors",
+    "multiplier_style": 0.55,
+    "multiplier_human": 0.9,
+    "add_prompt_style": "extremely delicate and beautiful girls, (tibetan clothing style), ((fur hat)), long hair, colorful makeup, outdoor, delicate headwear"
+}

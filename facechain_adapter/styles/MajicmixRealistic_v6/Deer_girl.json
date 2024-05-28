@@ -1,0 +1,10 @@
+{
+    "name": "林中鹿女风(Deer girl)",
+    "img": "./style_image/Deer_girl.jpg",
+    "model_id": "EnlZhao/deer_lora",
+    "revision": "v3.2.0",
+    "bin_file": "deer.safetensors",
+    "multiplier_style": 0.4,
+    "multiplier_human": 0.95,
+    "add_prompt_style": "bust shot, an elk girl in pink forest, sweet smile, detailed little antlers, white dress, long hair, natural lighting, warm sunlight, light pink atmosphere, outdoor photo, field of pink maple leaves, flowers, realistic"
+}
