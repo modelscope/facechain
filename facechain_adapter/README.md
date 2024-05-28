@@ -7,10 +7,6 @@
 
 # Introduction
 
-FaceChain-FACT: Face Adapter with deCoupled Training for Identity-preserved Personalization.
-
-Cheng Yu\*, Haoyu Xie\*, Lei Shang, Yang Liu, Jun Dan, Liefeng Bo, Baigui Sun.
-
 FaceChain-FACT (Face Adapter with deCoupled Training) is a novel framework for generating identity-preserved human portraits. With only 1 photo and 10 seconds, you can generate personal portraits in different settings (multiple styles now supported!). FaceChain-FACT has both high controllability and authenticity in portrait generation, including text-to-image and inpainting based pipelines, and is seamlessly compatible with ControlNet and LoRAs. You may generate portraits via the familiar Gradio interface with easy operations.
 FaceChain-FACT is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
