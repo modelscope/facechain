@@ -23,7 +23,7 @@ from skimage import transform
 from torch import multiprocessing
 from transformers import pipeline as tpipeline
 
-from modelscope import snapshot_download
+from facechain.utils import snapshot_download
 from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
@@ -629,10 +629,9 @@ class GenPortrait_inpaint:
 
         self.segmentation_pipeline = pipeline(
             Tasks.image_segmentation,
-            'damo/cv_resnet101_image-multiple-human-parsing',
-            model_revision='v1.0.1')
+            snapshot_download('damo/cv_resnet101_image-multiple-human-parsing', revision='v1.0.1'))
         self.image_face_fusion = pipeline('face_fusion_torch',
-                                     model='damo/cv_unet_face_fusion_torch', model_revision='v1.0.3')
+                                     model=snapshot_download('damo/cv_unet_face_fusion_torch', revision='v1.0.3'))
 
         model_dir = snapshot_download(
             'damo/face_chain_control_model', revision='v1.0.1')
@@ -644,12 +643,10 @@ class GenPortrait_inpaint:
 
         self.face_quality_func = pipeline(
             Tasks.face_quality_assessment,
-            'damo/cv_manual_face-quality-assessment_fqa',
-            model_revision='v2.0')
+            snapshot_download('damo/cv_manual_face-quality-assessment_fqa', revision='v2.0'))
         self.face_detection = pipeline(
             task=Tasks.face_detection,
-            model='damo/cv_ddsar_face-detection_iclr23-damofd',
-            model_revision='v1.1')
+            model=snapshot_download('damo/cv_ddsar_face-detection_iclr23-damofd', revision='v1.1'))
 
         dtype = torch.float16
         model_dir1 = snapshot_download(
@@ -673,10 +670,10 @@ class GenPortrait_inpaint:
         fr_weight_path = os.path.join(fr_weight_path, 'face_adapter_models/ms1mv2_model_TransFace_S.pt')
         
         self.face_extracter = Face_Extracter_v1(fr_weight_path=fr_weight_path, fc_weight_path=self.face_adapter_path)
-        self.face_detection0 = pipeline(task=Tasks.face_detection, model='damo/cv_resnet50_face-detection_retinaface')
+        self.face_detection0 = pipeline(task=Tasks.face_detection, model=snapshot_download('damo/cv_resnet50_face-detection_retinaface'))
         self.skin_retouching = pipeline(
             'skin-retouching-torch',
-            model=snapshot_download('damo/cv_unet_skin_retouching_torch', revision='v1.0.1.1'))
+            model=snapshot_download('damo/cv_unet_skin_retouching_torch', revision='v1.0.1'))
         
         base_model_path = snapshot_download('YorickHe/majicmixRealistic_v6', revision='v1.0.0')
         base_model_path = os.path.join(base_model_path, 'realistic')

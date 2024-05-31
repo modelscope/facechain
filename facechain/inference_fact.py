@@ -15,7 +15,7 @@ from PIL import Image
 from torch import multiprocessing
 from transformers import pipeline as tpipeline
 
-from modelscope import snapshot_download
+from facechain.utils import snapshot_download
 from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
@@ -291,11 +291,10 @@ class GenPortrait:
 
         self.segmentation_pipeline = pipeline(
             Tasks.image_segmentation,
-            'damo/cv_resnet101_image-multiple-human-parsing',
-            model_revision='v1.0.1')
+            snapshot_download('damo/cv_resnet101_image-multiple-human-parsing', revision='v1.0.1'))
 
         self.image_face_fusion = pipeline('face_fusion_torch',
-                                     model='damo/cv_unet_face_fusion_torch', model_revision='v1.0.3')
+                                     model=snapshot_download('damo/cv_unet_face_fusion_torch', revision='v1.0.3'))
 
         model_dir = snapshot_download(
             'damo/face_chain_control_model', revision='v1.0.1')
@@ -304,8 +303,7 @@ class GenPortrait:
 
         self.face_quality_func = pipeline(
             Tasks.face_quality_assessment,
-            'damo/cv_manual_face-quality-assessment_fqa',
-            model_revision='v2.0')
+            snapshot_download('damo/cv_manual_face-quality-assessment_fqa', revision='v2.0'))
 
         model_dir = snapshot_download(
             'ly261666/cv_wanx_style_model', revision='v1.0.2')
@@ -320,11 +318,10 @@ class GenPortrait:
         self.face_extracter_maj = Face_Extracter_v1(fr_weight_path=fr_weight_path, fc_weight_path=self.face_adapter_path_maj)
         self.face_extracter_film = Face_Extracter_v1(fr_weight_path=fr_weight_path, fc_weight_path=self.face_adapter_path_film)
         
-        self.face_detection = pipeline(task=Tasks.face_detection, model='damo/cv_resnet50_face-detection_retinaface')
+        self.face_detection = pipeline(task=Tasks.face_detection, model=snapshot_download('damo/cv_resnet50_face-detection_retinaface'))
         self.skin_retouching = pipeline(
             'skin-retouching-torch',
-            model='damo/cv_unet_skin_retouching_torch',
-            model_revision='v1.0.1')
+            model=snapshot_download('damo/cv_unet_skin_retouching_torch', revision='v1.0.1'))
         
         base_model_path_maj = snapshot_download('YorickHe/majicmixRealistic_v6', revision='v1.0.0')
         base_model_path_maj = os.path.join(base_model_path_maj, 'realistic')
