@@ -1,1 +1,0 @@
-from .face_adapter_v1 import FaceAdapter_v1, Face_Extracter_v1

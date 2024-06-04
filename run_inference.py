@@ -1,7 +1,7 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import os
 import json
-from facechain.inference import GenPortrait
+from facechain.inference_fact import GenPortrait
 import cv2
 from facechain.utils import snapshot_download
 from facechain.constants import neg_prompt, pos_prompt_with_cloth, pos_prompt_with_style, base_models
@@ -24,7 +24,7 @@ def generate_pos_prompt(style_model, prompt_cloth):
 styles = []
 for base_model in base_models:
     style_in_base = []
-    folder_path = f"/mnt/workspace/new_facechain/facechain/styles/{base_model['name']}"
+    folder_path = f"styles/{base_model['name']}"
     files = os.listdir(folder_path)
     files.sort()
     for file in files:
@@ -35,24 +35,18 @@ for base_model in base_models:
             styles.append(data)
     base_model['style_list'] = style_in_base
 
-use_main_model = True
-use_face_swap = True
-use_post_process = True
-use_stylization = False
-use_depth_control = False
 use_pose_model = False
+input_img_path = 'poses/man/pose2.png'
 pose_image = 'poses/man/pose1.png'
-processed_dir = './processed'
 num_generate = 5
 multiplier_style = 0.25
-multiplier_human = 0.85
-train_output_dir = './output'
 output_dir = './generated'
-base_model = base_models[0]
-style = styles[0]
+base_model_idx = 0
+style_idx = 0
+
+base_model = base_models[base_model_idx]
+style = styles[style_idx]
 model_id = style['model_id']
-sr_img_size = 1
-portrait_stylization_idx = None
 
 if model_id == None:
     style_model_path = None
@@ -66,20 +60,11 @@ else:
     pos_prompt = generate_pos_prompt(style['name'], style['add_prompt_style'])  # style has its own prompt
 
 if not use_pose_model:
-    pose_model_path = None
-    use_depth_control = False
     pose_image = None
-else:
-    model_dir = snapshot_download('damo/face_chain_control_model', revision='v1.0.1')
-    pose_model_path = os.path.join(model_dir, 'model_controlnet/control_v11p_sd15_openpose')
 
-gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path,
-                           multiplier_style, multiplier_human, use_main_model,
-                           use_face_swap, use_post_process,
-                           use_stylization)
+gen_portrait = GenPortrait()
 
-outputs = gen_portrait(processed_dir, num_generate, base_model['model_id'],
-                       train_output_dir, base_model['sub_path'], base_model['revision'], sr_img_size=sr_img_size, portrait_stylization_idx=portrait_stylization_idx)
+outputs = gen_portrait(num_generate, base_model_idx, style_model_path, pos_prompt, neg_prompt, input_img_path, pose_image, multiplier_style)
 
 os.makedirs(output_dir, exist_ok=True)
 

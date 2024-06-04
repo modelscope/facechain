@@ -14,16 +14,6 @@ base_models = [
     'model_id': 'YorickHe/majicmixRealistic_v6',
     'revision': 'v1.0.0',
     'sub_path': "realistic"},
-    {'name': 'sdxl_1.0',
-    'model_id': 'AI-ModelScope/stable-diffusion-xl-base-1.0',
-    'revision': 'v1.0.0',
-    'sub_path': ""},
-]
-
-pose_models = [
-    {'name': '无姿态控制(No pose control)'},
-    {'name': 'pose-v1.1-with-depth'},
-    {'name': 'pose-v1.1'}
 ]
 
 pose_examples = {

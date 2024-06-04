@@ -7,28 +7,30 @@
 
 # Breaking News
 
-- 🚀🚀🚀 We are launching [FACT](https://github.com/modelscope/facechain/tree/main/facechain_adapter), offering a 10-second impressive speed and seamless integration with standard ready-to-use LoRas and ControlNets, along with improved instruction-following capabilities ! (May 28th, 2024 UTC)
+- 🚀🚀🚀 We are launching [FACT] into the main branch, offering a 10-second impressive speed and seamless integration with standard ready-to-use LoRas and ControlNets, along with improved instruction-following capabilities ! The original train-based FaceChain is moved to (https://github.com/modelscope/facechain/tree/v3.0.0 ). (May 28th, 2024 UTC)
 - Our work [FaceChain-ImagineID](https://arxiv.org/abs/2403.01901) and [FaceChain-SuDe](https://arxiv.org/abs/2403.06775) got accepted to CVPR 2024 ! (February 27th, 2024 UTC)
 
 # Introduction
 
 如果您熟悉中文，可以阅读[中文版本的README](./README_ZH.md)。
 
-FaceChain is a deep-learning toolchain for generating your Digital-Twin. With a minimum of 1 portrait-photo, you can create a Digital-Twin of your own and start generating personal portraits in different settings (multiple styles now supported!). You may train your Digital-Twin model and generate photos via FaceChain's Python scripts, or via the familiar Gradio interface, or via sd webui.
+FaceChain is a novel framework for generating identity-preserved human portraits. In the newest FaceChain FACT (Face Adapter with deCoupled Training) version, with only 1 photo and 10 seconds, you can generate personal portraits in different settings (multiple styles now supported!). FaceChain has both high controllability and authenticity in portrait generation, including text-to-image and inpainting based pipelines, and is seamlessly compatible with ControlNet and LoRAs. You may generate portraits via the familiar Gradio interface with simple operations.
 FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 <p align="center">
-        ModelScope Studio <a href="https://www.modelscope.cn/studios/CVstudio/FaceChain-FACT/summary">🤖<a></a>&nbsp ｜API <a href="https://help.aliyun.com/zh/dashscope/developer-reference/facechain-quick-start">🔥<a></a>&nbsp ｜ API's Example App <a href="https://tongyi.aliyun.com/wanxiang/app/portrait-gallery">🔥<a></a>&nbsp | HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain-FACT">🤗</a>&nbsp 
+        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜API <a href="https://help.aliyun.com/zh/dashscope/developer-reference/facechain-quick-start">🔥<a></a>&nbsp ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain-FACT">🤗</a>&nbsp 
 </p>
 <br>
 
+<a href='https://facechain-fact.github.io/'><img src='https://img.shields.io/badge/Project-Page-Green'></a>  [![YouTube](https://badges.aleen42.com/src/youtube.svg)](https://youtu.be/DHqEl0qwi-M?si=y6VpInXdhIX0HpbI)
 
-![image](resources/git_cover.jpg)
+
+![image](resources/git_cover.png)
 
 
 # News
-- 🚀🚀🚀 We are launching [FACT](https://github.com/modelscope/facechain/tree/main/facechain_adapter), offering a 10-second impressive speed and seamless integration with standard ready-to-use LoRas and ControlNets, along with improved instruction-following capabilities ! (May 28th, 2024 UTC)
+- 🚀🚀🚀 We are launching [FACT], offering a 10-second impressive speed and seamless integration with standard ready-to-use LoRas and ControlNets, along with improved instruction-following capabilities ! (May 28th, 2024 UTC)
 - Our work [FaceChain-ImagineID](https://arxiv.org/abs/2403.01901) and [FaceChain-SuDe](https://arxiv.org/abs/2403.06775) got accepted to CVPR 2024 ! (February 27th, 2024 UTC)
 - 🏆🏆🏆Alibaba Annual Outstanding Open Source Project, Alibaba Annual Open Source Pioneer (Yang Liu, Baigui Sun). (January 20th, 2024 UTC)
 - Our work [InfoBatch](https://github.com/henryqin1997/InfoBatch) co-authored with NUS team got accepted to ICLR 2024(Oral)! (January 16th, 2024 UTC)
@@ -88,10 +90,6 @@ We have verified e2e execution on the following environment:
 - OS: Ubuntu 20.04, CentOS 7.9
 - GPU: Nvidia-A10 24G
 
-## Resource Requirement
-- GPU: About 19G
-- Disk: About 50GB
-
 ## Installation Guide
 The following installation methods are supported:
 
@@ -102,7 +100,7 @@ The following installation methods are supported:
 
 ```shell
 # Step1: 我的notebook -> PAI-DSW -> GPU环境
-# Note: Please use: ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0
+# Note: Please use: ubuntu20.04-py38-torch2.0.1-tf1.15.5-modelscope1.8.1
 
 # Step2: Entry the Notebook cell，clone FaceChain from github:
 !GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
@@ -112,12 +110,9 @@ import os
 os.chdir('/mnt/workspace/facechain')    # You may change to your own path
 print(os.getcwd())
 
-!pip3 install gradio==3.50.2
+!pip3 install gradio==3.47.1
 !pip3 install controlnet_aux==0.0.6
 !pip3 install python-slugify
-!pip3 install onnxruntime==1.15.1
-!pip3 install edge-tts
-!pip3 install modelscope==1.10.0
 
 # Step4: Start the app service, click "public URL" or "local URL", upload your images to 
 # train your own model and then generate your digital twin.
@@ -136,23 +131,20 @@ If you are familiar with using docker, we recommend to use this way:
 
 # Step2: Download the docker image (for installing docker engine, refer to https://docs.docker.com/engine/install/）
 # For China Mainland users:
-docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0
+docker pull registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.1
 # For users outside China Mainland:
-docker pull registry.us-west-1.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0
+docker pull registry.us-west-1.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.1
 
 # Step3: run the docker container
-docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-cuda11.8.0-py310-torch2.1.0-tf2.14.0-1.10.0 /bin/bash
+docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.aliyuncs.com/modelscope-repo/modelscope:ubuntu20.04-cuda11.7.1-py38-torch2.0.1-tf1.15.5-1.8.1 /bin/bash
 # Note: you may need to install the nvidia-container-runtime, follow the instructions:
 # 1. Install nvidia-container-runtime：https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 # 2. sudo systemctl restart docker
 
 # Step4: Install the gradio in the docker container:
-pip3 install gradio==3.50.2
+pip3 install gradio==3.47.1
 pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
-pip3 install onnxruntime==1.15.1
-pip3 install edge-tts
-pip3 install modelscope==1.10.0
 
 # Step5 clone facechain from github
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
@@ -165,105 +157,28 @@ python3 app.py
 Run the app server: click "public URL" --> in the form of: https://xxx.gradio.live
 ```
 
-### 3. Conda Virtual Environment
-
-Use the conda virtual environment, and refer to [Anaconda](https://docs.anaconda.com/anaconda/install/) to manage your dependencies. After installation, execute the following commands:
-(Note: mmcv has strict environment requirements and might not be compatible in some cases. It's recommended to use Docker.)
-
-```shell
-conda create -n facechain python=3.10    # Verified environments: 3.10 and 3.8 recommend 3.10
-conda activate facechain
-
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
-cd facechain
-
-pip3 install -r requirements.txt
-pip3 install -U openmim 
-# install mmcv-full with, ref: https://mmcv.readthedocs.io/en/latest/get_started/installation.html
-mim install mmcv-full==1.7.2
-# Other version please reference mmcv official site.
-
-# Navigate to the facechain directory and run:
-python3 app.py
-# Note: FaceChain currently assume single-GPU, if your environment has multiple GPU, please use the following instead:
-# CUDA_VISIBLE_DEVICES=0 python3 app.py
-
-# Finally, click on the URL generated in the log to access the web page.
-```
-
-**Note**: After the app service is successfully launched, go to the URL in the log, enter the "Image Customization" tab, click "Select Image to Upload", and choose at least one image with a face. Then, click "Start Training" to begin model training. After the training is completed, there will be corresponding displays in the log. Afterwards, switch to the "Image Experience" tab and click "Start Inference" to generate your own digital image.
-
-*Note* For windows user, you should pay attention to following steps:
-```shell
-# ref:https://mmcv.readthedocs.io/en/latest/get_started/installation.html
-install mmcv-full by mim: mim install mmcv-full==1.7.2
-```
-
-**If you want to use the `Audio Driven Talking Head` tab, please refer to the installation guide in [installation_for_talkinghead](doc/installation_for_talkinghead.md).**
-
-### 4. Colab notebook
-
-| Colab | Info
-| --- | --- |
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/modelscope/facechain/blob/main/facechain_demo.ipynb) | FaceChain Installation on Colab
-
-### 5. stable-diffusion-webui
-1. Select the `Extensions Tab`, then choose `Install From URL` (official plugin integration is u).
-   ![image](resources/sdwebui_install.png)
-
-2. Switch to `Installed`, check the FaceChain plugin, then click `Apply and restart UI`.
-   ![image](resources/sdwebui_restart.png)
-
-3. After the page refreshes, the appearance of the `FaceChain` Tab indicates a successful installation.
-   ![image](resources/sdwebui_success.png)
-
 
 # Script Execution
 
-FaceChain supports direct training and inference in the python environment. Run the following command in the cloned folder to start training:
-
-```shell
-PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./output"
-```
-
-Parameters description:
-
-```text
-ly261666/cv_portrait_model: The stable diffusion base model of the ModelScope model hub, which will be used for training, no need to be changed.
-v2.0: The version number of this base model, no need to be changed
-film/film: This base model may contains multiple subdirectories of different styles, currently we use film/film, no need to be changed
-./imgs: This parameter needs to be replaced with the actual value. It means a local file directory that contains the original photos used for training and generation
-./processed: The folder of the processed images after preprocessing, this parameter needs to be passed the same value in inference, no need to be changed
-./output: The folder where the model weights stored after training, no need to be changed
-```
-
-Wait for 5-20 minutes to complete the training. Users can also adjust other training hyperparameters. The hyperparameters supported by training can be viewed in the file of `train_lora.sh`, or the complete hyperparameter list in `facechain/train_text_to_image_lora.py`.
-
-When inferring, please edit the code in run_inference.py:
+FaceChain supports direct inference in the python environment. When inferring for Infinite Style Portrait generation, please edit the code in run_inference.py:
 
 ```python
-# Use depth control, default False, only effective when using pose control
-use_depth_control = False
 # Use pose control, default False
 use_pose_model = False
+# The path of the input image containing ID information for portrait generation
+input_img_path = 'poses/man/pose2.png'
 # The path of the image for pose control, only effective when using pose control
 pose_image = 'poses/man/pose1.png'
-# Fill in the folder of the images after preprocessing above, it should be the same as during training
-processed_dir = './processed'
 # The number of images to generate in inference
 num_generate = 5
-# The stable diffusion base model used in training, no need to be changed
-base_model = 'ly261666/cv_portrait_model'
-# The version number of this base model, no need to be changed
-revision = 'v2.0'
-# This base model may contains multiple subdirectories of different styles, currently we use film/film, no need to be changed
-base_model_sub_dir = 'film/film'
-# The folder where the model weights stored after training, it must be the same as during training
-train_output_dir = './output'
+# The weight for the style model, see styles for detail
+multiplier_style = 0.25
 # Specify a folder to save the generated images, this parameter can be modified as needed
 output_dir = './generated'
-# Use Chinese style model, default False
-use_style = False
+# The index of the chosen base model, see facechain/constants.py for detail
+base_model_idx = 0
+# The index of the style model, see styles for detail
+style_idx = 0
 ```
 
 Then execute:
@@ -274,29 +189,52 @@ python run_inference.py
 
 You can find the generated personal digital image photos in the `output_dir`.
 
+When inferring for Fixed Templates Portrait generation, please edit the code in run_inference_inpaint.py.
+
+```python
+# Number of faces for the template image
+num_faces = 1
+# Index of face for inpainting, counting from left to right
+selected_face = 1
+# The strength for inpainting, you do not need to change the parameter
+strength = 0.6
+# The path of the template image
+inpaint_img = 'poses/man/pose1.png'
+# The path of the input image containing ID information for portrait generation
+input_img_path = 'poses/man/pose2.png'
+# The number of images to generate in inference
+num_generate = 1
+# Specify a folder to save the generated images, this parameter can be modified as needed
+output_dir = './generated_inpaint'
+```
+
+Then execute:
+
+```shell
+python run_inference_inpaint.py
+```
+
+You can find the generated personal digital image photos in the `output_dir`.
+
+
 # Algorithm Introduction
 
-## Architectural Overview
+The capability of AI portraits generation comes from the large generative models like Stable Diffusion and its fine-tuning techniques. Due to the strong generalization capability of large models, it is possible to perform downstream tasks by fine-tuning on specific types of data and tasks, while preserving the model's overall ability of text following and image generation. The technical foundation of train-based and train-free AI portraits generation comes from applying different fine-tuning tasks to generative models. Currently, most existing AI portraits tools adopt a two-stage “train then generate” pipeline, where the fine-tuning task is “to generate portrait photos of a fixed character ID”, and the corresponding training data are multiple images of the fixed character ID. The effectiveness of such train-based pipeline depends on the scale of the training data, thus requiring certain image data support and training time, which also increases the cost for users.
 
-The ability of the personal portrait generation evolves around the text-to-image capability of Stable Diffusion model. We consider the main factors that affect the generation effect of personal portraits: portrait style information and user character information. For this, we use the style LoRA model trained offline and the face LoRA model trained online to learn the above information. LoRA is a fine-tuning model with fewer trainable parameters. In Stable Diffusion, the information of the input image can be injected into the LoRA model by the way of text generation image training with a small amount of input image. Therefore, the ability of the personal portrait model is divided into training and inference stages. The training stage generates image and text label data for fine-tuning the Stable Diffusion model, and obtains the face LoRA model. The inference stage generates personal portrait images based on the face LoRA model and style LoRA model.
+Different from train-based pipeline, train-free pipeline adjusts the fine-tuning task to “generate portrait photos of a specified character ID”, meaning that the character ID image (face photo) is used as an additional input, and the output is a portrait photo preserving the input ID. Such a pipeline completely separates offline training from online inference, allowing users to generate portraits directly based on the fine-tuned model with only one photo in just 10 seconds, avoiding the cost for extensive data and training time. The fine-tuning task of train-free AI portraits generation is based on the adapter module. Face photos are processed through an image encoder with fixed weights and a parameter-efficient feature projection layer to obtain aligned features, and are then fed into the U-Net model of Stable Diffusion through attention mechanism similar as text conditions. At this point, face information as an independent branch condition is fed into the model alongside text information for inference, thereby enabling the generated images to maintain ID fidelity.
 
-![image](resources/framework_eng.jpg)
+The basic algorithm based on face adapter is capable of achieving train-free AI portraits, but still requires certain adjustments to further improve its effectiveness. Existing train-free portrait tools generally suffer from the following issues: poor image quality of portraits, inadequate text following and style retention abilities in portraits, poor controllability and richness of portrait faces, and poor compatibility with extensions like ControlNet and style Lora. To address these issues, FaceChain attribute them to the fact that the fine-tuning tasks for existing train-free AI portrait tools have coupled with too much information beyond character IDs, and propose FaceChain Face Adapter with Decoupled Training (FaceChain FACT) to solve these problems. By fine-tuning the Stable Diffusion model on millions of portrait data, FaceChain FACT can achieve high-quality portrait image generation for specified character IDs. The entire framework of FaceChain FACT is shown in the figure below.
 
-## Training
+![image](resources/framework.png)
 
-Input: User-uploaded images that contain clear face areas
+The decoupled training of FaceChain FACT consists of two parts: decoupling face from image, and decoupling ID from face. Existing methods often treat denoising portrait images as the fine-tuning task, which makes the model hard to accurately focus on the face area, thereby affecting the text-to-image ability of the base Stable Diffusion model. FaceChain FACT draws on the sequential processing and regional control advantages of face-swapping algorithms and implements the fine-tuning method for decoupling faces from images from both structural and training strategy aspects. Structurally, unlike existing methods that use a parallel cross-attention mechanism to process face and text information, FaceChain FACT adopts a sequential processing approach as an independent adapter layer inserted into the original Stable Diffusion's blocks. This way, face adaptation acts as an independent step similar to face-swapping during the denoising process, avoiding interference between face and text conditions. In terms of training strategy, besides the original MSE loss function, FaceChain FACT introduces the Face Adapting Incremental Regularization (FAIR) loss function, which controls the feature increment of the face adaptation step in the adapter layer to focus on the face region. During inference, users can flexibly adjust the generated effects by modifying the weight of the face adapter, balancing fidelity and generalization of the face while maintaining the text-to-image ability of Stable Diffusion. The FAIR loss function is formulated as follows:
 
-Output: Face LoRA model
+![image](resources/FAIR.png)
 
-Description: First, we process the user-uploaded images using an image rotation model based on orientation judgment and a face refinement rotation method based on face detection and keypoint models, and obtain images containing forward faces. Next, we use a human body parsing model and a human portrait beautification model to obtain high-quality face training images. Afterwards, we use a face attribute model and a text annotation model, combined with tag post-processing methods, to generate fine-grained labels for training images. Finally, we use the above images and label data to fine-tune the Stable Diffusion model to obtain the face LoRA model.
+Furthermore, addressing the issue of poor controllability and richness of generated faces, FaceChain FACT proposes a training method for decoupling ID from face, so that the portrait process only preserves the character ID rather than the entire face. Firstly, to better extract the ID information from the face while maintaining certain key facial details, and to better adapt to the structure of Stable Diffusion, FaceChain FACT employs a face feature extractor based on the Transformer architecture, which is pre-trained on a large-scale face dataset. All tokens from the penultimate layer are subsequently fed into a simple attention query model for feature projection, thereby ensuring that the extracted ID features meet the aforementioned requirements. Additionally, during the training process, FaceChain FACT uses the Classifier Free Guidance (CFG) method to perform random shuffle and drop for different portrait images of the same ID, thus ensuring that the input face images and the target images used for denoising may have different faces with the same ID, thus further preventing the model from overfitting to non-ID information of the face. As such, FaceChain FACT possesses high compatibility with the massive exquisite styles of FaceChain, which is shown as follows.
 
-## Inference
+![image](resources/generated_examples.png)
 
-Input: User-uploaded images in the training phase, preset input prompt words for generating personal portraits
-
-Output: Personal portrait image
-
-Description: First, we fuse the weights of the face LoRA model and style LoRA model into the Stable Diffusion model. Next, we use the text generation image function of the Stable Diffusion model to preliminarily generate personal portrait images based on the preset input prompt words. Then we further improve the face details of the above portrait image using the face fusion model. The template face used for fusion is selected from the training images through the face quality evaluation model. Finally, we use the face recognition model to calculate the similarity between the generated portrait image and the template face, and use this to sort the portrait images, and output the personal portrait image that ranks first as the final output result.
 
 ## Model List
 
@@ -304,30 +242,21 @@ The models used in FaceChain:
 
 [1]  Face detection model DamoFD：https://modelscope.cn/models/damo/cv_ddsar_face-detection_iclr23-damofd
 
-[2]  Image rotating model, offered in the ModelScope studio
+[2]  Human parsing model M2FP：https://modelscope.cn/models/damo/cv_resnet101_image-multiple-human-parsing
 
-[3]  Human parsing model M2FP：https://modelscope.cn/models/damo/cv_resnet101_image-multiple-human-parsing
+[3]  Skin retouching model ABPN：https://www.modelscope.cn/models/damo/cv_unet_skin_retouching_torch
 
-[4]  Skin retouching model ABPN：https://www.modelscope.cn/models/damo/cv_unet_skin_retouching_torch
+[4]  Face fusion model：https://www.modelscope.cn/models/damo/cv_unet_face_fusion_torch
 
-[5]  Face attribute recognition model FairFace：https://modelscope.cn/models/damo/cv_resnet34_face-attribute-recognition_fairface
+[5]  FaceChain FACT model: https://www.modelscope.cn/models/yucheng1996/FaceChain-FACT
 
-[6]  DeepDanbooru model：https://github.com/KichangKim/DeepDanbooru
-
-[7]  Face quality assessment FQA：https://modelscope.cn/models/damo/cv_manual_face-quality-assessment_fqa
-
-[8]  Face fusion model：https://www.modelscope.cn/models/damo/cv_unet_face_fusion_torch
-
-[9]  Face recognition model RTS：https://modelscope.cn/models/damo/cv_ir_face-recognition-ood_rts     
-
-[10] Talking head model：https://modelscope.cn/models/wwd123/sadtalker
 
 # More Information
 
 - [ModelScope library](https://github.com/modelscope/modelscope/)
 
 
-​		ModelScope Library provides the foundation for building the model-ecosystem of ModelScope, including the interface and implementation to integrate various models into ModelScope. 
+​        ModelScope Library provides the foundation for building the model-ecosystem of ModelScope, including the interface and implementation to integrate various models into ModelScope. 
 
 - [Contribute models to ModelScope](https://modelscope.cn/docs/ModelScope%E6%A8%A1%E5%9E%8B%E6%8E%A5%E5%85%A5%E6%B5%81%E7%A8%8B%E6%A6%82%E8%A7%88)
 
