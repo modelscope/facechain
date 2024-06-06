@@ -37,13 +37,13 @@ if not launch.is_installed("mmcv-full"):
     print("--installing mmcv...")   
     # Todo 这里有坑
     try:
-        launch.run_min("install mmcv-full==1.7.2") 
+        launch.run_pip("install mmcv-full==1.7.2")
     except Exception as e:
         print(e)
         if os.name == 'nt':  # Windows
             print('ERROR facechain: failed to install mmcv, make sure to have "CUDA Toolkit" and "Build Tools for Visual Studio" installed')
         else:
-            print('ERROR facechain: failed to install mmcv')
+            print('ERROR facechain: failed to install mmcv, make sure to have "CUDA Toolkit" installed')
 
 if not launch.is_installed("mmdet"):
     print("--installing mmdet...")

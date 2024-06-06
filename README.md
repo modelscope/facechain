@@ -19,7 +19,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 <p align="center">
-        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜API <a href="https://help.aliyun.com/zh/dashscope/developer-reference/facechain-quick-start">🔥<a></a>&nbsp ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain-FACT">🤗</a>&nbsp 
+        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜API <a href="https://help.aliyun.com/zh/dashscope/developer-reference/facechain-quick-start">🔥<a></a>&nbsp | SD WebUI | HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain-FACT">🤗</a>&nbsp 
 </p>
 <br>
 
@@ -157,6 +157,16 @@ python3 app.py
 Run the app server: click "public URL" --> in the form of: https://xxx.gradio.live
 ```
 
+### 3. stable-diffusion-webui
+
+1. Select the `Extensions Tab`, then choose `Install From URL` (official plugin integration is intergrated, please install from URL currently).
+   ![image](resources/sdwebui_install.png)
+
+2. Switch to `Installed`, check the FaceChain plugin, then click `Apply and restart UI`. It may take a while for installing the dependencies and downloading the models. Make sure that the "CUDA Toolkit" is installed correctly, otherwise the "mmcv" package cannot be successfully installed.
+   ![image](resources/sdwebui_restart.png)
+
+3. After the page refreshes, the appearance of the `FaceChain` Tab indicates a successful installation.
+   ![image](resources/sdwebui_success.jpg)
 
 # Script Execution
 

@@ -15,7 +15,7 @@ FaceChain是一个可以用来生成个人写真的深度学习模型工具。�
 FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开源模型社区提供支持。
 
 <p align="center">
-        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜API <a href="https://help.aliyun.com/zh/dashscope/developer-reference/facechain-quick-start">🔥<a></a>&nbsp ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain-FACT">🤗</a>&nbsp 
+        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜API <a href="https://help.aliyun.com/zh/dashscope/developer-reference/facechain-quick-start">🔥<a></a>&nbsp ｜ SD WebUI | HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain-FACT">🤗</a>&nbsp 
 </p>
 <br>
 
@@ -162,6 +162,16 @@ python3 app.py
 # Step6: 点击 "public URL", 形式为 https://xxx.gradio.live
 ```
 
+### 3. stable-diffusion-webui中运行
+
+1. 选择`Extensions Tab`，选择`Install From URL`（官方插件集成中，先从URL安装）。
+   ![image](resources/sdwebui_install.png)
+
+2. 切换到`Installed`，勾选FaceChain插件，点击`Apply and restart UI`。安装环境依赖和下载模型可能需要花费较长时间。请确认CUDA Toolkit已安装，否则mmcv的安装将会报错。
+   ![image](resources/sdwebui_restart.png)
+
+3. 页面刷新后，出现`FaceChain`选项说明安装成功。
+   ![image](resources/sdwebui_success.jpg)
 
 # 脚本运行
 
