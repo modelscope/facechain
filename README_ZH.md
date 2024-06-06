@@ -11,11 +11,11 @@
 
 # 介绍
 
-FaceChain是一个可以用来生成个人写真的深度学习模型工具。在最新的FaceChain FACT版本中，用户仅需要提供一张照片即可10秒钟获得独属于自己的个人写真（支持多种风格）。FaceChain可实现兼具可控性与ID保持能力的无限风格写真与固定模板写真功能，同时对ControlNet和LoRA具有优秀的兼容能力。FaceChain支持在gradio的界面中使用模型训练和推理能力，同时，我们也欢迎开发者对本Repo进行继续开发和贡献。
+FaceChain是一个可以用来生成个人写真的深度学习模型工具。在最新的FaceChain FACT版本中，用户仅需要提供一张照片即可10秒钟获得独属于自己的个人写真（支持多种风格）。FaceChain可实现兼具可控性与ID保持能力的无限风格写真与固定模板写真功能，同时对ControlNet和LoRA具有优秀的兼容能力。FaceChain支持在gradio的界面中使用模型训练和推理能力、支持资深开发者使用python脚本进行训练推理，也支持在sd webui中安装插件使用。同时，我们也欢迎开发者对本Repo进行继续开发和贡献。
 FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开源模型社区提供支持。
 
 <p align="center">
-        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜API <a href="https://help.aliyun.com/zh/dashscope/developer-reference/facechain-quick-start">🔥<a></a>&nbsp ｜ HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain-FACT">🤗</a>&nbsp 
+        ModelScope Studio <a href="https://modelscope.cn/studios/CVstudio/cv_human_portrait/summary">🤖<a></a>&nbsp ｜API <a href="https://help.aliyun.com/zh/dashscope/developer-reference/facechain-quick-start">🔥<a></a>&nbsp ｜ SD WebUI | HuggingFace Space <a href="https://huggingface.co/spaces/modelscope/FaceChain-FACT">🤗</a>&nbsp 
 </p>
 <br>
 
@@ -162,6 +162,16 @@ python3 app.py
 # Step6: 点击 "public URL", 形式为 https://xxx.gradio.live
 ```
 
+### 3. stable-diffusion-webui中运行
+
+1. 选择`Extensions Tab`，选择`Install From URL`（官方插件集成中，先从URL安装）。
+   ![image](resources/sdwebui_install.png)
+
+2. 切换到`Installed`，勾选FaceChain插件，点击`Apply and restart UI`。安装环境依赖和下载模型可能需要花费较长时间。请确认CUDA Toolkit已安装，否则mmcv的安装将会报错。
+   ![image](resources/sdwebui_restart.png)
+
+3. 页面刷新后，出现`FaceChain`选项说明安装成功。
+   ![image](resources/sdwebui_success.jpg)
 
 # 脚本运行
 
