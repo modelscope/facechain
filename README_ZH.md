@@ -11,7 +11,7 @@
 
 # 介绍
 
-FaceChain是一个可以用来生成个人写真的深度学习模型工具。在最新的FaceChain FACT版本中，用户仅需要提供一张照片即可10秒钟获得独属于自己的个人写真（支持多种风格）。FaceChain可实现兼具可控性与ID保持能力的无限风格写真与固定模板写真功能，同时对ControlNet和LoRA具有优秀的兼容能力。FaceChain支持在gradio的界面中使用模型训练和推理能力，同时，我们也欢迎开发者对本Repo进行继续开发和贡献。
+FaceChain是一个可以用来生成个人写真的深度学习模型工具。在最新的FaceChain FACT版本中，用户仅需要提供一张照片即可10秒钟获得独属于自己的个人写真（支持多种风格）。FaceChain可实现兼具可控性与ID保持能力的无限风格写真与固定模板写真功能，同时对ControlNet和LoRA具有优秀的兼容能力。FaceChain支持在gradio的界面中使用模型训练和推理能力、支持资深开发者使用python脚本进行训练推理，也支持在sd webui中安装插件使用。同时，我们也欢迎开发者对本Repo进行继续开发和贡献。
 FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开源模型社区提供支持。
 
 <p align="center">

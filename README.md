@@ -14,7 +14,7 @@
 
 如果您熟悉中文，可以阅读[中文版本的README](./README_ZH.md)。
 
-FaceChain is a novel framework for generating identity-preserved human portraits. In the newest FaceChain FACT (Face Adapter with deCoupled Training) version, with only 1 photo and 10 seconds, you can generate personal portraits in different settings (multiple styles now supported!). FaceChain has both high controllability and authenticity in portrait generation, including text-to-image and inpainting based pipelines, and is seamlessly compatible with ControlNet and LoRAs. You may generate portraits via the familiar Gradio interface with simple operations.
+FaceChain is a novel framework for generating identity-preserved human portraits. In the newest FaceChain FACT (Face Adapter with deCoupled Training) version, with only 1 photo and 10 seconds, you can generate personal portraits in different settings (multiple styles now supported!). FaceChain has both high controllability and authenticity in portrait generation, including text-to-image and inpainting based pipelines, and is seamlessly compatible with ControlNet and LoRAs. You may generate portraits via FaceChain's Python scripts, or via the familiar Gradio interface, or via sd webui. 
 FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
