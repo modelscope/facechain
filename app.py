@@ -312,7 +312,6 @@ def inference_input():
                         neg_prompt.value = neg
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')
-                    use_face_swap = gr.Radio(label="是否使用人脸相似度增强(Whether enhancing face similarity)", choices=["否(No)", "是(Yes)"], type="index", value="否(No)")
                     
                     with gr.Accordion("姿态控制(Pose control)", open=True):
                         with gr.Row():
@@ -324,6 +323,7 @@ def inference_input():
                 with gr.Box():
                     num_images = gr.Number(
                         label='生成图片数量(Number of photos)', value=1, precision=1, minimum=1, maximum=6)
+                    use_face_swap = gr.Radio(label="是否使用人脸相似度增强(Whether enhancing face similarity)", choices=["否(No)", "是(Yes)"], type="index", value="是(Yes)")
                     gr.Markdown('''
                     注意:
                     - 最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
@@ -381,7 +381,7 @@ def inference_inpaint():
                     
                 num_faces = gr.Number(minimum=1, value=1, precision=1, label='照片中的人脸数目(Number of Faces)')
                 selected_face = gr.Number(minimum=1, value=1, precision=1, label='选择重绘的人脸编号，按从左至右的顺序(Index of Face for inpainting, counting from left to right)')
-                use_face_swap = gr.Radio(label="是否使用人脸相似度增强(Whether enhancing face similarity)", choices=["否(No)", "是(Yes)"], type="index", value="否(No)")
+                use_face_swap = gr.Radio(label="是否使用人脸相似度增强(Whether enhancing face similarity)", choices=["否(No)", "是(Yes)"], type="index", value="是(Yes)")
 
         display_button = gr.Button('开始生成(Start Generation)', variant='primary')
         with gr.Box():
