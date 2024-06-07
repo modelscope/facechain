@@ -263,6 +263,8 @@ FaceChain使用的模型链接：
 
 [5]  FaceChain FACT使用模型：https://www.modelscope.cn/models/yucheng1996/FaceChain-FACT
 
+[6]  人脸属性识别模型FairFace：https://modelscope.cn/models/damo/cv_resnet34_face-attribute-recognition_fairface
+
 # 更多信息
 
 - [ModelScope library](https://github.com/modelscope/modelscope/)

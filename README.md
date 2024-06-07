@@ -260,6 +260,8 @@ The models used in FaceChain:
 
 [5]  FaceChain FACT model: https://www.modelscope.cn/models/yucheng1996/FaceChain-FACT
 
+[6]  Face attribute recognition model FairFace: https://modelscope.cn/models/damo/cv_resnet34_face-attribute-recognition_fairface
+
 
 # More Information
 

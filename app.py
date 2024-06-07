@@ -101,6 +101,7 @@ def launch_pipeline(uuid,
                     lora_choice=None,
                     multiplier_style=0.35,
                     pose_image=None,
+                    use_face_swap=0
                     ):
     
     if not uuid:
@@ -142,7 +143,7 @@ def launch_pipeline(uuid,
     num_images = min(6, num_images)
     print('base model index: ', base_model_index)
     
-    outputs = gen_portrait(num_images, base_model_index, style_model_path, pos_prompt, neg_prompt, user_image, pose_image, multiplier_style)
+    outputs = gen_portrait(use_face_swap, num_images, base_model_index, style_model_path, pos_prompt, neg_prompt, user_image, pose_image, multiplier_style)
 
     outputs_RGB = []
     for out_tmp in outputs:
@@ -158,7 +159,8 @@ def launch_pipeline_inpaint(uuid,
                             user_image,
                             num_faces=1,
                             selected_face=1,
-                            template_image=None):
+                            template_image=None,
+                            use_face_swap=0):
 
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -182,7 +184,7 @@ def launch_pipeline_inpaint(uuid,
     neg_prompt = 'nsfw, paintings, sketches, (worst quality:2), (low quality:2) ' \
                 'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character'
 
-    outputs = gen_portrait_inpaint(template_image,
+    outputs = gen_portrait_inpaint(use_face_swap, template_image,
                  strength,
                  output_img_size,
                  num_faces,
@@ -310,6 +312,7 @@ def inference_input():
                         neg_prompt.value = neg
                     multiplier_style = gr.Slider(minimum=0, maximum=1, value=0.25,
                                                  step=0.05, label='风格权重(Multiplier style)')
+                    use_face_swap = gr.Radio(label="是否使用人脸相似度增强(Whether enhancing face similarity)", choices=["否(No)", "是(Yes)"], type="index", value="否(No)")
                     
                     with gr.Accordion("姿态控制(Pose control)", open=True):
                         with gr.Row():
@@ -349,7 +352,7 @@ def inference_input():
         
         display_button.click(fn=launch_pipeline,
                              inputs=[uuid, pos_prompt, neg_prompt, user_image, num_images, style_model, lora_choice, multiplier_style,
-                                     pose_image],
+                                     pose_image, use_face_swap],
                              outputs=[infer_progress, output_images])
         
         update_button.click(fn=update_lora_choice, inputs=[uuid], outputs=[lora_choice], queue=False)
@@ -378,6 +381,7 @@ def inference_inpaint():
                     
                 num_faces = gr.Number(minimum=1, value=1, precision=1, label='照片中的人脸数目(Number of Faces)')
                 selected_face = gr.Number(minimum=1, value=1, precision=1, label='选择重绘的人脸编号，按从左至右的顺序(Index of Face for inpainting, counting from left to right)')
+                use_face_swap = gr.Radio(label="是否使用人脸相似度增强(Whether enhancing face similarity)", choices=["否(No)", "是(Yes)"], type="index", value="否(No)")
 
         display_button = gr.Button('开始生成(Start Generation)', variant='primary')
         with gr.Box():
@@ -395,7 +399,7 @@ def inference_inpaint():
 
         display_button.click(
             fn=launch_pipeline_inpaint,
-            inputs=[uuid, user_image, num_faces, selected_face, template_image],
+            inputs=[uuid, user_image, num_faces, selected_face, template_image, use_face_swap],
             outputs=[infer_progress, output_images]
         )
 
