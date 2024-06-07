@@ -325,6 +325,8 @@ class GenPortrait:
             'skin-retouching-torch',
             model='damo/cv_unet_skin_retouching_torch',
             model_revision='v1.0.1')
+        self.fair_face_attribute_func = pipeline(Tasks.face_attribute_recognition,
+            snapshot_download('damo/cv_resnet34_face-attribute-recognition_fairface', revision='v2.0.2'))
         
         base_model_path_maj = snapshot_download('YorickHe/majicmixRealistic_v6', revision='v1.0.0')
         base_model_path_maj = os.path.join(base_model_path_maj, 'realistic')
@@ -369,6 +371,7 @@ class GenPortrait:
         
 
     def __call__(self,
+                 use_face_swap,
                  num_gen_images=1, 
                  base_model_idx=0, 
                  style_model_path=None,
@@ -378,6 +381,7 @@ class GenPortrait:
                  pose_image=None, 
                  multiplier_style=0):
         
+        self.use_face_swap = (use_face_swap > 0)
         st = time.time()
         if pose_image is not None:
             self.pose_image = pose_image
@@ -399,6 +403,48 @@ class GenPortrait:
         if True:
             result = self.skin_retouching(input_img)
             input_img = Image.fromarray(result[OutputKeys.OUTPUT_IMG][:,:,::-1])
+            self.pos_prompt = pos_prompt
+            self.neg_prompt = neg_prompt
+            
+            attribute_result = self.fair_face_attribute_func(input_img)
+            score_gender = np.array(attribute_result['scores'][0])
+            score_age = np.array(attribute_result['scores'][1])
+            gender = np.argmax(score_gender)
+            age = np.argmax(score_age)
+            if age < 2:
+                if gender == 0:
+                    attr_idx = 0
+                else:
+                    attr_idx = 1
+            elif age > 4:
+                if gender == 0:
+                    attr_idx = 4
+                else:
+                    attr_idx = 5
+            else:
+                if gender == 0:
+                    attr_idx = 2
+                else:
+                    attr_idx = 3
+            use_age_prompt = True
+            if attr_idx == 3 or attr_idx == 5:
+                use_age_prompt = False
+
+            age_prompts = ['20-year-old, ', '25-year-old, ', '35-year-old, ']
+
+            if age > 1 and age < 5 and use_age_prompt:
+                self.pos_prompt = age_prompts[age - 2] + self.pos_prompt
+            
+            trigger_styles = [
+                'a boy, children, ', 'a girl, children, ',
+                'a handsome man, ', 'a beautiful woman, ',
+                'a mature man, ', 'a mature woman, '
+            ]
+            trigger_style = trigger_styles[attr_idx]
+            if attr_idx == 2 or attr_idx == 4:
+                self.neg_prompt += ', children'
+            
+            self.pos_prompt = trigger_style + self.pos_prompt
         
         if base_model_idx == 0:
             self.pipe = self.pipe_film
@@ -430,8 +476,8 @@ class GenPortrait:
             self.pose_image,
             self.use_depth_control,
             self.use_face_pose,
-            pos_prompt,
-            neg_prompt,
+            self.pos_prompt,
+            self.neg_prompt,
             self.use_main_model,
             input_img=input_img,
             segmentation_pipeline=self.segmentation_pipeline,
