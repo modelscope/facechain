@@ -17,6 +17,24 @@ from facechain.utils import snapshot_download, check_ffmpeg, project_dir, join_w
 from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_prompt_with_style, \
     pose_examples, base_models, tts_speakers_map
 
+def download_models():
+    model = snapshot_download('damo/cv_resnet101_image-multiple-human-parsing', revision='v1.0.1')
+    model = snapshot_download('damo/cv_unet_face_fusion_torch', revision='v1.0.3')
+    model_dir = snapshot_download(
+            'damo/face_chain_control_model', revision='v1.0.1')
+    model = snapshot_download('damo/cv_manual_face-quality-assessment_fqa', revision='v2.0')
+    model_dir = snapshot_download(
+            'ly261666/cv_wanx_style_model', revision='v1.0.2')
+    fr_weight_path = snapshot_download('yucheng1996/facechain_supplementary_model', revision='v1.0.7')
+    fact_model_path = snapshot_download('yucheng1996/facechain_supplementary_model', revision='v1.1.1')
+    model = snapshot_download('damo/cv_resnet50_face-detection_retinaface')
+    model = snapshot_download('damo/cv_unet_skin_retouching_torch', revision='v1.0.1')
+    base_model_path_maj = snapshot_download('YorickHe/majicmixRealistic_v6', revision='v1.0.0')
+    base_model_path_film = snapshot_download('ly261666/cv_portrait_model', revision='v2.0')
+    model = snapshot_download('damo/cv_ddsar_face-detection_iclr23-damofd', revision='v1.1')
+    model_dir1 = snapshot_download(
+            'ly261666/cv_wanx_style_model', revision='v1.0.3')
+
 
 inference_done_count = 0
 character_model = 'ly261666/cv_portrait_model'
@@ -50,5 +68,4 @@ for style in styles:
     if style['model_id'] is not None:
         model_dir = snapshot_download(style['model_id'], revision=style['revision'])
 
-gen_portrait = GenPortrait()
-gen_portrait_inpaint = GenPortrait_inpaint()
+download_models()
