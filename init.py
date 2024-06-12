@@ -25,8 +25,7 @@ def download_models():
     model = snapshot_download('damo/cv_manual_face-quality-assessment_fqa', revision='v2.0')
     model_dir = snapshot_download(
             'ly261666/cv_wanx_style_model', revision='v1.0.2')
-    fr_weight_path = snapshot_download('yucheng1996/facechain_supplementary_model', revision='v1.0.7')
-    fact_model_path = snapshot_download('yucheng1996/facechain_supplementary_model', revision='v1.1.1')
+    fact_model_path = snapshot_download('yucheng1996/FaceChain-FACT', revision='v1.0.0')
     model = snapshot_download('damo/cv_resnet50_face-detection_retinaface')
     model = snapshot_download('damo/cv_unet_skin_retouching_torch', revision='v1.0.1')
     base_model_path_maj = snapshot_download('YorickHe/majicmixRealistic_v6', revision='v1.0.0')
@@ -34,6 +33,7 @@ def download_models():
     model = snapshot_download('damo/cv_ddsar_face-detection_iclr23-damofd', revision='v1.1')
     model_dir1 = snapshot_download(
             'ly261666/cv_wanx_style_model', revision='v1.0.3')
+    model = snapshot_download('damo/cv_resnet34_face-attribute-recognition_fairface', revision='v2.0.2')
 
 
 inference_done_count = 0

@@ -231,7 +231,7 @@ def img2img_multicontrol(img,
                 control_image=control_image,
                 prompt=pos_prompt,
                 negative_prompt=neg_prompt,
-                guidance_scale=7.0,
+                guidance_scale=5.0,
                 strength=strength,
                 num_inference_steps=50,
                 controlnet_conditioning_scale=controlnet_conditioning_scale,
@@ -313,7 +313,7 @@ def main_diffusion_inference_inpaint(num_gen_images,
             face_image=input_img,
             height=h,
             width=w,
-            guidance_scale=7.0,
+            guidance_scale=5.0,
             negative_prompt=neg_prompt,
             num_inference_steps=50,
             num_images_per_prompt=1)[0]
@@ -377,7 +377,7 @@ def main_diffusion_inference_inpaint(num_gen_images,
             segmentation_pipeline,
             inpaint_im,
             ksize=0.1,
-            ksize1=0.06,
+            ksize1=0.04,
             eyeh=eye_height,
             include_neck=False,
             warp_mask=warp_mask,
@@ -624,14 +624,15 @@ class GenPortrait_inpaint:
     def __init__(self):
         cfg_face = True
         
-        fact_model_path = snapshot_download('yucheng1996/facechain_supplementary_model', revision='v1.1.1')
-        adapter_path = os.path.join(fact_model_path, 'fact_models/adapter_maj_mask_large_new_reg001_faceshuffle_00290001.ckpt')
+        fact_model_path = snapshot_download('yucheng1996/FaceChain-FACT', revision='v1.0.0')
+        adapter_path = os.path.join(fact_model_path, 'adapter_maj_mask_large_new_reg001_faceshuffle_00290001.ckpt')
 
         self.segmentation_pipeline = pipeline(
             Tasks.image_segmentation,
-            snapshot_download('damo/cv_resnet101_image-multiple-human-parsing', revision='v1.0.1'))
+            'damo/cv_resnet101_image-multiple-human-parsing',
+            model_revision='v1.0.1')
         self.image_face_fusion = pipeline('face_fusion_torch',
-                                     model=snapshot_download('damo/cv_unet_face_fusion_torch', revision='v1.0.3'))
+                                     model='damo/cv_unet_face_fusion_torch', model_revision='v1.0.3')
 
         model_dir = snapshot_download(
             'damo/face_chain_control_model', revision='v1.0.1')
@@ -643,10 +644,12 @@ class GenPortrait_inpaint:
 
         self.face_quality_func = pipeline(
             Tasks.face_quality_assessment,
-            snapshot_download('damo/cv_manual_face-quality-assessment_fqa', revision='v2.0'))
+            'damo/cv_manual_face-quality-assessment_fqa',
+            model_revision='v2.0')
         self.face_detection = pipeline(
             task=Tasks.face_detection,
-            model=snapshot_download('damo/cv_ddsar_face-detection_iclr23-damofd', revision='v1.1'))
+            model='damo/cv_ddsar_face-detection_iclr23-damofd',
+            model_revision='v1.1')
 
         dtype = torch.float16
         model_dir1 = snapshot_download(
@@ -666,14 +669,16 @@ class GenPortrait_inpaint:
         self.face_adapter_path = adapter_path
         self.cfg_face = cfg_face
         
-        fr_weight_path = snapshot_download('yucheng1996/facechain_supplementary_model', revision='v1.0.7')
-        fr_weight_path = os.path.join(fr_weight_path, 'face_adapter_models/ms1mv2_model_TransFace_S.pt')
+        fr_weight_path = snapshot_download('yucheng1996/FaceChain-FACT', revision='v1.0.0')
+        fr_weight_path = os.path.join(fr_weight_path, 'ms1mv2_model_TransFace_S.pt')
         
         self.face_extracter = Face_Extracter_v1(fr_weight_path=fr_weight_path, fc_weight_path=self.face_adapter_path)
-        self.face_detection0 = pipeline(task=Tasks.face_detection, model=snapshot_download('damo/cv_resnet50_face-detection_retinaface'))
+        self.face_detection0 = pipeline(task=Tasks.face_detection, model='damo/cv_resnet50_face-detection_retinaface')
         self.skin_retouching = pipeline(
             'skin-retouching-torch',
-            model=snapshot_download('damo/cv_unet_skin_retouching_torch', revision='v1.0.1'))
+            model=snapshot_download('damo/cv_unet_skin_retouching_torch', revision='v1.0.1.1'))
+        self.fair_face_attribute_func = pipeline(Tasks.face_attribute_recognition,
+            snapshot_download('damo/cv_resnet34_face-attribute-recognition_fairface', revision='v2.0.2'))
         
         base_model_path = snapshot_download('YorickHe/majicmixRealistic_v6', revision='v1.0.0')
         base_model_path = os.path.join(base_model_path, 'realistic')
@@ -696,7 +701,7 @@ class GenPortrait_inpaint:
         face_adapter_path = self.face_adapter_path
         self.face_adapter_pose = FaceAdapter_v1(pipe_pose, self.face_detection0, self.segmentation_pipeline, self.face_extracter, face_adapter_path, 'cuda', self.cfg_face) 
         self.face_adapter_all = FaceAdapter_v1(pipe_all, self.face_detection0, self.segmentation_pipeline, self.face_extracter, face_adapter_path, 'cuda', self.cfg_face) 
-        self.face_adapter_pose.set_scale(0.55)
+        self.face_adapter_pose.set_scale(0.5)
         self.face_adapter_all.set_scale(0.55)
         
         self.face_adapter_pose.pipe.to('cpu')
@@ -704,6 +709,7 @@ class GenPortrait_inpaint:
                    
 
     def __call__(self,
+                 use_face_swap,
                  inpaint_img,
                  strength,
                  output_img_size,
@@ -716,7 +722,7 @@ class GenPortrait_inpaint:
         
         st = time.time()
         self.use_main_model = True
-        self.use_face_swap = False
+        self.use_face_swap = (use_face_swap > 0)
         self.use_post_process = False
         self.use_stylization = False
         self.neg_prompt = neg_prompt
@@ -761,10 +767,7 @@ class GenPortrait_inpaint:
                     inpaint_img_large[bbox[1]:bbox[3], bbox[0]:bbox[2]] = 0
                     mask_large[bbox[1]:bbox[3], bbox[0]:bbox[2]] = 0
 
-            if self.output_img_size == 512:
-                face_ratio = 0.5
-            else:
-                face_ratio = 0.6
+            face_ratio = 0.7
             cropl = int(
                 max(face_box[3] - face_box[1], face_box[2] - face_box[0])
                 / face_ratio / 2)
@@ -794,6 +797,47 @@ class GenPortrait_inpaint:
             input_img = result[OutputKeys.OUTPUT_IMG]
 
             input_img = Image.fromarray(input_img[:, :, ::-1])
+            
+            attribute_result = self.fair_face_attribute_func(input_img)
+            score_gender = np.array(attribute_result['scores'][0])
+            score_age = np.array(attribute_result['scores'][1])
+            gender = np.argmax(score_gender)
+            age = np.argmax(score_age)
+            if age < 2:
+                if gender == 0:
+                    attr_idx = 0
+                else:
+                    attr_idx = 1
+            elif age > 4:
+                if gender == 0:
+                    attr_idx = 4
+                else:
+                    attr_idx = 5
+            else:
+                if gender == 0:
+                    attr_idx = 2
+                else:
+                    attr_idx = 3
+            use_age_prompt = True
+            if attr_idx == 3 or attr_idx == 5:
+                use_age_prompt = False
+
+            age_prompts = ['20-year-old, ', '25-year-old, ', '35-year-old, ']
+
+            if age > 1 and age < 5 and use_age_prompt:
+                self.pos_prompt = age_prompts[age - 2] + self.pos_prompt
+            
+            trigger_styles = [
+                'a boy, children, ', 'a girl, children, ',
+                'a handsome man, ', 'a beautiful woman, ',
+                'a mature man, ', 'a mature woman, '
+            ]
+            trigger_style = trigger_styles[attr_idx]
+            if attr_idx == 2 or attr_idx == 4:
+                self.neg_prompt += ', children'
+            
+            self.pos_prompt = trigger_style + self.pos_prompt
+            
             self.face_adapter_pose.pipe.to('cuda')
             self.face_adapter_all.pipe.to('cuda')
 

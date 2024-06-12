@@ -18,7 +18,7 @@ import cv2
 import math
 
 from .utils import is_torch2_available
-if is_torch2_available:
+if is_torch2_available():
     from .face_attention_processor_v1 import FaceAttnProcessor2_0 as FaceAttnProcessor, AttnProcessor2_0 as AttnProcessor, CNAttnProcessor2_0 as CNAttnProcessor
 else:
     from .face_attention_processor_v1 import FaceAttnProcessor, AttnProcessor, CNAttnProcessor

@@ -11,6 +11,7 @@ import numpy as np
 import torch
 from glob import glob
 import platform
+from importlib.util import find_spec
 from facechain.inference_fact import GenPortrait
 from facechain.inference_inpaint_fact import GenPortrait_inpaint
 from facechain.utils import snapshot_download, check_ffmpeg, project_dir, join_worker_data_dir
@@ -100,13 +101,14 @@ def launch_pipeline(uuid,
                     lora_choice=None,
                     multiplier_style=0.35,
                     pose_image=None,
+                    use_face_swap=0
                     ):
     
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
             raise gr.Error("请登陆后使用! (Please login first)")
         else:
-            uuid = 'qw'            
+            uuid = 'qw'
     
     # Check style model
     if style_model == None and lora_choice == 'preset':
@@ -141,7 +143,7 @@ def launch_pipeline(uuid,
     num_images = min(6, num_images)
     print('base model index: ', base_model_index)
     
-    outputs = gen_portrait(num_images, base_model_index, style_model_path, pos_prompt, neg_prompt, user_image, pose_image, multiplier_style)
+    outputs = gen_portrait(use_face_swap, num_images, base_model_index, style_model_path, pos_prompt, neg_prompt, user_image, pose_image, multiplier_style)
 
     outputs_RGB = []
     for out_tmp in outputs:
@@ -154,10 +156,11 @@ def launch_pipeline(uuid,
 
 
 def launch_pipeline_inpaint(uuid,
-                            user_image,                           
+                            user_image,
                             num_faces=1,
                             selected_face=1,
-                            template_image=None):
+                            template_image=None,
+                            use_face_swap=0):
 
     if not uuid:
         if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
@@ -181,7 +184,7 @@ def launch_pipeline_inpaint(uuid,
     neg_prompt = 'nsfw, paintings, sketches, (worst quality:2), (low quality:2) ' \
                 'lowers, normal quality, ((monochrome)), ((grayscale)), logo, word, character'
 
-    outputs = gen_portrait_inpaint(template_image,
+    outputs = gen_portrait_inpaint(use_face_swap, template_image,
                  strength,
                  output_img_size,
                  num_faces,
@@ -194,7 +197,7 @@ def launch_pipeline_inpaint(uuid,
     for out_tmp in outputs:
         outputs_RGB.append(cv2.cvtColor(out_tmp, cv2.COLOR_BGR2RGB))
 
-    if len(outputs) > 0:   
+    if len(outputs) > 0:
         yield ["生成完毕(Generation done)！", outputs_RGB]
     else:
         yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
@@ -261,16 +264,23 @@ def inference_input():
         uuid = gr.Text(label="modelscope_uuid", visible=False)
         
         with gr.Row():
-            with gr.Column():               
+            with gr.Column():
                 with gr.Box():
                     style_model = gr.Text(label='请选择一种风格(Select a style from the pics below):', interactive=False)
-                    gallery = gr.Gallery(value=[(item["img"], item["name"]) for item in styles],
-                                        label="风格(Style)",
-                                        allow_preview=False,
-                                        columns=6,
-                                        elem_id="gallery",
-                                        show_share_button=False,
-                                        visible=True).style(output_fit='contain', height=600)
+                    if find_spec('webui'):
+                        gallery = gr.Gallery(value=[(item["img"], item["name"]) for item in styles],
+                                            label="风格(Style)",
+                                            allow_preview=False,
+                                            elem_id="gallery",
+                                            show_share_button=False,
+                                            visible=True).style(columns=6, rows=2)
+                    else:
+                        gallery = gr.Gallery(value=[(item["img"], item["name"]) for item in styles],
+                                            label="风格(Style)",
+                                            allow_preview=False,
+                                            elem_id="gallery",
+                                            show_share_button=False,
+                                            visible=True).style(columns=6, object_fit='contain', height=600)
                 
                 with gr.Box():
                     gr.Markdown('请上传用户人像图片(Please upload a user image)：')
@@ -292,7 +302,7 @@ def inference_input():
                             visible=True,
                         )
                         
-                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, 
+                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
                                             value=generate_pos_prompt(None, styles[0]['add_prompt_style']),
                                             interactive=True)
                     neg_prompt = gr.Textbox(label="负向提示语(Negative Prompt)", lines=3,
@@ -313,8 +323,9 @@ def inference_input():
                 with gr.Box():
                     num_images = gr.Number(
                         label='生成图片数量(Number of photos)', value=1, precision=1, minimum=1, maximum=6)
+                    use_face_swap = gr.Radio(label="是否使用人脸相似度增强(Whether enhancing face similarity)", choices=["否(No)", "是(Yes)"], type="index", value="是(Yes)")
                     gr.Markdown('''
-                    注意: 
+                    注意:
                     - 最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
                     - 可上传在定义LoRA文件使用, 否则默认使用风格模型的LoRA。(You may upload custome LoRA file, otherwise the LoRA file of the style model will be used by deault.)
                     - 使用自定义LoRA文件需手动输入prompt, 否则可能无法正常触发LoRA文件风格。(You shall provide prompt when using custom LoRA, otherwise desired LoRA style may not be triggered.)
@@ -340,8 +351,8 @@ def inference_input():
         style_model.change(update_prompt, style_model, [pos_prompt, multiplier_style], queue=False)
         
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, neg_prompt, user_image, num_images, style_model, lora_choice, multiplier_style, 
-                                     pose_image],
+                             inputs=[uuid, pos_prompt, neg_prompt, user_image, num_images, style_model, lora_choice, multiplier_style,
+                                     pose_image, use_face_swap],
                              outputs=[infer_progress, output_images])
         
         update_button.click(fn=update_lora_choice, inputs=[uuid], outputs=[lora_choice], queue=False)
@@ -370,6 +381,7 @@ def inference_inpaint():
                     
                 num_faces = gr.Number(minimum=1, value=1, precision=1, label='照片中的人脸数目(Number of Faces)')
                 selected_face = gr.Number(minimum=1, value=1, precision=1, label='选择重绘的人脸编号，按从左至右的顺序(Index of Face for inpainting, counting from left to right)')
+                use_face_swap = gr.Radio(label="是否使用人脸相似度增强(Whether enhancing face similarity)", choices=["否(No)", "是(Yes)"], type="index", value="是(Yes)")
 
         display_button = gr.Button('开始生成(Start Generation)', variant='primary')
         with gr.Box():
@@ -387,7 +399,7 @@ def inference_inpaint():
 
         display_button.click(
             fn=launch_pipeline_inpaint,
-            inputs=[uuid, user_image, num_faces, selected_face, template_image],
+            inputs=[uuid, user_image, num_faces, selected_face, template_image, use_face_swap],
             outputs=[infer_progress, output_images]
         )
 
@@ -428,7 +440,6 @@ with open(
     MAIN_CSS_CODE = f.read()
 
 with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
-    from importlib.util import find_spec
     if find_spec('webui'):
         # if running as a webui extension, don't display banner self-advertisement
         gr.Markdown("# <center> \N{fire} FaceChain-FACT Portrait Generation (\N{whale} [Github star it here](https://github.com/modelscope/facechain/tree/main) \N{whale})</center>")
