@@ -85,6 +85,13 @@ FaceChain是一个组合模型，基于PyTorch机器学习框架，以下是已�
 - 操作系统版本: Ubuntu 20.04, CentOS 7.9
 - GPU型号: Nvidia-A10 24G
 
+## 内存优化
+推荐安装Jemalloc以节省内存占用，可将内存由约30G降至20G一下。以Modelscope notebook为例，Jemalloc的安装指令如下：
+
+```shell
+apt-get install -y libjemalloc-dev
+export LD_PRELOAD=/lib/x86_64-linux-gnu/libjemalloc.so
+```
 
 ## 资源要求
 - GPU: 显存占用约19G
