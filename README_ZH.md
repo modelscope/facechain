@@ -86,7 +86,7 @@ FaceChain是一个组合模型，基于PyTorch机器学习框架，以下是已�
 - GPU型号: Nvidia-A10 24G
 
 ## 内存优化
-推荐安装Jemalloc以节省内存占用，可将内存由约30G降至20G一下。以Modelscope notebook为例，Jemalloc的安装指令如下：
+推荐安装Jemalloc以节省内存占用，可将内存由约30G降至20G以下。以Modelscope notebook为例，Jemalloc的安装指令如下：
 
 ```shell
 apt-get install -y libjemalloc-dev
