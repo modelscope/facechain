@@ -90,6 +90,14 @@ We have verified e2e execution on the following environment:
 - OS: Ubuntu 20.04, CentOS 7.9
 - GPU: Nvidia-A10 24G
 
+## Memory Optimization
+Jemalloc are recommanded to install for optimizing the memory from above 30G to below 20G. Here is an example for installing Jemalloc in Modelscope notebook.
+
+```shell
+apt-get install -y libjemalloc-dev
+export LD_PRELOAD=/lib/x86_64-linux-gnu/libjemalloc.so
+```
+
 ## Installation Guide
 The following installation methods are supported:
 
