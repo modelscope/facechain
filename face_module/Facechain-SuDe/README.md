@@ -31,9 +31,9 @@ python scripts/stable_txt2img.py --ddim_eta 0.0 --n_samples 8 --n_iter 2 --scale
 ```
 
 ## Some Results
-![](assets/results.jpg)
-![](assets/more_example_1.jpg)
-![](assets/more_example_2.jpg)
+![](./assets/results.jpg)
+![](./assets/more_example_1.jpg)
+![](./assets/more_example_2.jpg)
                                                                                      
 ## Citation
 Please consider citing this project in your publications if it helps your research.
