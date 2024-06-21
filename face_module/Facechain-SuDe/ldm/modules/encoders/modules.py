@@ -162,6 +162,8 @@ class FrozenCLIPEmbedder(AbstractEncoder):
         super().__init__()
         # self.tokenizer = CLIPTokenizer.from_pretrained('your local path/clip-vit-large-patch14')
         # self.transformer = CLIPTextModel.from_pretrained('your local path/clip-vit-large-patch14')
+	self.tokenizer = CLIPTokenizer.from_pretrained(version)
+	self.transformer = CLIPTextModel.from_pretrained(version)
         self.device = device
         self.max_length = max_length
 
