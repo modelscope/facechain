@@ -1,5 +1,5 @@
 # FaceChain-SuDe: Building Derived Class to Inherit Category Attributes for One-shot Subject-Driven Generation
-![](assets/framework.jpg)
+![](./assets/framework.jpg)
 
 This is an implementtaion of [FaceChain-SuDe](https://arxiv.org/abs/2403.06775) based on [DreamBooth](https://arxiv.org/abs/2208.12242) with [Stable Diffusion](https://github.com/CompVis/stable-diffusion). 
 
