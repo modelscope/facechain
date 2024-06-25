@@ -453,4 +453,4 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
             inference_inpaint()
 
 if __name__ == "__main__":
-    demo.queue(status_update_rate=1).launch(share=True)
+    demo.queue(status_update_rate=1).launch(share=False)
