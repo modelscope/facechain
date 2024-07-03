@@ -395,7 +395,7 @@ def inference_input():
                 with gr.Box():
                     num_images = gr.Number(
                         label='生成图片数量(Number of photos)', value=1, precision=1, minimum=1, maximum=6)
-                    use_face_swap = gr.Radio(label="是否使用人脸相似度增强(Whether enhancing face similarity)", choices=["否(No)", "是(Yes)"], type="index", value="否(No)")
+                    use_face_swap = gr.Radio(label="是否使用人脸相似度增强(Whether enhancing face similarity)", choices=["否(No)", "是(Yes)"], type="index", value="是(Yes)")
                     gr.Markdown('''
                     注意:
                     - 最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
@@ -413,17 +413,19 @@ def inference_input():
             output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
                                                                                object_fit="contain")
         
+        style_choice.change(fn=change_style_choice, inputs=[uuid, style_choice], outputs=[gallery, trained_styles], queue=False)
         gallery.select(select_function, None, style_model, queue=False)
+        trained_styles.change(select_trained_style, inputs=[trained_styles], outputs=[style_model], queue=False)
         
         lora_choice.change(fn=change_lora_choice, inputs=[lora_choice], outputs=[gallery, style_model], queue=False)
         
         lora_file.upload(fn=upload_lora_file, inputs=[uuid, lora_file], outputs=[lora_choice], queue=False)
         lora_file.clear(fn=clear_lora_file, inputs=[uuid, lora_file], outputs=[lora_choice], queue=False)
         
-        style_model.change(update_prompt, style_model, [pos_prompt, multiplier_style], queue=False)
+        style_model.change(update_prompt, [style_model, style_choice, uuid], [pos_prompt, multiplier_style], queue=False)
         
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, neg_prompt, user_images, num_images, style_model, lora_choice, multiplier_style,
+                             inputs=[uuid, style_choice, pos_prompt, neg_prompt, user_images, num_images, style_model, lora_choice, multiplier_style,
                                      pose_image, use_face_swap],
                              outputs=[infer_progress, output_images])
         
@@ -495,16 +497,18 @@ def train_input():
         output_model_name = gr.Text(label='风格lora模型名称(Style lora name)', visible=True)
         
         gallery = gr.Gallery(type='image', label='图片列表(Photos)', height=250, columns=8, visible=True)
-        upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"], file_count="multiple")
+        with gr.Row(elem_id="container_row"):
+            upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"], file_count="multiple")
         train_folder = gr.Text(label='训练文件夹(Train folder)', visible=False)
 
-        with gr.Row():
+        with gr.Row(elem_id="container_row"):
             tag_btn = gr.Button(value='开始打标签(Tag prompt)')
             rank = gr.Number(label='rank', direction='row', value=32, step=1)
             num_train_epochs = gr.Number(label='num_train_epochs', direction='row', value=200, step=1)
 
         prompt_input = gr.Text(label='风格触发词(Trigger word)', visible=True)
-        btn = gr.Button(value='开始训练(Start train)', interactive=False)
+        with gr.Row(elem_id="container_row"):
+            btn = gr.Button(value='开始训练(Start train)', interactive=False)
         output_lora = gr.Files(label='输出模型(Output model)', type='file', visible=True)
         output_prompt = gr.Text(label='风格提示词(Style prompt)', visible=False)
 

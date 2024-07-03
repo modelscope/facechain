@@ -6,6 +6,7 @@
 <p>
 
 # 最新消息
+- 添加自定义风格模型训练，可全自动训练生成自定义风格LoRa模型以及对应的风格提示词，并在无限风格写真页面支持对训练的自定义风格模型的一键式调用！（2024-07-03）
 - 🚀🚀🚀 正在推出[FACT]到主目录，10秒写真出图，兼容现成的LoRa与ControlNet，并且具备更强的指令跟随能力！原始版本已移至(https://github.com/modelscope/facechain/tree/v3.0.0 )。(2024-05-28)
 - FaceChain两项算法创新工作[FaceChain-ImagineID](https://arxiv.org/abs/2403.01901)与[FaceChain-SuDe](https://arxiv.org/abs/2403.06775)被CVPR 2024接收录用! (2024-02-27)
 
@@ -27,6 +28,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # News
+- 添加自定义风格模型训练，可全自动训练生成自定义风格LoRa模型以及对应的风格提示词，并在无限风格写真页面支持对训练的自定义风格模型的一键式调用！（2024-07-03）
 - 🚀🚀🚀 正在推出[FACT]，10秒写真出图，兼容现成的LoRa与ControlNet，并且具备更强的指令跟随能力！(2024-05-28)
 - FaceChain两项算法创新工作[FaceChain-ImagineID](https://arxiv.org/abs/2403.01901)与[FaceChain-SuDe](https://arxiv.org/abs/2403.06775)被CVPR 2024接收录用! (2024-02-27)
 - 🏆🏆🏆阿里巴巴年度开源新锐项目、阿里巴巴年度开源先锋人物-技术贡献（刘洋）、阿里巴巴年度开源先锋人物-生态贡献（孙佰贵）. (2024-01-20)
@@ -52,10 +54,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # 待办事项
-- 研发免训练模块，达成CPU运行的目标
 - 研发RLHF模块，进一步提升上限
-- 增加风格lora的训练接口
-- 现成风格模型即插即用（以C站风格模型为例）
 - 增加更多美肤功能
 - 开发更多好玩的app
 
@@ -124,6 +123,7 @@ print(os.getcwd())
 !pip3 install gradio==3.47.1
 !pip3 install controlnet_aux==0.0.6
 !pip3 install python-slugify
+!pip3 install diffusers==0.29.0
 
 # Step4: 启动服务，点击生成的URL即可访问web页面，上传照片开始训练和预测
 !python3 app.py
@@ -158,6 +158,7 @@ docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.ali
 pip3 install gradio==3.47.1
 pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
+pip3 install diffusers==0.29.0
 
 # Step5: 获取facechain源代码
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
