@@ -11,10 +11,12 @@ import numpy as np
 import torch
 from glob import glob
 import platform
+from PIL import Image
 from importlib.util import find_spec
 from facechain.inference_fact import GenPortrait
 from facechain.inference_inpaint_fact import GenPortrait_inpaint
 from facechain.utils import snapshot_download, check_ffmpeg, project_dir, join_worker_data_dir
+from train_style.demo import set_img, init_tag, cut_img, train_lora, set_prompt
 from facechain.constants import neg_prompt as neg, pos_prompt_with_cloth, pos_prompt_with_style, \
     pose_examples, base_models, tts_speakers_map
 
@@ -55,13 +57,30 @@ def select_function(evt: gr.SelectData):
 def get_selected_image(state_image_list, evt: gr.SelectData):
     return state_image_list[evt.index]
 
+def upload_file(files, current_files):
+    file_paths = [file_d['name'] for file_d in current_files] + [file.name for file in files]
+    return file_paths
 
-def update_prompt(style_model):
-    matched = list(filter(lambda item: style_model == item['name'], styles))
-    style = matched[0]
-    pos_prompt = generate_pos_prompt(style['name'], style['add_prompt_style'])
-    multiplier_style = style['multiplier_style']
-    multiplier_human = style['multiplier_human']
+
+def update_prompt(style_model, style_choice, uuid):
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            raise gr.Error("请登陆后使用! (Please login first)")
+        else:
+            uuid = 'qw'
+    if style_choice == 0:
+        matched = list(filter(lambda item: style_model == item['name'], styles))
+        style = matched[0]
+        pos_prompt = generate_pos_prompt(style['name'], style['add_prompt_style'])
+        multiplier_style = style['multiplier_style']
+        multiplier_human = style['multiplier_human']
+    else:
+        f = open(f'{project_dir}/workspace/{uuid}/style_lora/{style_model}/add_prompt_style.txt', 'r')
+        add_prompt_style = f.read()
+        f.close()
+        pos_prompt = pos_prompt_with_style.format(add_prompt_style)
+        multiplier_style = 0.8
+        
     return gr.Textbox.update(value=pos_prompt), \
            gr.Slider.update(value=multiplier_style)
 
@@ -93,9 +112,10 @@ def generate_pos_prompt(style_model, prompt_cloth):
 
 
 def launch_pipeline(uuid,
+                    style_choice,
                     pos_prompt,
                     neg_prompt=None,
-                    user_image=None,
+                    user_images=None,
                     num_images=1,
                     style_model=None,
                     lora_choice=None,
@@ -111,19 +131,27 @@ def launch_pipeline(uuid,
             uuid = 'qw'
     
     # Check style model
+    if style_choice == None:
+        raise gr.Error('请选择风格模型(Please select the style model)!')
+    
     if style_model == None and lora_choice == 'preset':
         raise gr.Error('请选择风格模型(Please select the style model)!')
     
     before_queue_size = 0
     before_done_count = inference_done_count
-    matched = list(filter(lambda item: style_model == item['name'], styles))
-    if len(matched) == 0:
-        raise ValueError(f'styles not found: {style_model}')
-    matched = matched[0]
-    style_model = matched['name']
+    
+    if style_choice == 0:
+        matched = list(filter(lambda item: style_model == item['name'], styles))
+        if len(matched) == 0:
+            raise ValueError(f'styles not found: {style_model}')
+        matched = matched[0]
+        style_model = matched['name']
 
     if lora_choice == 'preset':
-        if matched['model_id'] is None:
+        if style_choice == 1:
+            style_model_path = os.path.join(f'{project_dir}/workspace/{uuid}/style_lora', style_model, 'lora_weights.safetensors')
+            base_model_index = 0
+        elif matched['model_id'] is None:
             style_model_path = None
             base_model_index = 0
         else:
@@ -143,7 +171,7 @@ def launch_pipeline(uuid,
     num_images = min(6, num_images)
     print('base model index: ', base_model_index)
     
-    outputs = gen_portrait(use_face_swap, num_images, base_model_index, style_model_path, pos_prompt, neg_prompt, user_image, pose_image, multiplier_style)
+    outputs = gen_portrait(use_face_swap, num_images, base_model_index, style_model_path, pos_prompt, neg_prompt, user_images[0]['name'], pose_image, multiplier_style)
 
     outputs_RGB = []
     for out_tmp in outputs:
@@ -156,7 +184,7 @@ def launch_pipeline(uuid,
 
 
 def launch_pipeline_inpaint(uuid,
-                            user_image,
+                            user_images,
                             num_faces=1,
                             selected_face=1,
                             template_image=None,
@@ -168,9 +196,9 @@ def launch_pipeline_inpaint(uuid,
         else:
             uuid = 'qw'
     
-    if isinstance(user_image, str):
-        if len(user_image) == 0:
-            raise gr.Error('请选择一张用户图像(Please select 1 user image)')
+#    if isinstance(user_image, str):
+#        if len(user_image) == 0:
+#            raise gr.Error('请选择一张用户图像(Please select 1 user image)')
 
     if isinstance(template_image, str):
         if len(template_image) == 0:
@@ -191,7 +219,7 @@ def launch_pipeline_inpaint(uuid,
                  selected_face,
                  pos_prompt,
                  neg_prompt,
-                 user_image)
+                 user_images[0]['name'])
     
     outputs_RGB = []
     for out_tmp in outputs:
@@ -258,6 +286,38 @@ def change_lora_choice(lora_choice):
     else:
         return gr.Gallery.update(visible=False), gr.Text.update(visible=False)
 
+
+def change_style_choice(uuid, style_choice):
+    if not uuid:
+        if os.getenv("MODELSCOPE_ENVIRONMENT") == 'studio':
+            raise gr.Error("请登陆后使用! (Please login first)")
+        else:
+            uuid = 'qw'
+    out_path = f'{project_dir}/workspace/{uuid}/style_lora'
+    if os.path.exists(out_path):
+        choices = os.listdir(out_path)
+    else:
+        choices = []
+    
+    if style_choice == 0:
+        return gr.Gallery.update(visible=True), gr.Radio.update(choices=choices, visible=False)
+    else:
+        return gr.Gallery.update(visible=False), gr.Radio.update(choices=choices, visible=True)
+
+def select_trained_style(trained_styles):
+    return gr.Text.update(value=trained_styles)
+
+def get_tag(imgs):
+    results = []
+    for i in range(len(imgs)):
+        file, old_prompt = imgs[i]
+        img_path = file['name']
+        img = Image.open(img_path)
+        result = tag_model.tag(img, threshold=0.7)
+        results.append([img_path, result])
+        imgs[i][1] = result
+
+    return gr.Gallery.update(value=results, visible=True)
     
 def inference_input():
     with gr.Blocks() as demo:
@@ -266,7 +326,10 @@ def inference_input():
         with gr.Row():
             with gr.Column():
                 with gr.Box():
+                    style_choice = gr.Radio(label="风格模型来源(Whether enhancing face similarity)", choices=["预设风格(Preset styles)", "用户训练风格(User-trained styles)"], type="index", value=None)
                     style_model = gr.Text(label='请选择一种风格(Select a style from the pics below):', interactive=False)
+                    trained_styles = gr.Radio(label='用户训练风格列表(User-trained style list)', choices=[], value=None, type="value", visible=False)
+                    
                     if find_spec('webui'):
                         gallery = gr.Gallery(value=[(item["img"], item["name"]) for item in styles],
                                             label="风格(Style)",
@@ -283,8 +346,17 @@ def inference_input():
                                             visible=True).style(columns=6, object_fit='contain', height=600)
                 
                 with gr.Box():
-                    gr.Markdown('请上传用户人像图片(Please upload a user image)：')
-                    user_image = gr.Image(source='upload', type='filepath', label='输入用户图片(User image)', height=250)
+                    gr.Markdown('请上传一张用户人像图片(Please upload a user image)：')
+                    user_images = gr.Gallery(label="输入用户图片(User image)", show_label=True)
+            
+                    with gr.Row(elem_id="container_row"):
+                        upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
+                                                                    file_count="multiple")
+                        clear_button = gr.Button("清空图片(Clear photos)")
+
+                    clear_button.click(fn=lambda: [], inputs=None, outputs=user_images)
+                    upload_button.upload(upload_file, inputs=[upload_button, user_images], outputs=user_images,
+                                                     queue=False)
 
                 with gr.Accordion("高级选项(Advanced Options)", open=False):
                     # upload one lora file and show the name or path of the file
@@ -323,7 +395,7 @@ def inference_input():
                 with gr.Box():
                     num_images = gr.Number(
                         label='生成图片数量(Number of photos)', value=1, precision=1, minimum=1, maximum=6)
-                    use_face_swap = gr.Radio(label="是否使用人脸相似度增强(Whether enhancing face similarity)", choices=["否(No)", "是(Yes)"], type="index", value="是(Yes)")
+                    use_face_swap = gr.Radio(label="是否使用人脸相似度增强(Whether enhancing face similarity)", choices=["否(No)", "是(Yes)"], type="index", value="否(No)")
                     gr.Markdown('''
                     注意:
                     - 最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
@@ -331,7 +403,7 @@ def inference_input():
                     - 使用自定义LoRA文件需手动输入prompt, 否则可能无法正常触发LoRA文件风格。(You shall provide prompt when using custom LoRA, otherwise desired LoRA style may not be triggered.)
                         ''')
 
-        with gr.Row():
+        with gr.Row(elem_id="container_row"):
             display_button = gr.Button('开始生成(Start!)', variant='primary')
 
         with gr.Box():
@@ -351,7 +423,7 @@ def inference_input():
         style_model.change(update_prompt, style_model, [pos_prompt, multiplier_style], queue=False)
         
         display_button.click(fn=launch_pipeline,
-                             inputs=[uuid, pos_prompt, neg_prompt, user_image, num_images, style_model, lora_choice, multiplier_style,
+                             inputs=[uuid, pos_prompt, neg_prompt, user_images, num_images, style_model, lora_choice, multiplier_style,
                                      pose_image, use_face_swap],
                              outputs=[infer_progress, output_images])
         
@@ -377,13 +449,23 @@ def inference_inpaint():
                 
                 with gr.Box():
                     gr.Markdown('请上传用户人像图片(Please upload a user image)：')
-                    user_image = gr.Image(source='upload', type='filepath', label='输入用户图片(User image)', height=250)
+                    user_images = gr.Gallery(label="输入用户图片(User image)", show_label=True)
+            
+                    with gr.Row(elem_id="container_row"):
+                        upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"],
+                                                                    file_count="multiple")
+                        clear_button = gr.Button("清空图片(Clear photos)")
+
+                    clear_button.click(fn=lambda: [], inputs=None, outputs=user_images)
+                    upload_button.upload(upload_file, inputs=[upload_button, user_images], outputs=user_images,
+                                                     queue=False)
                     
                 num_faces = gr.Number(minimum=1, value=1, precision=1, label='照片中的人脸数目(Number of Faces)')
                 selected_face = gr.Number(minimum=1, value=1, precision=1, label='选择重绘的人脸编号，按从左至右的顺序(Index of Face for inpainting, counting from left to right)')
                 use_face_swap = gr.Radio(label="是否使用人脸相似度增强(Whether enhancing face similarity)", choices=["否(No)", "是(Yes)"], type="index", value="是(Yes)")
 
-        display_button = gr.Button('开始生成(Start Generation)', variant='primary')
+        with gr.Row(elem_id="container_row"):
+            display_button = gr.Button('开始生成(Start Generation)', variant='primary')
         with gr.Box():
             infer_progress = gr.Textbox(
                 label="生成(Generation Progress)",
@@ -399,10 +481,41 @@ def inference_inpaint():
 
         display_button.click(
             fn=launch_pipeline_inpaint,
-            inputs=[uuid, user_image, num_faces, selected_face, template_image, use_face_swap],
+            inputs=[uuid, user_images, num_faces, selected_face, template_image, use_face_swap],
             outputs=[infer_progress, output_images]
         )
 
+    return demo
+
+
+def train_input():
+    with gr.Blocks() as demo:
+        uuid = gr.Text(label="modelscope_uuid", visible=False)
+        
+        output_model_name = gr.Text(label='风格lora模型名称(Style lora name)', visible=True)
+        
+        gallery = gr.Gallery(type='image', label='图片列表(Photos)', height=250, columns=8, visible=True)
+        upload_button = gr.UploadButton("选择图片上传(Upload photos)", file_types=["image"], file_count="multiple")
+        train_folder = gr.Text(label='训练文件夹(Train folder)', visible=False)
+
+        with gr.Row():
+            tag_btn = gr.Button(value='开始打标签(Tag prompt)')
+            rank = gr.Number(label='rank', direction='row', value=32, step=1)
+            num_train_epochs = gr.Number(label='num_train_epochs', direction='row', value=200, step=1)
+
+        prompt_input = gr.Text(label='风格触发词(Trigger word)', visible=True)
+        btn = gr.Button(value='开始训练(Start train)', interactive=False)
+        output_lora = gr.Files(label='输出模型(Output model)', type='file', visible=True)
+        output_prompt = gr.Text(label='风格提示词(Style prompt)', visible=False)
+
+        # 完成待训练图片上传
+        upload_button.upload(fn=set_img, inputs=[upload_button, uuid, output_model_name], outputs=[train_folder, gallery, btn])
+        # 完成公用提示词输入
+        prompt_input.input(fn=set_prompt, outputs=[btn])
+        # 开始给图片打标签（prompt）
+        tag_btn.click(fn=get_tag, inputs=[gallery], outputs=[gallery])
+        # 开始训练
+        btn.click(fn=train_lora, inputs=[uuid, output_model_name, prompt_input, train_folder, gallery, rank, num_train_epochs], outputs=[output_lora, output_prompt])
     return demo
 
 
@@ -433,6 +546,7 @@ for style in styles:
 
 gen_portrait = GenPortrait()
 gen_portrait_inpaint = GenPortrait_inpaint()
+tag_model = init_tag()
 
 with open(
         os.path.join(os.path.dirname(__file__), 'main.css'), "r",
@@ -451,6 +565,8 @@ with gr.Blocks(css=MAIN_CSS_CODE, theme=gr.themes.Soft()) as demo:
             inference_input()
         with gr.TabItem('\N{party popper}免训练固定模板形象写真(Fixed Templates Portrait)'):
             inference_inpaint()
+        with gr.TabItem('\N{party popper}自定义风格模型训练(Style Model Training)'):
+            train_input()
 
 if __name__ == "__main__":
     demo.queue(status_update_rate=1).launch(share=False)
