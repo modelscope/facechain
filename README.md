@@ -120,6 +120,7 @@ print(os.getcwd())
 !pip3 install controlnet_aux==0.0.6
 !pip3 install python-slugify
 !pip3 install diffusers==0.29.0
+!pip3 install peft==0.11.1
 
 # Step4: Start the app service, click "public URL" or "local URL", upload your images to 
 # train your own model and then generate your digital twin.
@@ -153,6 +154,7 @@ pip3 install gradio==3.47.1
 pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
 pip3 install diffusers==0.29.0
+pip3 install peft==0.11.1
 
 # Step5 clone facechain from github
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1

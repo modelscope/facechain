@@ -124,6 +124,7 @@ print(os.getcwd())
 !pip3 install controlnet_aux==0.0.6
 !pip3 install python-slugify
 !pip3 install diffusers==0.29.0
+!pip3 install peft==0.11.1
 
 # Step4: 启动服务，点击生成的URL即可访问web页面，上传照片开始训练和预测
 !python3 app.py
@@ -159,6 +160,7 @@ pip3 install gradio==3.47.1
 pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
 pip3 install diffusers==0.29.0
+pip3 install peft==0.11.1
 
 # Step5: 获取facechain源代码
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1

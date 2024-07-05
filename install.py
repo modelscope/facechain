@@ -12,6 +12,10 @@ if not launch.is_installed("diffusers"):
     print("--installing diffusers...")
     launch.run_pip("install diffusers==0.29.0", "requirements for diffusers")
 
+if not launch.is_installed("peft"):
+    print("--installing peft...")
+    launch.run_pip("install peft==0.11.1", "requirements for peft")
+
 if not launch.is_installed("onnxruntime") and not launch.is_installed("onnxruntime-gpu"):
     import torch.cuda as cuda
     print("Installing onnxruntime")
