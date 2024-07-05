@@ -53,6 +53,10 @@ def select_function(evt: gr.SelectData):
     style = matched[0]
     return gr.Text.update(value=style['name'], visible=True)
 
+def select_function_multi(evt: gr.SelectData):
+    tag = evt.value[1]
+    impath = evt.value[0]
+    return gr.Text.update(value=impath), gr.Text.update(value=tag)
 
 def get_selected_image(state_image_list, evt: gr.SelectData):
     return state_image_list[evt.index]
@@ -318,6 +322,15 @@ def get_tag(imgs):
         imgs[i][1] = result
 
     return gr.Gallery.update(value=results, visible=True)
+
+def modify_tag(gallery, impath, tag):
+    results = []
+    for item in gallery:
+        if item[0]['data'] == impath:
+            results.append([item[0]['name'], tag])
+        else:
+            results.append([item[0]['name'], item[1]])
+    return gr.Gallery.update(value=results)
     
 def inference_input():
     with gr.Blocks() as demo:
@@ -505,6 +518,12 @@ def train_input():
             tag_btn = gr.Button(value='开始打标签(Tag prompt)')
             rank = gr.Number(label='rank', direction='row', value=32, step=1)
             num_train_epochs = gr.Number(label='num_train_epochs', direction='row', value=200, step=1)
+        
+        with gr.Accordion("手动修改标签(Manually modify tags)", open=False):
+            with gr.Row(elem_id="container_row"):
+                current_pth = gr.Text(label='当前图片(Current image)', value=None, visible=False)
+                current_tag = gr.Text(label='当前标签(Current tags)', value=None, visible=True)
+                mod_btn = gr.Button(value='提交修改(Submit modifications)')
 
         prompt_input = gr.Text(label='风格触发词(Trigger word)', visible=True)
         with gr.Row(elem_id="container_row"):
@@ -518,6 +537,10 @@ def train_input():
         prompt_input.input(fn=set_prompt, outputs=[btn])
         # 开始给图片打标签（prompt）
         tag_btn.click(fn=get_tag, inputs=[gallery], outputs=[gallery])
+        # 获取图片标签
+        gallery.select(select_function_multi, None, [current_pth, current_tag], queue=False)
+        # 手动修改标签
+        mod_btn.click(fn=modify_tag, inputs=[gallery, current_pth, current_tag], outputs=[gallery], queue=False)
         # 开始训练
         btn.click(fn=train_lora, inputs=[uuid, output_model_name, prompt_input, train_folder, gallery, rank, num_train_epochs], outputs=[output_lora, output_prompt])
     return demo
