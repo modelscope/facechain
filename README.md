@@ -6,7 +6,7 @@
 <p>
 
 # Breaking News
-
+- We provide training scripts for new styles, offering an automatic training for new style LoRas as well as the corresponding style prompts, along with the one click call in Infinite Style Portrait generation tab! (July 3rd, 2024 UTC)
 - 🚀🚀🚀 We are launching [FACT] into the main branch, offering a 10-second impressive speed and seamless integration with standard ready-to-use LoRas and ControlNets, along with improved instruction-following capabilities ! The original train-based FaceChain is moved to (https://github.com/modelscope/facechain/tree/v3.0.0 ). (May 28th, 2024 UTC)
 - Our work [FaceChain-ImagineID](https://arxiv.org/abs/2403.01901) and [FaceChain-SuDe](https://arxiv.org/abs/2403.06775) got accepted to CVPR 2024 ! (February 27th, 2024 UTC)
 
@@ -30,6 +30,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+- We provide training scripts for new styles, offering an automatic training for new style LoRas as well as the corresponding style prompts, along with the one click call in Infinite Style Portrait generation tab! (July 3rd, 2024 UTC)
 - 🚀🚀🚀 We are launching [FACT], offering a 10-second impressive speed and seamless integration with standard ready-to-use LoRas and ControlNets, along with improved instruction-following capabilities ! (May 28th, 2024 UTC)
 - Our work [FaceChain-ImagineID](https://arxiv.org/abs/2403.01901) and [FaceChain-SuDe](https://arxiv.org/abs/2403.06775) got accepted to CVPR 2024 ! (February 27th, 2024 UTC)
 - 🏆🏆🏆Alibaba Annual Outstanding Open Source Project, Alibaba Annual Open Source Pioneer (Yang Liu, Baigui Sun). (January 20th, 2024 UTC)
@@ -55,10 +56,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # To-Do List
-- Develop train-free methods, make it possible to run on cpu.
 - Develop RLHF methods, make its quality more higher.
-- Provide training scripts for new style lora.
-- Support more style lora (such as those on Civitai).
 - Support more beauty-retouch effects.
 - Provide more funny apps.
 
@@ -121,6 +119,8 @@ print(os.getcwd())
 !pip3 install gradio==3.47.1
 !pip3 install controlnet_aux==0.0.6
 !pip3 install python-slugify
+!pip3 install diffusers==0.29.0
+!pip3 install peft==0.11.1
 
 # Step4: Start the app service, click "public URL" or "local URL", upload your images to 
 # train your own model and then generate your digital twin.
@@ -153,6 +153,8 @@ docker run -it --name facechain -p 7860:7860 --gpus all registry.cn-hangzhou.ali
 pip3 install gradio==3.47.1
 pip3 install controlnet_aux==0.0.6
 pip3 install python-slugify
+pip3 install diffusers==0.29.0
+pip3 install peft==0.11.1
 
 # Step5 clone facechain from github
 GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/modelscope/facechain.git --depth 1
