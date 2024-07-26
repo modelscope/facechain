@@ -5,7 +5,11 @@
     <h1>FaceChain</h1>
 <p>
 
-# Breaking News
+<p align="center">
+<a href="https://trendshift.io/repositories/1185" target="_blank"><img src="https://trendshift.io/api/badge/repositories/1185" alt="modelscope%2Ffacechain | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+</p>
+
+# News
 - We provide training scripts for new styles, offering an automatic training for new style LoRas as well as the corresponding style prompts, along with the one click call in Infinite Style Portrait generation tab! (July 3rd, 2024 UTC)
 - 🚀🚀🚀 We are launching [FACT] into the main branch, offering a 10-second impressive speed and seamless integration with standard ready-to-use LoRas and ControlNets, along with improved instruction-following capabilities ! The original train-based FaceChain is moved to (https://github.com/modelscope/facechain/tree/v3.0.0 ). (May 28th, 2024 UTC)
 - Our work [FaceChain-ImagineID](https://arxiv.org/abs/2403.01901) and [FaceChain-SuDe](https://arxiv.org/abs/2403.06775) got accepted to CVPR 2024 ! (February 27th, 2024 UTC)
