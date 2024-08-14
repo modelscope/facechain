@@ -264,17 +264,19 @@ Furthermore, addressing the issue of poor controllability and richness of genera
 
 The models used in FaceChain:
 
-[1]  Face detection model DamoFD：https://modelscope.cn/models/damo/cv_ddsar_face-detection_iclr23-damofd
+[1]  Face recognition model TransFace：https://www.modelscope.cn/models/iic/cv_vit_face-recognition
 
-[2]  Human parsing model M2FP：https://modelscope.cn/models/damo/cv_resnet101_image-multiple-human-parsing
+[2]  Face detection model DamoFD：https://modelscope.cn/models/damo/cv_ddsar_face-detection_iclr23-damofd
 
-[3]  Skin retouching model ABPN：https://www.modelscope.cn/models/damo/cv_unet_skin_retouching_torch
+[3]  Human parsing model M2FP：https://modelscope.cn/models/damo/cv_resnet101_image-multiple-human-parsing
 
-[4]  Face fusion model：https://www.modelscope.cn/models/damo/cv_unet_face_fusion_torch
+[4]  Skin retouching model ABPN：https://www.modelscope.cn/models/damo/cv_unet_skin_retouching_torch
 
-[5]  FaceChain FACT model: https://www.modelscope.cn/models/yucheng1996/FaceChain-FACT
+[5]  Face fusion model：https://www.modelscope.cn/models/damo/cv_unet_face_fusion_torch
 
-[6]  Face attribute recognition model FairFace: https://modelscope.cn/models/damo/cv_resnet34_face-attribute-recognition_fairface
+[6]  FaceChain FACT model: https://www.modelscope.cn/models/yucheng1996/FaceChain-FACT
+
+[7]  Face attribute recognition model FairFace: https://modelscope.cn/models/damo/cv_resnet34_face-attribute-recognition_fairface
 
 
 # More Information
