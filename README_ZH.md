@@ -255,7 +255,7 @@ FaceChain FACT的解耦训练分为两个部分：从图像解耦人脸，以及
 
 ![image](resources/FAIR.png)
 
-此外，针对写真人脸可控性和丰富度差的问题，FaceChain FACT提出从人脸解耦ID的训练方法，使得写真过程仅控制人物ID而非整个人脸。首先，为了更针对性提取人脸的ID信息并保持部分关键人脸细节，并且更好适应Stable Diffusion的结构，FaceChain FACT采用在大量人脸数据上预训练的基于Transformer架构的人脸特征提取器，抽取其倒数第二层的全部token，后续连接简单的注意力查询模型进行特征投影，从而使得提取的ID特征兼顾上述三点要求。另外，在训练过程中，FaceChain FACT使用Classifier Free Guidance（CFG）的方法，对相同ID对不同人脸写真图片进行随机打乱和舍弃，从而使得模型的输入人脸图片和用于去噪的目标图片可能具有同ID的不同人脸，以进一步避免模型过拟合于人脸的非ID信息。FaceChain FACT对FaceChain海量的精美风格以及姿态控制等功能具有丝滑的兼容能力，生成写真图像如下所示。
+此外，针对写真人脸可控性和丰富度差的问题，FaceChain FACT提出从人脸解耦ID的训练方法，使得写真过程仅控制人物ID而非整个人脸。首先，为了更针对性提取人脸的ID信息并保持部分关键人脸细节，并且更好适应Stable Diffusion的结构，FaceChain FACT采用在大量人脸数据上预训练的基于Transformer架构的人脸特征提取器[TransFace](https://github.com/DanJun6737/TransFace)，抽取其倒数第二层的全部token，后续连接简单的注意力查询模型进行特征投影，从而使得提取的ID特征兼顾上述三点要求。另外，在训练过程中，FaceChain FACT使用Classifier Free Guidance（CFG）的方法，对相同ID对不同人脸写真图片进行随机打乱和舍弃，从而使得模型的输入人脸图片和用于去噪的目标图片可能具有同ID的不同人脸，以进一步避免模型过拟合于人脸的非ID信息。FaceChain FACT对FaceChain海量的精美风格以及姿态控制等功能具有丝滑的兼容能力，生成写真图像如下所示。
 
 ![image](resources/generated_examples.png)   
 
@@ -263,17 +263,19 @@ FaceChain FACT的解耦训练分为两个部分：从图像解耦人脸，以及
 
 FaceChain使用的模型链接：
 
-[1]  人脸检测+关键点模型DamoFD：https://modelscope.cn/models/damo/cv_ddsar_face-detection_iclr23-damofd
+[1]  人脸识别模型TransFace：https://www.modelscope.cn/models/iic/cv_vit_face-recognition
 
-[2]  人体解析模型M2FP：https://modelscope.cn/models/damo/cv_resnet101_image-multiple-human-parsing
+[2]  人脸检测+关键点模型DamoFD：https://modelscope.cn/models/damo/cv_ddsar_face-detection_iclr23-damofd
 
-[3]  人像美肤模型ABPN：https://www.modelscope.cn/models/damo/cv_unet_skin_retouching_torch
+[3]  人体解析模型M2FP：https://modelscope.cn/models/damo/cv_resnet101_image-multiple-human-parsing
 
-[4]  人脸融合模型：https://www.modelscope.cn/models/damo/cv_unet_face_fusion_torch
+[4]  人像美肤模型ABPN：https://www.modelscope.cn/models/damo/cv_unet_skin_retouching_torch
 
-[5]  FaceChain FACT使用模型：https://www.modelscope.cn/models/yucheng1996/FaceChain-FACT
+[5]  人脸融合模型：https://www.modelscope.cn/models/damo/cv_unet_face_fusion_torch
 
-[6]  人脸属性识别模型FairFace：https://modelscope.cn/models/damo/cv_resnet34_face-attribute-recognition_fairface
+[6]  FaceChain FACT使用模型：https://www.modelscope.cn/models/yucheng1996/FaceChain-FACT
+
+[7]  人脸属性识别模型FairFace：https://modelscope.cn/models/damo/cv_resnet34_face-attribute-recognition_fairface
 
 # 更多信息
 
