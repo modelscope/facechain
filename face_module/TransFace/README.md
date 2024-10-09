@@ -1,10 +1,51 @@
-# TransFace: Calibrating Transformer Training for Face Recognition from a Data-Centric Perspective (ICCV-2023)
-This is the official PyTorch implementation of [TransFace](https://openaccess.thecvf.com/content/ICCV2023/html/Dan_TransFace_Calibrating_Transformer_Training_for_Face_Recognition_from_a_Data-Centric_ICCV_2023_paper.html).
+<h2 align="center">TransFace: Calibrating Transformer Training for Face Recognition from a Data-Centric Perspective
+<h5 align="center"> If you like TransFace, please give us a star ⭐ on GitHub for the latest update~
+</h2>
 
-[Arxiv](https://arxiv.org/abs/2308.10133)
+This is the official PyTorch implementation of [[ICCV-2023] TransFace: Calibrating Transformer Training for Face Recognition from a Data-Centric Perspective](https://openaccess.thecvf.com/content/ICCV2023/html/Dan_TransFace_Calibrating_Transformer_Training_for_Face_Recognition_from_a_Data-Centric_ICCV_2023_paper.html).
+
+[[Arxiv Version]](https://arxiv.org/abs/2308.10133)
+
+
+
+![image](docs/TransFace.png)
+
+
+
+## News
+- 🚀🚀🚀 TransFace is integrated in [FaceChain-FACT](https://github.com/modelscope/facechain) as a key identity-preserved module to assist Stable Diffusion in generating human portraits with fine-grained facial details and diverse styles.
+In the newest FaceChain-FACT (Face Adapter with deCoupled Training) version, with only 1 photo and 10 seconds, you can generate personal portraits in different settings (multiple styles now supported!). (May 28th, 2024 UTC)
+
+<a href='https://facechain-fact.github.io/'><img src='https://img.shields.io/badge/Project-Page-Green'></a>  [![YouTube](https://badges.aleen42.com/src/youtube.svg)](https://youtu.be/DHqEl0qwi-M?si=y6VpInXdhIX0HpbI)
+
+ The entire framework of [FaceChain-FACT](https://github.com/modelscope/facechain) is shown in the figure below.
+
+![image](docs/framework.png)
 
 ## ModelScope
 You can quickly experience and invoke our TransFace model on the [ModelScope](https://modelscope.cn/models/damo/cv_vit_face-recognition/summary).
+
+* Quickly utilize our model as a feature extractor to extract facial features from the input image.
+```
+# Usage: Input aligned facial images (112x112) to obtain a 512-dimensional facial feature vector.
+# For convenience, the model integrates the RetinaFace model for face detection and keypoint estimation.
+# Provide two images as input, and for each image, the model will independently perform face detection,
+# select the largest face, align it, and extract the corresponding facial features.
+# Finally, the model will return a similarity score indicating the resemblance between the two faces.
+
+from modelscope.pipelines import pipeline
+from modelscope.utils.constant import Tasks
+from modelscope.outputs import OutputKeys
+import numpy as np
+
+face_mask_recognition_func = pipeline(Tasks.face_recognition, 'damo/cv_vit_face-recognition')
+img1 = 'https://modelscope.oss-cn-beijing.aliyuncs.com/test/images/face_recognition_1.png'
+img2 = 'https://modelscope.oss-cn-beijing.aliyuncs.com/test/images/face_recognition_2.png'
+emb1 = face_mask_recognition_func(img1)[OutputKeys.IMG_EMBEDDING]
+emb2 = face_mask_recognition_func(img2)[OutputKeys.IMG_EMBEDDING]
+sim = np.dot(emb1[0], emb2[0])
+print(f'Face cosine similarity={sim:.3f}, img1:{img1}  img2:{img2}')
+```
 
 ## Requirements
 * Install Pytorch (torch>=1.9.0)
@@ -56,7 +97,7 @@ python eval_ijbc.py --model-prefix work_dirs/glint360k_vit_l/glint360k_model_Tra
 ```
 
 ## Citation
-* If you find it helpful for you, please cite our paper
+* If you find it helpful for you, please consider citing our paper 📝 and giving a star ⭐.
 ```
 @inproceedings{dan2023transface,
   title={TransFace: Calibrating Transformer Training for Face Recognition from a Data-Centric Perspective},
