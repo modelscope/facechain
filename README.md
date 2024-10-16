@@ -175,7 +175,7 @@ Run the app server: click "public URL" --> in the form of: https://xxx.gradio.li
 
 ### 3. stable-diffusion-webui
 
-1. Select the `Extensions Tab`, then choose `Install From URL` (official plugin integration is intergrated, please install from URL currently).
+1. Select the `Extensions Tab`, then choose `Install From URL` (official plugin integration is integrated, please install from URL currently).
    ![image](resources/sdwebui_install.png)
 
 2. Switch to `Installed`, check the FaceChain plugin, then click `Apply and restart UI`. It may take a while for installing the dependencies and downloading the models. Make sure that the "CUDA Toolkit" is installed correctly, otherwise the "mmcv" package cannot be successfully installed.
