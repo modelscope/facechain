@@ -10,6 +10,7 @@
 </p>
 
 # News
+- More Technology Details of FaceChain-FACT train-free portrait generation can be seen in [Paper](https://arxiv.org/abs/2410.12312). (October 17th, 2024 UTC)
 - Our work [TopoFR](https://github.com/modelscope/facechain/tree/main/face_module/TopoFR) got accepted to NeurIPS 2024 ! (September 26th, 2024 UTC)
 - We provide training scripts for new styles, offering an automatic training for new style LoRas as well as the corresponding style prompts, along with the one click call in Infinite Style Portrait generation tab! (July 3rd, 2024 UTC)
 - 🚀🚀🚀 We are launching [FACT] into the main branch, offering a 10-second impressive speed and seamless integration with standard ready-to-use LoRas and ControlNets, along with improved instruction-following capabilities ! The original train-based FaceChain is moved to (https://github.com/modelscope/facechain/tree/v3.0.0 ). (May 28th, 2024 UTC)
@@ -35,6 +36,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+- More Technology Details of FaceChain-FACT train-free portrait generation can be seen in [Paper](https://arxiv.org/abs/2410.12312). (October 17th, 2024 UTC)
 - Our work [TopoFR](https://github.com/modelscope/facechain/tree/main/face_module/TopoFR) got accepted to NeurIPS 2024 ! (September 26th, 2024 UTC)
 - We provide training scripts for new styles, offering an automatic training for new style LoRas as well as the corresponding style prompts, along with the one click call in Infinite Style Portrait generation tab! (July 3rd, 2024 UTC)
 - 🚀🚀🚀 We are launching [FACT], offering a 10-second impressive speed and seamless integration with standard ready-to-use LoRas and ControlNets, along with improved instruction-following capabilities ! (May 28th, 2024 UTC)
@@ -69,7 +71,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 # Citation
 
-Please cite FaceChain in your publications if it helps your research
+Please cite FaceChain and FaceChain-FACT in your publications if it helps your research
 ```
 @article{liu2023facechain,
   title={FaceChain: A Playground for Identity-Preserving Portrait Generation},
@@ -79,6 +81,14 @@ Please cite FaceChain in your publications if it helps your research
           Zhou,  Wenmeng and Chen Yingda and Xie, Xuansong and Sun, Baigui},
   journal={arXiv preprint arXiv:2308.14256},
   year={2023}
+}
+```
+```
+@article{yu2024facechain,
+  title={FaceChain-FACT: Face Adapter with Decoupled Training for Identity-preserved Personalization},
+  author={Yu, Cheng and Xie, Haoyu and Shang, Lei and Liu, Yang and Dan, Jun and Sun, Baigui and Bo, Liefeng},
+  journal={arXiv preprint arXiv:2410.12312},
+  year={2024}
 }
 ```
 
