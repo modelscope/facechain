@@ -89,6 +89,7 @@ Please cite FaceChain and FaceChain-FACT in your publications if it helps your r
   author={Yu, Cheng and Xie, Haoyu and Shang, Lei and Liu, Yang and Dan, Jun and Sun, Baigui and Bo, Liefeng},
   journal={arXiv preprint arXiv:2410.12312},
   year={2024}
+}
 ```
 
 

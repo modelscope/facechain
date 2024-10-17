@@ -82,6 +82,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
   author={Yu, Cheng and Xie, Haoyu and Shang, Lei and Liu, Yang and Dan, Jun and Sun, Baigui and Bo, Liefeng},
   journal={arXiv preprint arXiv:2410.12312},
   year={2024}
+}
 ```
 
 # 环境准备
