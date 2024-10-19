@@ -2,7 +2,7 @@
 <h5 align="center"> If you like TopoFR, please give us a star ⭐ on GitHub for the latest update~
 </h2>
 
-This is the official PyTorch implementation of "[NeurIPS 2024] TopoFR: A Closer Look at Topology Alignment on Face Recognition".
+This is the official PyTorch implementation of ["[NeurIPS 2024] TopoFR: A Closer Look at Topology Alignment on Face Recognition"](https://arxiv.org/abs/2410.10587).
 
 ![image](docs/TopoFR.png)
 
@@ -65,6 +65,12 @@ python eval_ijbc_glint360k.py --model-prefix work_dirs/glint360k_r100/Glint360K_
 ## Citation
 * If you find it helpful for you, please consider citing our paper 📝 and giving a star ⭐.
 ```
+@article{dan2024topofr,
+  title={TopoFR: A Closer Look at Topology Alignment on Face Recognition},
+  author={Dan, Jun and Liu, Yang and Deng, Jiankang and Xie, Haoyu and Li, Siyuan and Sun, Baigui and Luo, Shan},
+  journal={arXiv preprint arXiv:2410.10587},
+  year={2024}
+}
 ```
 
 ## Acknowledgments
