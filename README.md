@@ -305,8 +305,7 @@ The models used in FaceChain:
 This project is licensed under the [Apache License (Version 2.0)](https://github.com/modelscope/modelscope/blob/master/LICENSE).
 
 <div align="center" id="top">
-<p align="center">
-  <a href="#top">
+<div align="center">
+    <a href="#top">
         <img src="https://img.shields.io/badge/Back%20to%20Top-000000?style=for-the-badge&logo=github&logoColor=white" alt="Back to Top">
     </a>
-</p>
