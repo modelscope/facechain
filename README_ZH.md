@@ -7,7 +7,7 @@
 
 # 最新消息
 - 更多关于FaceChain-FACT免训练工作的技术细节可以在 [论文](https://arxiv.org/abs/2410.12312) 里查看. (2024-10-17)
-- Facechain算法创新工作[TopoFR](https://github.com/modelscope/facechain/tree/main/face_module/TopoFR) 被NeurIPS 2024接收录用! (2024-09-26)
+- Facechain算法创新工作[TopoFR](https://arxiv.org/abs/2410.10587) 被NeurIPS 2024接收录用! (2024-09-26)
 - 添加自定义风格模型训练，可全自动训练生成自定义风格LoRa模型以及对应的风格提示词，并在无限风格写真页面支持对训练的自定义风格模型的一键式调用！（2024-07-03）
 - 🚀🚀🚀 正在推出[FACT]到主目录，10秒写真出图，兼容现成的LoRa与ControlNet，并且具备更强的指令跟随能力！原始版本已移至(https://github.com/modelscope/facechain/tree/v3.0.0 )。(2024-05-28)
 - FaceChain两项算法创新工作[FaceChain-ImagineID](https://arxiv.org/abs/2403.01901)与[FaceChain-SuDe](https://arxiv.org/abs/2403.06775)被CVPR 2024接收录用! (2024-02-27)
@@ -31,7 +31,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 # News
 - 更多关于FaceChain-FACT免训练工作的技术细节可以在 [论文](https://arxiv.org/abs/2410.12312) 里查看. (2024-10-17)
-- Facechain算法创新工作[TopoFR](https://github.com/modelscope/facechain/tree/main/face_module/TopoFR) 被NeurIPS 2024接收录用! (2024-09-26)
+- Facechain算法创新工作[TopoFR](https://arxiv.org/abs/2410.10587) 被NeurIPS 2024接收录用! (2024-09-26)
 - 添加自定义风格模型训练，可全自动训练生成自定义风格LoRa模型以及对应的风格提示词，并在无限风格写真页面支持对训练的自定义风格模型的一键式调用！（2024-07-03）
 - 🚀🚀🚀 正在推出[FACT]，10秒写真出图，兼容现成的LoRa与ControlNet，并且具备更强的指令跟随能力！(2024-05-28)
 - FaceChain两项算法创新工作[FaceChain-ImagineID](https://arxiv.org/abs/2403.01901)与[FaceChain-SuDe](https://arxiv.org/abs/2403.06775)被CVPR 2024接收录用! (2024-02-27)
