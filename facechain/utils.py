@@ -25,7 +25,7 @@ def max_retries(max_attempts):
     return decorator
 
 
-@max_retries(3)
+@max_retries(30)
 def snapshot_download(*args, **kwargs):
     return ms_snapshot_download(*args, **kwargs)
 
