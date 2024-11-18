@@ -154,7 +154,7 @@ def main(args):
         for _, (img, local_labels) in enumerate(train_loader):
             global_step += 1
 
-            img_randomaug = img
+            img_randomaug = img.clone()
             probability = 0.2
             batch_index = 0
             for index in range(img.size()[0]):
