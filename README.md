@@ -64,9 +64,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # To-Do List
-- Develop RLHF methods, make its quality more higher.
-- Support more beauty-retouch effects.
-- Provide more funny apps.
+- full-body digital humans
 
 
 # Citation
