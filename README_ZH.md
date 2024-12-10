@@ -58,9 +58,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # 待办事项
-- 研发RLHF模块，进一步提升上限
-- 增加更多美肤功能
-- 开发更多好玩的app
+- 全身数字人
 
 
 # 引用
