@@ -680,7 +680,7 @@ class GenPortrait_inpaint:
         self.fair_face_attribute_func = pipeline(Tasks.face_attribute_recognition,
             snapshot_download('damo/cv_resnet34_face-attribute-recognition_fairface', revision='v2.0.2'))
         
-        base_model_path = snapshot_download('YorickHe/majicmixRealistic_v6', revision='v1.0.0')
+        base_model_path = snapshot_download('MAILAND/majicmixRealistic_v6', revision='v1.0.0')
         base_model_path = os.path.join(base_model_path, 'realistic')
         
         pipe_pose = StableDiffusionControlNetPipeline.from_pretrained(
