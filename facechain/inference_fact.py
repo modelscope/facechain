@@ -328,7 +328,7 @@ class GenPortrait:
         self.fair_face_attribute_func = pipeline(Tasks.face_attribute_recognition,
             snapshot_download('damo/cv_resnet34_face-attribute-recognition_fairface', revision='v2.0.2'))
         
-        base_model_path_maj = snapshot_download('YorickHe/majicmixRealistic_v6', revision='v1.0.0')
+        base_model_path_maj = snapshot_download('MAILAND/majicmixRealistic_v6', revision='v1.0.0')
         base_model_path_maj = os.path.join(base_model_path_maj, 'realistic')
         
         base_model_path_film = snapshot_download('ly261666/cv_portrait_model', revision='v2.0')
