@@ -6,6 +6,7 @@
 <p>
 
 # 最新消息
+- Facechain算法创新工作[FaceChain-MMID](https://www.sciencedirect.com/science/article/abs/pii/S0031320325005187) 在期刊Pattern Recognition上发表! (2025-05-30)
 - 更多关于FaceChain-FACT免训练工作的技术细节可以在 [论文](https://arxiv.org/abs/2410.12312) 里查看. (2024-10-17)
 - Facechain算法创新工作[TopoFR](https://arxiv.org/abs/2410.10587) 被NeurIPS 2024接收录用! (2024-09-26)
 - 添加自定义风格模型训练，可全自动训练生成自定义风格LoRa模型以及对应的风格提示词，并在无限风格写真页面支持对训练的自定义风格模型的一键式调用！（2024-07-03）
@@ -30,6 +31,7 @@ FaceChain的模型由[ModelScope](https://github.com/modelscope/modelscope)开�
 
 
 # News
+- Facechain算法创新工作[FaceChain-MMID](https://www.sciencedirect.com/science/article/abs/pii/S0031320325005187) 在期刊Pattern Recognition上发表! (2025-05-30)
 - 更多关于FaceChain-FACT免训练工作的技术细节可以在 [论文](https://arxiv.org/abs/2410.12312) 里查看. (2024-10-17)
 - Facechain算法创新工作[TopoFR](https://arxiv.org/abs/2410.10587) 被NeurIPS 2024接收录用! (2024-09-26)
 - 添加自定义风格模型训练，可全自动训练生成自定义风格LoRa模型以及对应的风格提示词，并在无限风格写真页面支持对训练的自定义风格模型的一键式调用！（2024-07-03）
