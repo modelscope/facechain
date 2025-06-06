@@ -10,6 +10,7 @@
 </p>
 
 # News
+- Our work [FaceChain-MMID](https://www.sciencedirect.com/science/article/abs/pii/S0031320325005187) got accepted to Pattern Recognition ! (May 30th, 2025 UTC)
 - More Technology Details of FaceChain-FACT train-free portrait generation can be seen in [Paper](https://arxiv.org/abs/2410.12312). (October 17th, 2024 UTC)
 - Our work [TopoFR](https://arxiv.org/abs/2410.10587) got accepted to NeurIPS 2024 ! (September 26th, 2024 UTC)
 - We provide training scripts for new styles, offering an automatic training for new style LoRas as well as the corresponding style prompts, along with the one click call in Infinite Style Portrait generation tab! (July 3rd, 2024 UTC)
@@ -36,6 +37,7 @@ FaceChain is powered by [ModelScope](https://github.com/modelscope/modelscope).
 
 
 # News
+- Our work [FaceChain-MMID](https://www.sciencedirect.com/science/article/abs/pii/S0031320325005187) got accepted to Pattern Recognition ! (May 30th, 2025 UTC)
 - More Technology Details of FaceChain-FACT train-free portrait generation can be seen in [Paper](https://arxiv.org/abs/2410.12312). (October 17th, 2024 UTC)
 - Our work [TopoFR](https://arxiv.org/abs/2410.10587) got accepted to NeurIPS 2024 ! (September 26th, 2024 UTC)
 - We provide training scripts for new styles, offering an automatic training for new style LoRas as well as the corresponding style prompts, along with the one click call in Infinite Style Portrait generation tab! (July 3rd, 2024 UTC)
